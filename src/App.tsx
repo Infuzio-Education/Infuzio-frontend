@@ -1,12 +1,13 @@
-import './App.css'
+import { BrowserRouter } from "react-router-dom";
+import AppRouter from "./routes/Approuter";
+
 
 function App() {
-
   return (
     <>
-
-      INFUZIO
-
+      <BrowserRouter>
+        <AppRouter/>
+      </BrowserRouter>
     </>
   )
 }
