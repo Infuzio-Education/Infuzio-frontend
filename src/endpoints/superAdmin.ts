@@ -1,6 +1,6 @@
 
 const superAdminEndpoints = {
-    login:'superadmin/login',
+    login:'superAdmin/login',
 
 }
 

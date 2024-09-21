@@ -1,24 +1,37 @@
 import { ArrowRight } from 'lucide-react';
 import { useFormik } from "formik";
+import { useDispatch } from 'react-redux';
+import { setSuperAdminInfo } from '../../redux/slices/superAdminSlice/superAdminSlice';
 import { LoginValidationSchema } from '../../validations/LoginValidationSchema';
-import { useNavigate } from 'react-router-dom';
+
 
 const SuperAdminLogin = () => {
-  const navigate = useNavigate();
+
+   let dummyData = {
+    id:'1212121',
+    name:'Rithas Ahamed',
+    profileUrl:''
+   } 
+
+  const dispatch = useDispatch();
 
   const { handleSubmit, handleChange, handleBlur, values, errors, touched } =
-    useFormik({
-      initialValues: {
-        studentId: "",
-        password: "",
-      },
-      validationSchema: LoginValidationSchema,
-      onSubmit: async (values) => {
-        console.log("Form submitted", values);
-        // Assuming login is successful, navigate to the schools page
-        navigate('/superAdmin/schools');
-      },
-    });
+  useFormik({
+    initialValues: {
+      studentId: "",
+      password: "",
+    },
+    validationSchema: LoginValidationSchema,
+    onSubmit: async (values) => {
+      console.log("Form submitted", values);
+      // Add your login logic here
+      dispatch(setSuperAdminInfo({
+        id:dummyData.id,
+        name:dummyData.name,
+        profileUrl:dummyData.profileUrl
+      }))
+    },
+  });
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
