@@ -1,16 +1,16 @@
-
-import { Route, Routes } from "react-router-dom";
-import LoginPage from "../pages/Login";
+import { Route, Routes, Navigate } from "react-router-dom";
+import SuperAdminLogin from "../pages/superAdmin/SuperAdminLogin";
 import Schools from "../pages/superAdmin/Schools";
-import Navbar from '../components/layouts/navbar';
+import Navbar from "../components/layouts/Navbar";
 
 const AppRouter = () => {
   return (
     <Routes>
-      <Route path="/" element={<LoginPage />} />
+      <Route path="/" element={<Navigate to="/superAdmin" replace />} />
+      <Route path="/superAdmin" element={< SuperAdminLogin />} />
       <Route element={<Navbar />}>
-        <Route path="/superAdmin" element={<Schools />} />
-        {/* Add more superAdmin routes here as needed */}
+        <Route path="/superAdmin/schools" element={<Schools />} />
+        {/* <Route path="/superAdmin/createSchool" element={<CreateSchoolForm />} /> */}
       </Route>
     </Routes>
   );

@@ -1,11 +1,14 @@
-import { useState, ChangeEvent } from 'react';
-import { Search, Grid, List, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+import { Search, Grid, List, ArrowRight, ChevronLeft, ChevronRight, PlusCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import Checkbox from '@mui/material/Checkbox';
+
 
 const Schools = () => {
     const [viewMode, setViewMode] = useState('grid');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSchools, setSelectedSchools] = useState<number[]>([]);
+    const navigate = useNavigate();
 
     const schools = [
         { id: 1, name: 'Arts College', syllabus: 'CBSE', logo: 'https://img.freepik.com/premium-vector/education-school-logo-icon-vector-template_644408-645.jpg', location: 'New York' },
@@ -39,9 +42,8 @@ const Schools = () => {
         );
     };
 
-
     return (
-        <div className="min-h-screen bg-gray-100 p-8">
+        <div className="min-h-screen bg-gray-200 p-8 relative">
             <div className="flex justify-between items-center mb-6">
                 <div className="relative">
                     <input
@@ -83,7 +85,7 @@ const Schools = () => {
                                 alt={`${school.name} logo`}
                                 className="w-100 h-40 object-cover"
                             />
-                            <div className="p-1 bg-gray-200 flex-grow flex flex-row items-center">
+                            <div className="p-1 bg-gray-300 flex-grow flex flex-row items-center">
                                 <div className="flex-grow min-w-0 mr-2">
                                     <h2 className="text-lg font-semibold break-words">{school.name}</h2>
                                     <p className="text-sm text-gray-600">{school.syllabus}</p>
@@ -97,7 +99,7 @@ const Schools = () => {
                 <div className="bg-white shadow-md rounded-lg overflow-hidden">
                     <table className="w-full">
                         <thead>
-                            <tr className="bg-gray-200">
+                            <tr className="bg-gray-300">
                                 <th className="p-2 text-left">
                                     <Checkbox
                                         checked={selectedSchools.length === schools.length}
@@ -141,6 +143,16 @@ const Schools = () => {
                     </table>
                 </div>
             )}
+            <div className="fixed bottom-10 right-16 flex items-center space-x-2">
+                <button className="bg-green-500 text-white p-2 rounded-full shadow-lg relative group hover:bg-green-600"
+                    onClick={() => navigate('/superAdmin/createSchool')}
+                >
+                    <PlusCircle size={34} />
+                    <span className="absolute left-[-140px] top-1/2 transform -translate-y-1/2 bg-white text-black text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow">
+                        Create New School
+                    </span>
+                </button>
+            </div>
         </div>
     );
 };

@@ -8,7 +8,7 @@ const Navbar = () => {
 
                     <div className='flex flex-row space-x-8'>
                         <Link to="/superAdmin" className="flex items-center space-x-3 rtl:space-x-reverse">
-                            <img src="infuzio-logo.png" className="h-8" alt="School Admin Logo" />
+                            <img src="/public/infuzio-logo.png" className="h-8" alt="School Admin Logo" />
                         </Link>
 
                         <div className="flex items-center">
@@ -34,7 +34,7 @@ const Navbar = () => {
 
                     <div className="flex flex-row items-center space-x-3 px-3 rtl:space-x-reverse">
                         <span className="text-black">Profile Name</span>
-                        <img src="account.png" className="h-8" alt="Profile Icon" />
+                        <img src="/public/account.png" className="h-8" alt="Profile Icon" />
                     </div>
                 </div>
             </nav>

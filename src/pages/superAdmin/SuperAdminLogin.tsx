@@ -1,20 +1,24 @@
 import { ArrowRight } from 'lucide-react';
 import { useFormik } from "formik";
-import { LoginValidationSchema } from '../validations/LoginValidationSchema';
+import { LoginValidationSchema } from '../../validations/LoginValidationSchema';
+import { useNavigate } from 'react-router-dom';
 
-const LoginPage = () => {
+const SuperAdminLogin = () => {
+  const navigate = useNavigate();
+
   const { handleSubmit, handleChange, handleBlur, values, errors, touched } =
-  useFormik({
-    initialValues: {
-      studentId: "",
-      password: "",
-    },
-    validationSchema: LoginValidationSchema,
-    onSubmit: async (values) => {
-      console.log("Form submitted", values);
-      // Add your login logic here
-    },
-  });
+    useFormik({
+      initialValues: {
+        studentId: "",
+        password: "",
+      },
+      validationSchema: LoginValidationSchema,
+      onSubmit: async (values) => {
+        console.log("Form submitted", values);
+        // Assuming login is successful, navigate to the schools page
+        navigate('/superAdmin/schools');
+      },
+    });
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -24,18 +28,17 @@ const LoginPage = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 mb-1">
-                STUDENT ID*
+                USERNAME*
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <input
                   type="text"
                   id="studentId"
                   name="studentId"
-                  className={`block w-full pr-10 sm:text-sm rounded-md focus:ring-green-500 focus:border-green-500 h-14 px-4 ${
-                    errors.studentId && touched.studentId ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`block w-full pr-10 sm:text-sm rounded-md focus:ring-green-500 focus:border-green-500 h-14 px-4 ${errors.studentId && touched.studentId ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   value={values.studentId}
-                  placeholder='Enter your student Id'
+                  placeholder='Enter your username'
                   onChange={handleChange}
                   onBlur={handleBlur}
                 />
@@ -53,9 +56,8 @@ const LoginPage = () => {
                   type="password"
                   id="password"
                   name="password"
-                  className={`block w-full pr-10 sm:text-sm rounded-md focus:ring-green-500 focus:border-green-500 h-14 px-4 ${
-                    errors.password && touched.password ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`block w-full pr-10 sm:text-sm rounded-md focus:ring-green-500 focus:border-green-500 h-14 px-4 ${errors.password && touched.password ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   value={values.password}
                   placeholder='Enter your password'
                   onChange={handleChange}
@@ -81,4 +83,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default SuperAdminLogin;
