@@ -1,10 +1,18 @@
 import { ArrowRight } from 'lucide-react';
 import { useFormik } from "formik";
 import { LoginValidationSchema } from '../validations/LoginValidationSchema';
+import { useDispatch } from 'react-redux';
+import { setSuperAdminInfo } from '../redux/slices/superAdminSlice/superAdminSlice';
 
 const LoginPage = () => {
 
+   let dummyData = {
+    id:'1212121',
+    name:'Rithas Ahamed',
+    profileUrl:''
+   } 
 
+  const dispatch = useDispatch();
 
   const { handleSubmit, handleChange, handleBlur, values, errors, touched } =
   useFormik({
@@ -16,6 +24,11 @@ const LoginPage = () => {
     onSubmit: async (values) => {
       console.log("Form submitted", values);
       // Add your login logic here
+      dispatch(setSuperAdminInfo({
+        id:dummyData.id,
+        name:dummyData.name,
+        profileUrl:dummyData.profileUrl
+      }))
     },
   });
 
