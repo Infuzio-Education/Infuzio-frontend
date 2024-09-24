@@ -1,7 +1,8 @@
 
 const superAdminEndpoints = {
-    login:'superadmin/login',
-
+    login: 'superAdmin/login',
+    syllabus: 'superAdmin/syllabus',
+    createSchool: 'superAdmin/school'
 }
 
 export default superAdminEndpoints;
