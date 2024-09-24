@@ -1,24 +1,78 @@
+import { useState } from 'react';
+import { Snackbar, Alert, AlertColor } from '@mui/material';
 import { ArrowRight } from 'lucide-react';
 import { useFormik } from "formik";
+import { useDispatch } from 'react-redux';
+import { setSuperAdminInfo } from '../../redux/slices/superAdminSlice/superAdminSlice';
 import { LoginValidationSchema } from '../../validations/LoginValidationSchema';
 import { useNavigate } from 'react-router-dom';
 
 const SuperAdminLogin = () => {
+
+  let dummyData = {
+    id: 'rithas12',
+    name: 'Rithas Ahamed',
+    profileUrl: 'https://img.freepik.com/premium-vector/young-man-face-avater-vector-illustration-design_968209-13.jpg'
+  }
+
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // State for controlling Snackbar
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success'); // 'success' or 'error'
+
+  const handleSnackbarClose = () => {
+    setOpenSnackbar(false);
+  };
+
   const { handleSubmit, handleChange, handleBlur, values, errors, touched } =
-    useFormik({
-      initialValues: {
-        studentId: "",
-        password: "",
-      },
-      validationSchema: LoginValidationSchema,
-      onSubmit: async (values) => {
+  useFormik({
+    initialValues: {
+      studentId: "",
+      password: "",
+    },
+    validationSchema: LoginValidationSchema,
+    onSubmit: async (values) => {
+      try {
         console.log("Form submitted", values);
-        // Assuming login is successful, navigate to the schools page
-        navigate('/superAdmin/schools');
-      },
-    });
+        
+        
+        if (values.studentId === dummyData.id && values.password === '123456') {
+          
+          dispatch(setSuperAdminInfo({
+            id: dummyData.id,
+            name: dummyData.name,
+            profileUrl: dummyData.profileUrl
+          }));
+
+          // Set success message and show snackbar
+          setSnackbarMessage('Login successful!');
+          setSnackbarSeverity('success');
+          setOpenSnackbar(true);
+
+          
+          setTimeout(() => {
+            navigate('/superAdmin/schools');
+          }, 1000); 
+
+        } else {
+    
+          throw new Error('Invalid username or password');
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error(error.message);
+          
+          setSnackbarMessage(error.message || 'Login failed!');
+          setSnackbarSeverity('error');
+          setOpenSnackbar(true);
+        }
+      }
+    },
+  });
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -79,6 +133,18 @@ const SuperAdminLogin = () => {
           </form>
         </div>
       </div>
+
+      {/* Snackbar for success/failure messages */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity as AlertColor} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

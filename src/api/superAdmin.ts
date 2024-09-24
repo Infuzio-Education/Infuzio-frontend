@@ -3,7 +3,10 @@ import superAdminEndpoints from '../endpoints/superAdmin';
 import axios from 'axios';
 
 
-export const superLogin = async (body: any) => {
+
+
+
+export const superLogin = async(body:string)=>{
     try {
         const response = await Api.post(superAdminEndpoints.login, body);
         return response;
