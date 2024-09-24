@@ -1,6 +1,9 @@
 
 const superAdminEndpoints = {
-    login:'superAdmin/login',
+
+    login: 'superAdmin/login',
+    syllabus: 'superAdmin/syllabus',
+    createSchool: 'superAdmin/school'
 
 }
 

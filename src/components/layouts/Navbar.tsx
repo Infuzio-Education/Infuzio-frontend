@@ -1,4 +1,5 @@
 import { Outlet, Link } from 'react-router-dom';
+import Breadcrumbs from '../Breadcrumbs';
 
 const Navbar = () => {
     return (
@@ -43,13 +44,7 @@ const Navbar = () => {
             <nav className="bg-white">
                 <div className="max-w-screen-l px-3 py-1 mx-auto">
                     <div className="flex items-center">
-                        <ul className="flex flex-row font-medium mt-0 space-x-2 rtl:space-x-reverse text-sm text-black">
-                            <li>
-                                <Link to="/superAdmin" className="text-black" aria-current="page">
-                                    Schools
-                                </Link>
-                            </li>
-                        </ul>
+                        <Breadcrumbs />  
                     </div>
                 </div>
             </nav>
