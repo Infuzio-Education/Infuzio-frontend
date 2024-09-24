@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres
+    container_name: postgres-container
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: infuzio 
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 2s
+      retries: 3
+
+  infuzio:
+    # build:
+    #   context: .
+    #   dockerfile: dockerfile
+    image: infuzio-education/infuzio-backend:latest
+    container_name: infuzio-container
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DB_HOST: postgres
+      DB_USER: postgres
+      DB_PASSWORD: 1234
+      DB_NAME: infuzio
+      DB_PORT: 5432
+      SUPER_ADMIN_USERNAME: superadmin
+      SUPER_ADMIN_PASSWORD: adminpwsuper
+      JWT_SECRET_KEY: djfsdhfsdkfhjdshfkdshfh
+      DOCKER_ENV: true
+    depends_on:
+      postgres:
+        condition: service_healthy # Wait for PostgreSQL to be healthy
+    # restart: on-failure  # Restart the infuzio container on failure
+
+volumes:
+  postgres_data:

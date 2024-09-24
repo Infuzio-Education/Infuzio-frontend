@@ -145,7 +145,7 @@ const Schools = () => {
             )}
             <div className="fixed bottom-10 right-16 flex items-center space-x-2">
                 <button className="bg-green-500 text-white p-2 rounded-full shadow-lg relative group hover:bg-green-600"
-                    onClick={() => navigate('/superAdmin/createSchool')}
+                    onClick={() => navigate('/superAdmin/schools/create')}
                 >
                     <PlusCircle size={34} />
                     <span className="absolute left-[-140px] top-1/2 transform -translate-y-1/2 bg-white text-black text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow">
