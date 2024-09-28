@@ -2,7 +2,7 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import SuperAdminLogin from "../pages/superAdmin/SuperAdminLogin";
 import Schools from "../pages/superAdmin/Schools";
 import Navbar from "../components/layouts/Navbar";
-import CreateSchool from "../pages/superAdmin/createSchool";
+import CreateSchool from "../pages/superAdmin/CreateSchool";
 
 const AppRouter = () => {
   return (
@@ -11,7 +11,7 @@ const AppRouter = () => {
       <Route path="/superAdmin" element={< SuperAdminLogin />} />
       <Route element={<Navbar />}>
         <Route path="/superAdmin/schools" element={<Schools />} />
-        <Route path="/superAdmin/createSchool" element={<CreateSchool />} />
+        <Route path="/superAdmin/schools/create" element={<CreateSchool />} />
       </Route>
     </Routes>
   );

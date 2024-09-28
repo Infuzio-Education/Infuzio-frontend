@@ -18,7 +18,7 @@ const SuperAdminLogin = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  // State for controlling Snackbar
+
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success'); // 'success' or 'error'
