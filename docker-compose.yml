@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234
-      POSTGRES_DB: infuzio 
+      POSTGRES_DB: infuzio
     ports:
       - "5432:5432"
     volumes:
@@ -20,7 +20,7 @@ services:
     # build:
     #   context: .
     #   dockerfile: dockerfile
-    image: infuzio-education/infuzio-backend:latest
+    image: ghcr.io/infuzio-education/infuzio-backend:latest
     container_name: infuzio-container
     ports:
       - "3000:3000"
@@ -37,8 +37,9 @@ services:
       DOCKER_ENV: true
     depends_on:
       postgres:
-        condition: service_healthy # Wait for PostgreSQL to be healthy
+        condition: service_healthy  # Wait for PostgreSQL to be healthy
     # restart: on-failure  # Restart the infuzio container on failure
+
 
 volumes:
   postgres_data:
