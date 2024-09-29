@@ -3,12 +3,13 @@ import { Link, useLocation } from 'react-router-dom';
 
 const Breadcrumbs: React.FC = () => {
     const location = useLocation();
-
     const pathSegments: string[] = location.pathname
         .split('/')
         .filter(segment => segment && segment !== 'superAdmin');
 
     const getPath = (index: number): string => '/superAdmin/' + pathSegments.slice(0, index + 1).join('/');
+
+    const schoolName = location.state?.school?.name;
 
     return (
         <nav className="bg-white">
@@ -22,8 +23,8 @@ const Breadcrumbs: React.FC = () => {
                         {pathSegments.map((segment, index) => (
                             <li key={index}>
                                 <span className="mx-1">/</span>
-                                {index === pathSegments.length - 1 ? (
-                                    <span className="text-green-600">{segment}</span>
+                                {index === pathSegments.length - 1 && schoolName ? (
+                                    <span className="text-green-600">{schoolName}</span>
                                 ) : (
                                     <Link to={getPath(index)} className="text-black">
                                         {segment}

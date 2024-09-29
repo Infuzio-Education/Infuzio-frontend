@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Checkbox from '@mui/material/Checkbox';
 
 
-const Schools = () => {
+const ListSchools = () => {
     const [viewMode, setViewMode] = useState('grid');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSchools, setSelectedSchools] = useState<number[]>([]);
@@ -40,6 +40,10 @@ const Schools = () => {
                 ? prev.filter(id => id !== schoolId)
                 : [...prev, schoolId]
         );
+    };
+
+    const handleSchoolClick = (school: any) => {
+        navigate(`/superAdmin/schools/${school.id}`, { state: { school } });
     };
 
     return (
@@ -79,7 +83,11 @@ const Schools = () => {
             {viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
                     {filteredSchools.map((school) => (
-                        <div key={school.id} className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
+                        <div
+                            key={school.id}
+                            className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col cursor-pointer transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1"
+                            onClick={() => handleSchoolClick(school)}
+                        >
                             <img
                                 src={school.logo}
                                 alt={`${school.name} logo`}
@@ -115,17 +123,22 @@ const Schools = () => {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {schools.map((school) => (
-                                <tr key={school.id}>
+                                <tr
+                                    key={school.id}
+                                    className="cursor-pointer transition-colors duration-300 ease-in-out hover:bg-gray-100"
+                                    onClick={() => handleSchoolClick(school)}
+                                >
                                     <td className="p-2 whitespace-nowrap">
                                         <Checkbox
                                             checked={selectedSchools.includes(school.id)}
                                             onChange={() => handleSelectSchool(school.id)}
+                                            onClick={(e) => e.stopPropagation()}
                                         />
                                     </td>
                                     <td className="p-2 whitespace-nowrap">
                                         <img src={school.logo} alt={`${school.name} logo`} className="h-10 w-10 rounded-full" />
                                     </td>
-                                    <td className="p-2whitespace-nowrap">
+                                    <td className="p-2 whitespace-nowrap">
                                         <div className="text-sm font-medium text-gray-900">{school.name}</div>
                                     </td>
                                     <td className="p-2 whitespace-nowrap">
@@ -157,4 +170,4 @@ const Schools = () => {
     );
 };
 
-export default Schools;
+export default ListSchools;
