@@ -6,9 +6,7 @@ import CreateSchool from "../pages/superAdmin/CreateSchool";
 import SchoolProfiles from "../pages/superAdmin/SchoolProfiles";
 import '../index.css'
 import ListSections from "../pages/superAdmin/ListSections";
-
-
-
+import ListSubjects from "../pages/superAdmin/ListSubjects";
 
 const AppRouter = () => {
   return (
@@ -20,9 +18,10 @@ const AppRouter = () => {
         <Route path="/superAdmin/schools/create" element={<CreateSchool />} />
         <Route path="/superAdmin/schools/:id" element={<SchoolProfiles />} />
         <Route path="/superAdmin/sections" element={<ListSections />} />
+        <Route path="/superAdmin/subjects" element={<ListSubjects />} />
       </Route>
     </Routes>
-  );
+  )
 }
 
 export default AppRouter;

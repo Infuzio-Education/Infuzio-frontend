@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import Breadcrumbs from '../Breadcrumbs';
 
@@ -6,22 +6,29 @@ const Navbar: React.FC = () => {
     const location = useLocation();
     const isSchoolsPage = location.pathname.endsWith('/superAdmin/schools') || location.pathname.endsWith('/superAdmin/schools/create');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const dropdownRef = useRef<HTMLUListElement | null>(null);
 
-    const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+    const toggleDropdown = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsDropdownOpen(!isDropdownOpen);
+    };
 
     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        const closeDropdown = () => {
+            if (isDropdownOpen) {
                 setIsDropdownOpen(false);
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('click', closeDropdown);
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('click', closeDropdown);
         };
-    }, []);
+    }, [isDropdownOpen]);
+
+    // New useEffect to close dropdown on route change
+    useEffect(() => {
+        setIsDropdownOpen(false);
+    }, [location]);
 
     return (
         <>
@@ -50,7 +57,7 @@ const Navbar: React.FC = () => {
                                         Configurations
                                     </button>
                                     {isDropdownOpen && (
-                                        <ul ref={dropdownRef} className="absolute left-0 mt-2 w-64 bg-white shadow-md z-10 shadow-gray-400">
+                                        <ul className="absolute left-0 mt-2 w-64 bg-white shadow-md z-10 shadow-gray-400" onClick={(e) => e.stopPropagation()}>
                                             <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Standards</li>
                                             <li>
                                                 <Link to="/superAdmin/configurations/option1" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
@@ -80,7 +87,7 @@ const Navbar: React.FC = () => {
                                             </li>
                                             <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Subjects</li>
                                             <li>
-                                                <Link to="/superAdmin/configurations/option3" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                <Link to="/superAdmin/subjects" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
                                                     Subjects
                                                 </Link>
                                             </li>
