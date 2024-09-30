@@ -23,10 +23,11 @@ export const superLogin = async(body:string)=>{
 export const getSyllabus = async () => {
     try {
         const response = await Api.get(superAdminEndpoints.syllabus);
-        return response;
+        return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
-            return error.response;
+            console.error('Error fetching syllabus:', error.response);
+            throw error;
         } else {
             console.error('Unexpected error:', error);
             throw error;

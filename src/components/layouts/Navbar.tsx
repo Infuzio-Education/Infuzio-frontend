@@ -11,7 +11,7 @@ const Navbar: React.FC = () => {
 
     return (
         <>
-            <nav className="bg-[#308369]">
+            <nav className="bg-[#308369] fixed top-0 left-0 w-full z-50">
                 <div className="flex flex-wrap justify-between items-center mx-auto p-4">
                     <div className="flex flex-row space-x-8">
                         <Link to="/superAdmin" className="flex items-center space-x-3 rtl:space-x-reverse">
@@ -20,7 +20,6 @@ const Navbar: React.FC = () => {
 
                         <div className="flex items-center">
                             <ul className="flex flex-row mt-0 space-x-8 text-sm">
-                                {/* Conditionally render the 'Schools' link when not on the schools page */}
                                 {!isSchoolsPage && (
                                     <li>
                                         <Link to="/superAdmin/schools" className="text-gray-900 dark:text-white">
@@ -29,7 +28,6 @@ const Navbar: React.FC = () => {
                                     </li>
                                 )}
 
-                                {/* Show 'Configurations' button in both cases */}
                                 <li className="relative">
                                     <button
                                         onClick={toggleDropdown}

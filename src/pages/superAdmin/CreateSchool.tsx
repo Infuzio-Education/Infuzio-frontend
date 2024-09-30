@@ -1,53 +1,112 @@
-import React, { useRef, useState } from 'react';
-import { Button, Box, TextField, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import React, { useRef, useState, useEffect } from 'react';
+import { Button, Box, TextField, Select, MenuItem, FormControl, InputLabel, Checkbox, ListItemText } from '@mui/material';
 import { useFormik } from 'formik';
 import superAdminEndpoints from '../../endpoints/superAdmin';
 import Api from '../../api/axiosConfig';
 import { validationSchema } from '../../validations/schoolFormValidationSchema';
-import type { FormData } from '../../types/Types';
+import { getSyllabus } from '../../api/superAdmin';
+import type { SchoolFormData, Syllabus } from '../../types/Types';
 
-
-const initialValues: FormData = {
-    schoolName: '',
-    syllabus: '',
-    addressLine1: '',
-    addressLine2: '',
-    city: '',
-    state: '',
-    country: '',
-    pinCode: '',
-    mobile: '',
+const initialValues: SchoolFormData = {
+    name: '',
+    schoolCode: '',
+    syllabusIDs: [],
+    address: {
+        street1: '',
+        street2: '',
+        city: '',
+        state: '',
+        pincode: '',
+        country: '',
+    },
+    googleMapsLink: '',
+    phone: '',
     email: '',
 };
 
 const CreateSchool: React.FC = () => {
     const [logoFile, setLogoFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [syllabusList, setSyllabusList] = useState<Syllabus[]>([]);
+
+    useEffect(() => {
+        const fetchSyllabus = async () => {
+            try {
+                const response = await getSyllabus();
+                if (response && response.status && response.resp_code === 'SUCCESS' && Array.isArray(response.data)) {
+                    setSyllabusList(response.data);
+                } else {
+                    console.error('Invalid syllabus data:', response);
+                    setSyllabusList([]);
+                }
+            } catch (error) {
+                console.error('Failed to fetch syllabus:', error);
+                setSyllabusList([]);
+            }
+        };
+
+        fetchSyllabus();
+    }, []);
 
     const formik = useFormik({
         initialValues,
         validationSchema,
         onSubmit: async (values) => {
             const data = new FormData();
-            Object.entries(values).forEach(([key, value]) => {
-                data.append(key, value as string);
+
+            const formDataObject = {
+                name: values.name,
+                schoolCode: values.schoolCode,
+                syllabusIDs: values.syllabusIDs,
+                address: {
+                    street1: values.address.street1,
+                    street2: values.address.street2,
+                    city: values.address.city,
+                    state: values.address.state,
+                    pincode: values.address.pincode,
+                    country: values.address.country,
+                },
+                googleMapsLink: values.googleMapsLink,
+                phone: values.phone,
+                email: values.email,
+                schoolLogo: logoFile,
+            };
+
+            // Log the structured data before appending to FormData
+            console.log('FormData Structure to be sent:', JSON.stringify(formDataObject, null, 2));
+
+            // Append to FormData
+            Object.entries(formDataObject).forEach(([key, value]) => {
+                if (key === 'address') {
+                    Object.entries(value).forEach(([addressKey, addressValue]) => {
+                        data.append(`address[${addressKey}]`, addressValue as string);
+                    });
+                } else if (key === 'syllabusIDs') {
+                    (value as number[]).forEach((id, index) => {
+                        data.append(`syllabusIDs[${index}]`, id.toString());
+                    });
+                } else if (key === 'schoolLogo') {
+                    if (value) {
+                        data.append('schoolLogo', value);
+                    }
+                } else {
+                    data.append(key, value as string);
+                }
             });
-            if (logoFile) {
-                data.append('logo', logoFile);
-            }
+
+
 
             try {
                 const response = await Api.post(superAdminEndpoints.createSchool, data, {
                     headers: { 'Content-Type': 'multipart/form-data' },
                 });
                 console.log('School created successfully', response.data);
-
             } catch (error) {
                 console.error('Error creating school:', error);
-
             }
         },
     });
+
 
     const handleLogoClick = () => {
         if (fileInputRef.current) {
@@ -62,9 +121,8 @@ const CreateSchool: React.FC = () => {
         }
     };
 
-
     return (
-        <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4 max-w-lg mx-auto p-5 bg-gray-100 rounded-lg">
+        <form onSubmit={formik.handleSubmit} className="flex flex-col gap-4 max-w-lg mx-auto p-5 bg-gray-200 rounded-lg mt-10">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div
                     className="relative flex items-center justify-center bg-gray-200 border border-dashed border-gray-400 h-36 cursor-pointer"
@@ -95,110 +153,137 @@ const CreateSchool: React.FC = () => {
                     />
                 </div>
 
-
                 <div className="col-span-1 md:col-span-2 space-y-4">
                     <TextField
                         fullWidth
-                        id="schoolName"
-                        name="schoolName"
+                        id="name"
+                        name="name"
                         label="School name"
-                        value={formik.values.schoolName}
+                        value={formik.values.name}
                         onChange={formik.handleChange}
-                        error={formik.touched.schoolName && Boolean(formik.errors.schoolName)}
-                        helperText={formik.touched.schoolName && formik.errors.schoolName}
+                        error={formik.touched.name && Boolean(formik.errors.name)}
+                        helperText={formik.touched.name && formik.errors.name}
                     />
-                    <FormControl fullWidth>
-                        <InputLabel id="syllabus-label">Syllabus</InputLabel>
-                        <Select
-                            labelId="syllabus-label"
-                            id="syllabus"
-                            name="syllabus"
-                            value={formik.values.syllabus}
-                            onChange={formik.handleChange}
-                            error={formik.touched.syllabus && Boolean(formik.errors.syllabus)}
-                        >
-                            <MenuItem value="">Select syllabus</MenuItem>
-                            <MenuItem value="CBSE">CBSE</MenuItem>
-                            <MenuItem value="ICSE">ICSE</MenuItem>
-                            <MenuItem value="State Board">State Board</MenuItem>
-                        </Select>
-                    </FormControl>
+                    <TextField
+                        fullWidth
+                        id="schoolCode"
+                        name="schoolCode"
+                        label="School Code"
+                        value={formik.values.schoolCode}
+                        onChange={formik.handleChange}
+                        error={formik.touched.schoolCode && Boolean(formik.errors.schoolCode)}
+                        helperText={formik.touched.schoolCode && formik.errors.schoolCode}
+                    />
                 </div>
             </div>
 
+            <FormControl fullWidth>
+                <InputLabel id="syllabus-label">Syllabus</InputLabel>
+                <Select
+                    labelId="syllabus-label"
+                    id="syllabusIDs"
+                    name="syllabusIDs"
+                    value={formik.values.syllabusIDs[0] || ''}
+                    onChange={(event) => {
+                        const value = event.target.value as number;
+                        formik.setFieldValue('syllabusIDs', [value]);
+                    }}
+                >
+                    {syllabusList.length === 0 ? (
+                        <MenuItem disabled>Loading syllabus...</MenuItem>
+                    ) : (
+                        syllabusList.map((syllabus) => (
+                            <MenuItem key={syllabus.ID} value={syllabus.ID}>
+                                {syllabus.Name}
+                            </MenuItem>
+                        ))
+                    )}
+                </Select>
+            </FormControl>
 
             <TextField
                 fullWidth
-                id="addressLine1"
-                name="addressLine1"
+                id="address.street1"
+                name="address.street1"
                 label="Address line 1"
-                value={formik.values.addressLine1}
+                value={formik.values.address.street1}
                 onChange={formik.handleChange}
-                error={formik.touched.addressLine1 && Boolean(formik.errors.addressLine1)}
-                helperText={formik.touched.addressLine1 && formik.errors.addressLine1}
+                error={formik.touched.address?.street1 && Boolean(formik.errors.address?.street1)}
+                helperText={formik.touched.address?.street1 && formik.errors.address?.street1}
             />
             <TextField
                 fullWidth
-                id="addressLine2"
-                name="addressLine2"
+                id="address.street2"
+                name="address.street2"
                 label="Address line 2"
-                value={formik.values.addressLine2}
+                value={formik.values.address.street2}
                 onChange={formik.handleChange}
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <TextField
                     fullWidth
-                    id="city"
-                    name="city"
+                    id="address.city"
+                    name="address.city"
                     label="City"
-                    value={formik.values.city}
+                    value={formik.values.address.city}
                     onChange={formik.handleChange}
-                    error={formik.touched.city && Boolean(formik.errors.city)}
-                    helperText={formik.touched.city && formik.errors.city}
+                    error={formik.touched.address?.city && Boolean(formik.errors.address?.city)}
+                    helperText={formik.touched.address?.city && formik.errors.address?.city}
                 />
                 <TextField
                     fullWidth
-                    id="state"
-                    name="state"
+                    id="address.state"
+                    name="address.state"
                     label="State"
-                    value={formik.values.state}
+                    value={formik.values.address.state}
                     onChange={formik.handleChange}
-                    error={formik.touched.state && Boolean(formik.errors.state)}
-                    helperText={formik.touched.state && formik.errors.state}
+                    error={formik.touched.address?.state && Boolean(formik.errors.address?.state)}
+                    helperText={formik.touched.address?.state && formik.errors.address?.state}
                 />
                 <TextField
                     fullWidth
-                    id="country"
-                    name="country"
+                    id="address.country"
+                    name="address.country"
                     label="Country"
-                    value={formik.values.country}
+                    value={formik.values.address.country}
                     onChange={formik.handleChange}
-                    error={formik.touched.country && Boolean(formik.errors.country)}
-                    helperText={formik.touched.country && formik.errors.country}
+                    error={formik.touched.address?.country && Boolean(formik.errors.address?.country)}
+                    helperText={formik.touched.address?.country && formik.errors.address?.country}
                 />
             </div>
-            <TextField
-                fullWidth
-                id="pinCode"
-                name="pinCode"
-                label="Pin code"
-                value={formik.values.pinCode}
-                onChange={formik.handleChange}
-                error={formik.touched.pinCode && Boolean(formik.errors.pinCode)}
-                helperText={formik.touched.pinCode && formik.errors.pinCode}
-            />
-
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <TextField
+                    fullWidth
+                    id="address.pincode"
+                    name="address.pincode"
+                    label="Pin code"
+                    value={formik.values.address.pincode}
+                    onChange={formik.handleChange}
+                    error={formik.touched.address?.pincode && Boolean(formik.errors.address?.pincode)}
+                    helperText={formik.touched.address?.pincode && formik.errors.address?.pincode}
+                />
+                <TextField
+                    fullWidth
+                    id="googleMapsLink"
+                    name="googleMapsLink"
+                    label="Google Maps Link"
+                    value={formik.values.googleMapsLink}
+                    onChange={formik.handleChange}
+                    error={formik.touched.googleMapsLink && Boolean(formik.errors.googleMapsLink)}
+                    helperText={formik.touched.googleMapsLink && formik.errors.googleMapsLink}
+                />
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <TextField
                     fullWidth
-                    id="mobile"
-                    name="mobile"
-                    label="Mobile"
-                    value={formik.values.mobile}
+                    id="phone"
+                    name="phone"
+                    label="Phone"
+                    value={formik.values.phone}
                     onChange={formik.handleChange}
-                    error={formik.touched.mobile && Boolean(formik.errors.mobile)}
-                    helperText={formik.touched.mobile && formik.errors.mobile}
+                    error={formik.touched.phone && Boolean(formik.errors.phone)}
+                    helperText={formik.touched.phone && formik.errors.phone}
                 />
                 <TextField
                     fullWidth
@@ -212,9 +297,8 @@ const CreateSchool: React.FC = () => {
                 />
             </div>
 
-
             <Box display="flex" justifyContent="space-between" mt={4}>
-                <Button variant="text" color="error" onClick={() => {/* TODO: Implement cancel action */ }}>
+                <Button variant="text" color="error" onClick={() => { /* Handle cancel */ }}>
                     Cancel
                 </Button>
                 <Button variant="contained" color="primary" type="submit">
