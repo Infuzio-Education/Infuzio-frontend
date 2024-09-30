@@ -1,3 +1,4 @@
+# command: docker-compose pull infuzio; docker-compose up   
 services:
   postgres:
     image: postgres
@@ -9,10 +10,10 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - infuzio_postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
-      interval: 5s
+      interval: 2s
       timeout: 2s
       retries: 3
 
@@ -20,6 +21,7 @@ services:
     # build:
     #   context: .
     #   dockerfile: dockerfile
+    platform: linux/amd64
     image: ghcr.io/infuzio-education/infuzio-backend:latest
     container_name: infuzio-container
     ports:
@@ -42,4 +44,5 @@ services:
 
 
 volumes:
-  postgres_data:
+  infuzio_postgres_data:
+    name: "infuzio_postgres_data"
