@@ -1,0 +1,49 @@
+# uses image based on dev branch (updates automatically when pr request to dev branch is accepted)
+# command: docker-compose -f deployment/docker-compose-upon-dev-merge.yml pull infuzio; docker-compose -f deployment/docker-compose-upon-dev-merge.yml up
+services:
+  postgres:
+    image: postgres
+    container_name: postgres-container
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: infuzio
+    ports:
+      - "5432:5432"
+    volumes:
+      - infuzio_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
+  infuzio:
+    # build:
+    #   context: .
+    #   dockerfile: dockerfile
+    platform: linux/amd64
+    image: ghcr.io/infuzio-education/infuzio-backend:latest
+    container_name: infuzio-container
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DB_HOST: postgres
+      DB_USER: postgres
+      DB_PASSWORD: 1234
+      DB_NAME: infuzio
+      DB_PORT: 5432
+      SUPER_ADMIN_USERNAME: superadmin
+      SUPER_ADMIN_PASSWORD: adminpwsuper
+      JWT_SECRET_KEY: djfsdhfsdkfhjdshfkdshfh
+      DOCKER_ENV: true
+    depends_on:
+      postgres:
+        condition: service_healthy  # Wait for PostgreSQL to be healthy
+    # restart: on-failure  # Restart the infuzio container on failure
+
+
+volumes:
+  infuzio_postgres_data:
+    name: "infuzio_postgres_data"
