@@ -12,8 +12,8 @@ const Breadcrumbs: React.FC = () => {
     const schoolName = location.state?.school?.name;
 
     return (
-        <nav className="bg-white">
-            <div className="max-w-screen-l px-3 py-1 mx-auto">
+        <nav className="bg-white fixed top-16 left-0 w-full z-40">
+            <div className="max-w-screen-l px-3 py-2 mx-auto">
                 <div className="flex items-center">
                     <ul className="flex flex-row font-medium mt-0 space-x-1 rtl:space-x-reverse text-sm text-black">
                         <li>
@@ -23,10 +23,10 @@ const Breadcrumbs: React.FC = () => {
                         {pathSegments.map((segment, index) => (
                             <li key={index}>
                                 <span className="mx-1">/</span>
-                                {index === pathSegments.length - 1 && schoolName ? (
-                                    <span className="text-green-600">{schoolName}</span>
+                                {index === pathSegments.length - 1 ? (
+                                    <span className="text-green-600">{schoolName || segment}</span>
                                 ) : (
-                                    <Link to={getPath(index)} className="text-black">
+                                    <Link to={getPath(index)} className="">
                                         {segment}
                                     </Link>
                                 )}
