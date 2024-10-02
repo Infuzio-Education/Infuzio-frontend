@@ -23,10 +23,10 @@ const Breadcrumbs: React.FC = () => {
                         {pathSegments.map((segment, index) => (
                             <li key={index}>
                                 <span className="mx-1">/</span>
-                                {index === pathSegments.length - 1 && schoolName ? (
-                                    <span className="text-green-600">{schoolName}</span>
+                                {index === pathSegments.length - 1 ? (
+                                    <span className="text-green-600">{schoolName || segment}</span>
                                 ) : (
-                                    <Link to={getPath(index)} className="text-black">
+                                    <Link to={getPath(index)} className="">
                                         {segment}
                                     </Link>
                                 )}

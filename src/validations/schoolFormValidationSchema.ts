@@ -12,13 +12,13 @@ export const validationSchema = Yup.object({
         .required('School code is required'),
     syllabusIDs: Yup.array()
         .of(Yup.number().required('Invalid syllabus ID'))
-        .min(1, 'A syllabus must be selected')
-        .max(1, 'Only one syllabus can be selected'),
+        .min(1, 'At least one syllabus must be selected')
+        .required('Syllabus selection is required'),
     address: Yup.object({
         street1: Yup.string()
             .required('Street 1 is required'),
         street2: Yup.string()
-            .notRequired(), 
+            .notRequired(),
         city: Yup.string()
             .required('City is required'),
         state: Yup.string()
@@ -31,7 +31,7 @@ export const validationSchema = Yup.object({
     }),
     googleMapsLink: Yup.string()
         .url('Must be a valid URL')
-        .notRequired(),  
+        .notRequired(),
     phone: Yup.string()
         .matches(phoneRegExp, 'Phone number must be in E.164 format (e.g. +1234567890)')
         .required('Phone number is required'),
@@ -40,13 +40,13 @@ export const validationSchema = Yup.object({
         .required('Email is required'),
     schoolLogo: Yup.mixed()
         .test('fileSize', 'File too large (Max 5MB)', (value) => {
-            if (!value) return true; 
+            if (!value) return true;
             return value instanceof File && value.size <= 5000000; // 5MB limit
         })
-        .test('fileFormat', 'Unsupported Format', function(value) {
-            if (!value) return true; 
+        .test('fileFormat', 'Unsupported Format', function (value) {
+            if (!value) return true;
             const fileType = (value as File)?.type;
             return ['image/jpg', 'image/jpeg', 'image/gif', 'image/png'].includes(fileType);
         })
-        .notRequired(),  
+        .notRequired(),
 });

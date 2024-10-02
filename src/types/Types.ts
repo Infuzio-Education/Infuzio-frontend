@@ -1,5 +1,5 @@
 export interface Syllabus {
-    ID: number;  
+    ID: number;
     Name: string;
 }
 
@@ -15,7 +15,7 @@ export interface SchoolAddress {
 export interface SchoolFormData {
     name: string;
     schoolCode: string;
-    syllabusIDs: number[];  // Keep this as an array for consistency with the backend
+    syllabusIDs: number[];
     address: SchoolAddress;
     googleMapsLink: string;
     phone: string;

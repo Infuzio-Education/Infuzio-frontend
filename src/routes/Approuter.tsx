@@ -4,6 +4,7 @@ import ListSchools from "../pages/superAdmin/ListSchools";
 import Navbar from "../components/layouts/Navbar";
 import CreateSchool from "../pages/superAdmin/CreateSchool";
 import SchoolProfiles from "../pages/superAdmin/SchoolProfiles";
+import '../index.css'
 
 
 const AppRouter = () => {
