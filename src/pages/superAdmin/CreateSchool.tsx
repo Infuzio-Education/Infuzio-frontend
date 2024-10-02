@@ -93,7 +93,6 @@ const CreateSchool: React.FC = () => {
 
             try {
                 const response = await createSchool(data);
-                console.log("Error", response);
 
                 if (response.status === 200 || response.status === 201) {
                     setSnackbar({ open: true, message: 'School created successfully!', severity: 'success', position: { vertical: 'top', horizontal: 'right' } });
@@ -146,8 +145,7 @@ const CreateSchool: React.FC = () => {
                     e.preventDefault();
                     formik.handleSubmit(e);
                 }}
-
-                className="flex flex-col gap-4 max-w-lg mx-auto p-5 bg-gray-200 rounded-lg"
+                className="flex flex-col gap-4 max-w-lg mx-auto p-5 bg-gray-200 rounded-lg mt-10"
             >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div
@@ -205,8 +203,8 @@ const CreateSchool: React.FC = () => {
                             label="School Code"
                             value={formik.values.schoolCode}
                             onChange={formik.handleChange}
-                            error={formik.touched.name && Boolean(formik.errors.name)}
-                            helperText={formik.touched.name && formik.errors.name}
+                            error={formik.touched.schoolCode && Boolean(formik.errors.schoolCode)}
+                            helperText={formik.touched.schoolCode && formik.errors.schoolCode}
                         />
                     </div>
                 </div>
