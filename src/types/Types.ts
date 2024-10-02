@@ -1,12 +1,23 @@
-export interface FormData {
-    schoolName: string;
-    syllabus: string;
-    addressLine1: string;
-    addressLine2: string;
+export interface Syllabus {
+    ID: number;
+    Name: string;
+}
+
+export interface SchoolAddress {
+    street1: string;
+    street2: string;
     city: string;
     state: string;
+    pincode: string;
     country: string;
-    pinCode: string;
-    mobile: string;
+}
+
+export interface SchoolFormData {
+    name: string;
+    schoolCode: string;
+    syllabusIDs: number[];
+    address: SchoolAddress;
+    googleMapsLink: string;
+    phone: string;
     email: string;
 }

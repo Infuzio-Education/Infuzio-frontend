@@ -47,7 +47,7 @@ const ListSchools = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-200 p-8 relative">
+        <div className="min-h-screen bg-gray-200 p-8 pt-10 relative">
             <div className="flex justify-between items-center mb-6">
                 <div className="relative">
                     <input
@@ -85,7 +85,7 @@ const ListSchools = () => {
                     {filteredSchools.map((school) => (
                         <div
                             key={school.id}
-                            className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col cursor-pointer transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1"
+                            className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col cursor-pointer"
                             onClick={() => handleSchoolClick(school)}
                         >
                             <img
@@ -125,7 +125,7 @@ const ListSchools = () => {
                             {schools.map((school) => (
                                 <tr
                                     key={school.id}
-                                    className="cursor-pointer transition-colors duration-300 ease-in-out hover:bg-gray-100"
+                                    className="cursor-pointer"
                                     onClick={() => handleSchoolClick(school)}
                                 >
                                     <td className="p-2 whitespace-nowrap">
