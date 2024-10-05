@@ -12,8 +12,8 @@ const ListSections: React.FC = () => {
         { id: 2, name: "Upper Primary", code: "UP", classes: ["5th", "6th", "7th", "8th"] },
     ]);
 
-    const [selectedSections, setSelectedSections] = useState<number[]>([]); // State to track selected checkboxes
-    const [selectAll, setSelectAll] = useState<boolean>(false); // State to track the "select all" checkbox
+    const [selectedSections, setSelectedSections] = useState<number[]>([]);
+    const [selectAll, setSelectAll] = useState<boolean>(false);
 
     const handleOpenModal = (section: Section | null) => {
         setEditingSection(section);
@@ -40,19 +40,15 @@ const ListSections: React.FC = () => {
         setSections(sections.filter(section => section.id !== id));
     };
 
-    // Toggle "Select All" checkboxes
     const handleSelectAll = () => {
         if (selectAll) {
-            // Deselect all
             setSelectedSections([]);
         } else {
-            // Select all
             setSelectedSections(sections.map(section => section.id));
         }
-        setSelectAll(!selectAll); // Toggle "select all" state
+        setSelectAll(!selectAll);
     };
 
-    // Toggle individual row checkbox
     const handleSelectSection = (id: number) => {
         if (selectedSections.includes(id)) {
             setSelectedSections(selectedSections.filter(selectedId => selectedId !== id));
