@@ -5,6 +5,9 @@ import Navbar from "../components/layouts/Navbar";
 import CreateSchool from "../pages/superAdmin/CreateSchool";
 import SchoolProfiles from "../pages/superAdmin/SchoolProfiles";
 import '../index.css'
+import ListSections from "../pages/superAdmin/ListSections";
+
+
 
 
 const AppRouter = () => {
@@ -16,6 +19,7 @@ const AppRouter = () => {
         <Route path="/superAdmin/schools" element={<ListSchools />} />
         <Route path="/superAdmin/schools/create" element={<CreateSchool />} />
         <Route path="/superAdmin/schools/:id" element={<SchoolProfiles />} />
+        <Route path="/superAdmin/sections" element={<ListSections />} />
       </Route>
     </Routes>
   );

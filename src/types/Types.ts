@@ -21,3 +21,17 @@ export interface SchoolFormData {
     phone: string;
     email: string;
 }
+
+export interface Section {
+    id: number;
+    name: string;
+    code: string;
+    classes: string[];
+}
+
+
+export interface CreateSectionProps {
+    initialData: Section | null;
+    onSave: (section: Section) => void;
+    onCancel: () => void;
+}
