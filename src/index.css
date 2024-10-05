@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 body {
+
     /* padding-top: 60px; */
     background-color: bg-gray-200;
 }

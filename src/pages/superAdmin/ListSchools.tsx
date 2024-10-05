@@ -47,7 +47,7 @@ const ListSchools = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-200 p-8 relative">
+        <div className="min-h-screen bg-gray-200 p-8 pt-10 relative">
             <div className="flex justify-between items-center mb-6">
                 <div className="relative">
                     <input
