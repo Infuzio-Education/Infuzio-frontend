@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Search, Grid, List, ArrowRight, ChevronLeft, ChevronRight, PlusCircle } from 'lucide-react';
+import { ArrowRight, PlusCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Checkbox from '@mui/material/Checkbox';
+import ListControls from '../../components/ListControls';
 
 
 const ListSchools = () => {
@@ -48,37 +49,13 @@ const ListSchools = () => {
 
     return (
         <div className="min-h-screen bg-gray-200 p-8 relative">
-            <div className="flex justify-between items-center mb-6">
-                <div className="relative">
-                    <input
-                        type="text"
-                        placeholder="Search schools..."
-                        className="pl-10 pr-4 py-2 border rounded-lg"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                    <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
-                </div>
-                <div className="flex items-center space-x-4">
-                    <span className="text-sm font-medium">
-                        {`${1}-${schools.length} / ${schools.length}`}
-                    </span>
-                    <ChevronLeft className="text-gray-600 cursor-pointer" size={20} />
-                    <ChevronRight className="text-gray-600 cursor-pointer" size={20} />
-                    <button
-                        onClick={() => setViewMode('grid')}
-                        className={`p-2 rounded ${viewMode === 'grid' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                    >
-                        <Grid size={20} />
-                    </button>
-                    <button
-                        onClick={() => setViewMode('list')}
-                        className={`p-2 rounded ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                    >
-                        <List size={20} />
-                    </button>
-                </div>
-            </div>
+            <ListControls
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+                itemCount={schools.length}
+            />
 
             {viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
