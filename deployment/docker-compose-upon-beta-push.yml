@@ -1,7 +1,9 @@
+# uses image based on dev branch (updates automatically when push to beta branch(in upstream(infuzio org's backend repo)) is made)
+# command: docker-compose -f deployment/docker-compose-upon-beta-push.yml pull infuzio-beta; docker-compose -f deployment/docker-compose-upon-beta-push.yml up
 services:
   postgres:
     image: postgres
-    container_name: postgres-container
+    container_name: postgres-beta
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234
@@ -9,20 +11,20 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - infuzio_postgres_data:/var/lib/postgresql/data
+      - infuzio_psql_beta:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres" ]
       interval: 2s
       timeout: 2s
       retries: 3
 
-  infuzio:
+  infuzio-beta:
     # build:
     #   context: .
     #   dockerfile: dockerfile
     platform: linux/amd64
-    image: ghcr.io/infuzio-education/infuzio-backend:latest
-    container_name: infuzio-container
+    image: ghcr.io/infuzio-education/infuzio-backend-test:latest
+    container_name: infuzio-beta
     ports:
       - "3000:3000"
     environment:
@@ -43,5 +45,5 @@ services:
 
 
 volumes:
-  infuzio_postgres_data:
-    name: "infuzio_postgres_data"
+  infuzio_psql_beta:
+    name: "infuzio_psql_beta"
