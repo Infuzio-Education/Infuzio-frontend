@@ -3,7 +3,10 @@
 @tailwind utilities;
 
 body {
+<<<<<<< HEAD
 
+=======
+>>>>>>> super-admin
     /* padding-top: 60px; */
     background-color: bg-gray-200;
 }

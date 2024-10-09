@@ -3,6 +3,7 @@ import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
 import CreateSection from './CreateSection';
 import { Section } from '../../types/Types';
+import ListControls from '../../components/ListControls'; // Import the new component
 
 const ListSections: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -14,6 +15,8 @@ const ListSections: React.FC = () => {
 
     const [selectedSections, setSelectedSections] = useState<number[]>([]);
     const [selectAll, setSelectAll] = useState<boolean>(false);
+    const [searchTerm, setSearchTerm] = useState<string>('');
+    const [viewMode, setViewMode] = useState<string>('list');
 
     const handleOpenModal = (section: Section | null) => {
         setEditingSection(section);
@@ -59,11 +62,18 @@ const ListSections: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-200 p-8 relative">
+            <ListControls
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+                itemCount={sections.length}
+            />
             <div className="bg-white shadow-md rounded-lg overflow-hidden">
                 <table className="w-full">
                     <thead>
                         <tr className="bg-gray-300">
-                            <th className="p-1 text-center w-1/12">
+                            <th className=" text-center w-1/12">
                                 <Checkbox
                                     checked={selectAll}
                                     onChange={handleSelectAll}
@@ -78,7 +88,7 @@ const ListSections: React.FC = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {sections.map((section) => (
                             <tr key={section.id} className="cursor-pointer">
-                                <td className="p-1 text-center">
+                                <td className=" text-center">
                                     <Checkbox
                                         checked={selectedSections.includes(section.id)}
                                         onChange={() => handleSelectSection(section.id)}
@@ -120,7 +130,6 @@ const ListSections: React.FC = () => {
             </div>
             <Modal
                 open={openModal}
-                onClose={handleCloseModal}
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
             >
