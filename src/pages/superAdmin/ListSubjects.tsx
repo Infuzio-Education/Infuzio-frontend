@@ -143,7 +143,10 @@ const ListSubjects: React.FC = () => {
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: 400,
+                    width: 1000, // Increased the width to 600px
+                    maxWidth: '90%', // Ensures modal doesn't exceed 90% of viewport width
+                    height: 900, // Added height for more space
+                    maxHeight: '90%', // Ensures modal doesn't exceed 90% of viewport height
                     bgcolor: 'background.paper',
                     boxShadow: 24,
                     p: 4,

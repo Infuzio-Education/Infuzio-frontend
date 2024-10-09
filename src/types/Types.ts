@@ -49,3 +49,31 @@ export interface CreateSubjectProps {
     onSave: (subject: Subject) => void;
     onCancel: () => void;
 }
+
+export interface CustomTabsProps {
+    labels: string[];
+    children: React.ReactNode;
+}
+
+export interface Teacher {
+    id: number;
+    name: string;
+    email: string;
+}
+
+export interface Column {
+    id: string;
+    label: string;
+    minWidth?: number;
+}
+
+export interface DynamicTableProps {
+    columns: Column[];
+    rows: any[];
+    selectable?: boolean;
+    selectedRows?: any[];
+    onRowSelect?: (row: any) => void;
+    onRowRemove?: (row: any) => void;
+    showCloseIcon?: boolean;
+}
+
