@@ -35,3 +35,45 @@ export interface CreateSectionProps {
     onSave: (section: Section) => void;
     onCancel: () => void;
 }
+
+export interface Subject {
+    id: number;
+    name: string;
+    code: string;
+    minMarks: number;
+    maxMarks: number;
+}
+
+export interface CreateSubjectProps {
+    initialData: Subject | null;
+    onSave: (subject: Subject) => void;
+    onCancel: () => void;
+}
+
+export interface CustomTabsProps {
+    labels: string[];
+    children: React.ReactNode;
+}
+
+export interface Teacher {
+    id: number;
+    name: string;
+    email: string;
+}
+
+export interface Column {
+    id: string;
+    label: string;
+    minWidth?: number;
+}
+
+export interface DynamicTableProps {
+    columns: Column[];
+    rows: any[];
+    selectable?: boolean;
+    selectedRows?: any[];
+    onRowSelect?: (row: any) => void;
+    onRowRemove?: (row: any) => void;
+    showCloseIcon?: boolean;
+}
+
