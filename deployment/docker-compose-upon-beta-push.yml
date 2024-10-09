@@ -1,0 +1,77 @@
+# uses image based on dev branch (updates automatically when push to beta branch(in upstream(infuzio org's backend repo)) is made)
+# command for beta: docker-compose -f deployment/docker-compose-upon-beta-push.yml pull infuzio-beta; docker-compose -f deployment/docker-compose-upon-beta-push.yml up
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres-beta
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: infuzio
+    ports:
+      - "5432:5432"
+    volumes:
+      - infuzio_psql_beta:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 2s
+      timeout: 2s
+      retries: 3
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000" # MinIO port
+      - "9001:9001" # MinIO admin console port
+    networks:
+      - infuzio_network
+    environment:
+      - MINIO_ROOT_USER=Infuzio@123 # Access Key
+      - MINIO_ROOT_PASSWORD=123Infuzio # Secret Key
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+
+  infuzio-beta:
+    # build:
+    #   context: .
+    #   dockerfile: dockerfile
+    platform: linux/amd64
+    image: ghcr.io/infuzio-education/infuzio-backend-test:latest
+    container_name: infuzio-beta
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DB_HOST: postgres
+      DB_USER: postgres
+      DB_PASSWORD: 1234
+      DB_NAME: infuzio
+      DB_PORT: 5432
+      AWS_REGION: us-east-1
+      AWS_BUCKET_NAME: infuzio
+      AWS_ACCESS_KEY: Infuzio@123
+      AWS_SECRET_KEY: 123Infuzio
+      SUPER_ADMIN_USERNAME: superadmin
+      SUPER_ADMIN_PASSWORD: adminpwsuper
+      JWT_SECRET_KEY: djfsdhfsdkfhjdshfkdsh
+      MINIO: "true"
+      MINIO_URL: http://minio:9000
+      DOCKER_ENV: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy # Wait for PostgreSQL to be healthy
+    # restart: on-failure  # Restart the infuzio container on failure
+
+
+volumes:
+  infuzio_psql_beta:
+    name: "infuzio_psql_beta"
+  minio_data:
+    name: "minio_data"
+
+networks:
+  infuzio_network:
+    driver: bridge
