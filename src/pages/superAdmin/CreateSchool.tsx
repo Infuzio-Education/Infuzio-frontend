@@ -7,6 +7,7 @@ import type { SchoolFormData, Syllabus } from '../../types/Types';
 import { X } from 'lucide-react';
 import SnackbarComponent from '../../components/SnackbarComponent';
 
+
 const initialValues: SchoolFormData = {
     name: '',
     schoolCode: '',
