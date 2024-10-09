@@ -8,7 +8,6 @@ import '../index.css'
 import ListSections from "../pages/superAdmin/ListSections";
 import ListSubjects from "../pages/superAdmin/ListSubjects";
 
-
 const AppRouter = () => {
   return (
     <Routes>
