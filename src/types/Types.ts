@@ -48,9 +48,6 @@ export interface CreateSubjectProps {
     initialData: Subject | null;
     onSave: (subject: Subject) => void;
     onCancel: () => void;
-<<<<<<< HEAD
-}
-=======
 }
 
 export interface CustomTabsProps {
@@ -80,4 +77,3 @@ export interface DynamicTableProps {
     showCloseIcon?: boolean;
 }
 
->>>>>>> super-admin

@@ -1,16 +1,9 @@
 # uses image based on dev branch (updates automatically when push to beta branch(in upstream(infuzio org's backend repo)) is made)
-<<<<<<< HEAD
-# command: docker-compose -f deployment/docker-compose-upon-beta-push.yml pull infuzio-beta; docker-compose -f deployment/docker-compose-upon-beta-push.yml up
-services:
-  postgres:
-    image: postgres
-=======
 # command for beta: docker-compose -f deployment/docker-compose-upon-beta-push.yml pull infuzio-beta; docker-compose -f deployment/docker-compose-upon-beta-push.yml up
 
 services:
   postgres:
     image: postgres:16
->>>>>>> super-admin
     container_name: postgres-beta
     environment:
       POSTGRES_USER: postgres
@@ -26,8 +19,6 @@ services:
       timeout: 2s
       retries: 3
 
-<<<<<<< HEAD
-=======
   minio:
     image: minio/minio:latest
     container_name: minio
@@ -43,7 +34,6 @@ services:
       - minio_data:/data
     command: server /data --console-address ":9001"
 
->>>>>>> super-admin
   infuzio-beta:
     # build:
     #   context: .
@@ -60,12 +50,6 @@ services:
       DB_PASSWORD: 1234
       DB_NAME: infuzio
       DB_PORT: 5432
-<<<<<<< HEAD
-      SUPER_ADMIN_USERNAME: superadmin
-      SUPER_ADMIN_PASSWORD: adminpwsuper
-      JWT_SECRET_KEY: djfsdhfsdkfhjdshfkdshfh
-      DOCKER_ENV: true
-=======
       AWS_REGION: us-east-1
       AWS_BUCKET_NAME: infuzio
       AWS_ACCESS_KEY: Infuzio@123
@@ -76,7 +60,6 @@ services:
       MINIO: "true"
       MINIO_URL: http://minio:9000
       DOCKER_ENV: "true"
->>>>>>> super-admin
     depends_on:
       postgres:
         condition: service_healthy # Wait for PostgreSQL to be healthy
@@ -86,12 +69,9 @@ services:
 volumes:
   infuzio_psql_beta:
     name: "infuzio_psql_beta"
-<<<<<<< HEAD
-=======
   minio_data:
     name: "minio_data"
 
 networks:
   infuzio_network:
     driver: bridge
->>>>>>> super-admin

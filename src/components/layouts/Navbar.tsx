@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import React, { useState, useEffect, useRef } from 'react';
-=======
-import React, { useState, useEffect } from 'react';
->>>>>>> super-admin
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import Breadcrumbs from '../Breadcrumbs';
 
@@ -75,11 +71,7 @@ const Navbar: React.FC = () => {
                                         Configurations
                                     </button>
                                     {isDropdownOpen && (
-<<<<<<< HEAD
                                         <ul ref={dropdownRef} className="absolute left-0 mt-2 w-64 bg-white shadow-md z-10 shadow-gray-400">
-=======
-                                        <ul className="absolute left-0 mt-2 w-64 bg-white shadow-md z-10 shadow-gray-400" onClick={(e) => e.stopPropagation()}>
->>>>>>> super-admin
                                             <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Standards</li>
                                             <li>
                                                 <Link to="/superAdmin/configurations/option1" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
