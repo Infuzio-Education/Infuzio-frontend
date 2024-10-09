@@ -49,5 +49,9 @@ export const validationSchema = Yup.object({
             return ['image/jpg', 'image/jpeg', 'image/gif', 'image/png'].includes(fileType);
         })
         .notRequired(),
+<<<<<<< HEAD
 });
 
+=======
+});
+>>>>>>> super-admin

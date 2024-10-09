@@ -8,4 +8,8 @@ const SchoolDetails = () => {
     );
 };
 
+<<<<<<< HEAD
 export default SchoolDetails;
+=======
+export default SchoolDetails;
+>>>>>>> super-admin
