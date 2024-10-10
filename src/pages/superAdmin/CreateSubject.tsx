@@ -3,7 +3,8 @@ import { TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions } 
 import { CreateSubjectProps, Subject, Teacher } from '../../types/Types';
 import CustomTabs from '../../components/CustomTabs';
 import { PlusCircle } from 'lucide-react';
-import DynamicTable from '../../components/DynamicTable';
+import DynamicTable from '../../components/DynamicLists';
+import DynamicLists from '../../components/DynamicLists';
 
 const CreateSubject: React.FC<CreateSubjectProps> = ({ initialData, onSave, onCancel }) => {
     const [subject, setSubject] = useState<Subject>({
@@ -78,81 +79,85 @@ const CreateSubject: React.FC<CreateSubjectProps> = ({ initialData, onSave, onCa
     ];
 
     return (
-        <div className="p-4">
-            <h2 className="text-xl font-bold mb-4">{initialData ? 'Edit Subject' : 'Create Subject'}</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                    <TextField
-                        label="Subject Name"
-                        variant="outlined"
-                        fullWidth
-                        name="name"
-                        value={subject.name}
-                        onChange={handleChange}
-                        required
-                    />
-                    <TextField
-                        label="Subject Code"
-                        variant="outlined"
-                        fullWidth
-                        name="code"
-                        value={subject.code}
-                        onChange={handleChange}
-                        required
-                        placeholder="e.g: DFG"
-                    />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                    <TextField
-                        label="Minimum Marks"
-                        variant="outlined"
-                        fullWidth
-                        name="minMarks"
-                        type="number"
-                        value={subject.minMarks === 0 ? '' : subject.minMarks}
-                        onChange={handleChange}
-                        required
-                        inputProps={{ min: 0 }}
-                    />
-                    <TextField
-                        label="Maximum Marks"
-                        variant="outlined"
-                        fullWidth
-                        name="maxMarks"
-                        type="number"
-                        value={subject.maxMarks === 0 ? '' : subject.maxMarks}
-                        onChange={handleChange}
-                        required
-                        inputProps={{ min: 0 }}
-                    />
-                </div>
-
-                <CustomTabs labels={['Teachers']}>
-                    <div>
-                        <DynamicTable
-                            columns={teacherColumns}
-                            rows={selectedTeachers}
-                            showCloseIcon={true}
-                            onRowRemove={handleRemoveTeacher}
-                        />
-                        <Button
-                            startIcon={<PlusCircle size={16} />}
-                            onClick={handleAddTeacher}
-                            color='success'
+        <div className="flex flex-col h-full">
+            <div className="flex-grow overflow-auto p-4">
+                <h2 className="text-xl font-bold mb-4">{initialData ? 'Edit Subject' : 'Create Subject'}</h2>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <TextField
+                            label="Subject Name"
+                            variant="outlined"
                             fullWidth
-                            sx={{
-                                textTransform: 'none',
-                                textAlign: 'start',
-                                justifyContent: 'flex-start',
-                                marginTop: '8px'
-                            }}
-                        >
-                            Add New Teacher
-                        </Button>
+                            name="name"
+                            value={subject.name}
+                            onChange={handleChange}
+                            required
+                        />
+                        <TextField
+                            label="Subject Code"
+                            variant="outlined"
+                            fullWidth
+                            name="code"
+                            value={subject.code}
+                            onChange={handleChange}
+                            required
+                            placeholder="e.g: DFG"
+                        />
                     </div>
-                </CustomTabs>
+                    <div className="grid grid-cols-2 gap-4">
+                        <TextField
+                            label="Minimum Marks"
+                            variant="outlined"
+                            fullWidth
+                            name="minMarks"
+                            type="number"
+                            value={subject.minMarks === 0 ? '' : subject.minMarks}
+                            onChange={handleChange}
+                            required
+                            inputProps={{ min: 0 }}
+                        />
+                        <TextField
+                            label="Maximum Marks"
+                            variant="outlined"
+                            fullWidth
+                            name="maxMarks"
+                            type="number"
+                            value={subject.maxMarks === 0 ? '' : subject.maxMarks}
+                            onChange={handleChange}
+                            required
+                            inputProps={{ min: 0 }}
+                        />
+                    </div>
 
-                <div className="flex justify-end space-x-2 mt-8">
+                    <CustomTabs labels={['Teachers']}>
+                        <div>
+                            <DynamicLists
+                                columns={teacherColumns}
+                                rows={selectedTeachers}
+                                showCloseIcon={true}
+                                onRowRemove={handleRemoveTeacher}
+                            />
+                            <Button
+                                startIcon={<PlusCircle size={16} />}
+                                onClick={handleAddTeacher}
+                                color='success'
+                                fullWidth
+                                sx={{
+                                    textTransform: 'none',
+                                    textAlign: 'start',
+                                    justifyContent: 'flex-start',
+                                    marginTop: '8px'
+                                }}
+                            >
+                                Add New Teacher
+                            </Button>
+                        </div>
+                    </CustomTabs>
+                </form>
+            </div>
+
+            <div className="mt-auto">
+                <div className="flex justify-end space-x-2  ">
                     <Button onClick={onCancel} variant="outlined" color="success">
                         Cancel
                     </Button>
@@ -160,11 +165,24 @@ const CreateSubject: React.FC<CreateSubjectProps> = ({ initialData, onSave, onCa
                         {initialData ? 'Save Changes' : 'Create Subject'}
                     </Button>
                 </div>
-            </form>
+            </div>
 
-            <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+            <Dialog
+                open={openDialog}
+                onClose={handleCloseDialog}
+                maxWidth="md"
+                fullWidth
+                PaperProps={{
+                    style: {
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: '100%',
+                        maxHeight: '80vh',
+                    }
+                }}
+            >
                 <DialogTitle>Select Teachers</DialogTitle>
-                <DialogContent>
+                <DialogContent style={{ flexGrow: 1, overflow: 'auto', minHeight: 0 }}>
                     <DynamicTable
                         columns={teacherColumns}
                         rows={teachers}
@@ -173,7 +191,11 @@ const CreateSubject: React.FC<CreateSubjectProps> = ({ initialData, onSave, onCa
                         onRowSelect={handleSelectTeacher}
                     />
                 </DialogContent>
-                <DialogActions>
+                <DialogActions style={{
+                    padding: '16px',
+                    borderTop: '1px solid rgba(0, 0, 0, 0.12)',
+                    marginTop: 'auto'
+                }}>
                     <Button onClick={handleCloseDialog} color="error">
                         Cancel
                     </Button>

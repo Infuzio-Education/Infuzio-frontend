@@ -67,7 +67,7 @@ export interface Column {
     minWidth?: number;
 }
 
-export interface DynamicTableProps {
+export interface DynamicListsProps {
     columns: Column[];
     rows: any[];
     selectable?: boolean;

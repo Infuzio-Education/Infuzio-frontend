@@ -1,10 +1,10 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Checkbox, IconButton } from '@mui/material';
 import { X } from 'lucide-react';
-import { DynamicTableProps } from '../types/Types';
+import { DynamicListsProps } from '../types/Types';
 
 
-const DynamicTable: React.FC<DynamicTableProps> = ({
+const DynamicLists: React.FC<DynamicListsProps> = ({
     columns,
     rows,
     selectable = false,
@@ -61,4 +61,4 @@ const DynamicTable: React.FC<DynamicTableProps> = ({
     );
 };
 
-export default DynamicTable;
+export default DynamicLists;

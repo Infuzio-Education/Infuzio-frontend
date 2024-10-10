@@ -36,7 +36,7 @@ const CustomTabs: React.FC<CustomTabsProps> = ({ labels, children }) => {
           id={`tabpanel-${index}`}
           aria-labelledby={`tab-${index}`}
           key={index}
-          style={{ height: '370px', overflowY: 'auto', background: '#f0f0f0', padding: '10px' }}
+          style={{ overflowY: 'auto', background: '#f0f0f0', padding: '10px' }}
         >
           {value === index && <Box>{child}</Box>}
         </div>
