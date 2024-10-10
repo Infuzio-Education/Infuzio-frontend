@@ -4,12 +4,19 @@ import Breadcrumbs from '../Breadcrumbs';
 
 const Navbar: React.FC = () => {
     const location = useLocation();
-    const isSchoolsPage = location.pathname.endsWith('/superAdmin/schools') || location.pathname.endsWith('/superAdmin/schools/create');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isSchoolDropdownOpen, setIsSchoolDropdownOpen] = useState(false);
+    const [isSchoolSelected, setIsSchoolSelected] = useState(false);
+    const [schoolId, setSchoolId] = useState<string | null>(null);
 
     const toggleDropdown = (e: React.MouseEvent) => {
         e.stopPropagation();
         setIsDropdownOpen(!isDropdownOpen);
+    };
+
+    const toggleSchoolDropdown = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsSchoolDropdownOpen(!isSchoolDropdownOpen);
     };
 
     useEffect(() => {
@@ -17,18 +24,29 @@ const Navbar: React.FC = () => {
             if (isDropdownOpen) {
                 setIsDropdownOpen(false);
             }
+            if (isSchoolDropdownOpen) {
+                setIsSchoolDropdownOpen(false);
+            }
         };
 
         document.addEventListener('click', closeDropdown);
         return () => {
             document.removeEventListener('click', closeDropdown);
         };
-    }, [isDropdownOpen]);
+    }, [isDropdownOpen, isSchoolDropdownOpen]);
 
-    // New useEffect to close dropdown on route change
     useEffect(() => {
         setIsDropdownOpen(false);
+        setIsSchoolDropdownOpen(false);
     }, [location]);
+
+    useEffect(() => {
+        const pathParts = location.pathname.split('/');
+        const isValidSchoolPath = pathParts[1] === 'superAdmin' && pathParts[2] === 'schools' && !isNaN(Number(pathParts[3]));
+
+        setIsSchoolSelected(isValidSchoolPath);
+        setSchoolId(isValidSchoolPath ? pathParts[3] : null);
+    }, [location.pathname]);
 
     return (
         <>
@@ -41,11 +59,33 @@ const Navbar: React.FC = () => {
 
                         <div className="flex items-center">
                             <ul className="flex flex-row mt-0 space-x-8 text-sm">
-                                {!isSchoolsPage && (
-                                    <li>
-                                        <Link to="/superAdmin/schools" className="text-gray-900 dark:text-white">
+                                {isSchoolSelected && schoolId && (
+                                    <li className="relative">
+                                        <button
+                                            onClick={toggleSchoolDropdown}
+                                            className="text-gray-900 dark:text-white focus:outline-none"
+                                        >
                                             Schools
-                                        </Link>
+                                        </button>
+                                        {isSchoolDropdownOpen && (
+                                            <ul className="absolute left-0 mt-2 w-64 bg-white shadow-md z-10 shadow-gray-400" onClick={(e) => e.stopPropagation()}>
+                                                <li>
+                                                    <Link to="/superAdmin/schools" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                        All Schools
+                                                    </Link>
+                                                </li>
+                                                <li>
+                                                    <Link to={`/superAdmin/schools/${schoolId}/classes`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                        Classes
+                                                    </Link>
+                                                </li>
+                                                <li>
+                                                    <Link to={`/superAdmin/schools/${schoolId}/teachers`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                        Teachers
+                                                    </Link>
+                                                </li>
+                                            </ul>
+                                        )}
                                     </li>
                                 )}
 
@@ -60,18 +100,13 @@ const Navbar: React.FC = () => {
                                         <ul className="absolute left-0 mt-2 w-64 bg-white shadow-md z-10 shadow-gray-400" onClick={(e) => e.stopPropagation()}>
                                             <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Standards</li>
                                             <li>
-                                                <Link to="/superAdmin/configurations/option1" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
-                                                    Classes
-                                                </Link>
-                                            </li>
-                                            <li>
                                                 <Link to="/superAdmin/configurations/option2" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
                                                     Standards
                                                 </Link>
                                             </li>
                                             <li>
                                                 <Link to="/superAdmin/configurations/option3" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
-                                                    Divisions
+                                                    Groups (HSS)
                                                 </Link>
                                             </li>
                                             <li>

@@ -1,5 +1,4 @@
 
-
 const SchoolDetails = () => {
     return (
         <div>
