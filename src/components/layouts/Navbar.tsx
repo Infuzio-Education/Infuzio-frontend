@@ -138,7 +138,7 @@ const Navbar: React.FC = () => {
                                         <ul className="absolute left-0 mt-2 w-64 bg-white shadow-md z-10 shadow-gray-400" onClick={(e) => e.stopPropagation()}>
                                             <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Standards</li>
                                             <li>
-                                                <Link to="/superAdmin/configurations/option2" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                <Link to="/superAdmin/standards " className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
                                                     Standards
                                                 </Link>
                                             </li>
@@ -148,7 +148,7 @@ const Navbar: React.FC = () => {
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link to="/superAdmin/configurations/option4" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                <Link to="/superAdmin/mediums" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
                                                     Mediums
                                                 </Link>
                                             </li>

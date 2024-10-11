@@ -1,9 +1,10 @@
 
 const superAdminEndpoints = {
 
-    login: 'superAdmin/login',
+    login: 'infuzAdmin/login',
     syllabus: 'curriculum/get-syllabus',
-    createSchool: 'school/create'
+    createSchool: 'school/create',
+    mediums:'/school/class/medium',
 
 }
 
