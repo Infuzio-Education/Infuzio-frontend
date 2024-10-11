@@ -12,11 +12,18 @@ const Navbar: React.FC = () => {
     const toggleDropdown = (e: React.MouseEvent) => {
         e.stopPropagation();
         setIsDropdownOpen(!isDropdownOpen);
+        if (!isDropdownOpen) {
+            setIsSchoolDropdownOpen(false);
+        }
     };
 
     const toggleSchoolDropdown = (e: React.MouseEvent) => {
         e.stopPropagation();
         setIsSchoolDropdownOpen(!isSchoolDropdownOpen);
+
+        if (!isSchoolDropdownOpen) {
+            setIsDropdownOpen(false);
+        }
     };
 
     useEffect(() => {
@@ -69,20 +76,51 @@ const Navbar: React.FC = () => {
                                         </button>
                                         {isSchoolDropdownOpen && (
                                             <ul className="absolute left-0 mt-2 w-64 bg-white shadow-md z-10 shadow-gray-400" onClick={(e) => e.stopPropagation()}>
+                                                <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Admissions</li>
                                                 <li>
-                                                    <Link to="/superAdmin/schools" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
-                                                        All Schools
+                                                    <Link to="/superAdmin/configurations/option2" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                        Admission register
+                                                    </Link>
+                                                </li>
+                                                <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Profiles</li>
+                                                <li>
+                                                    <Link to="/superAdmin/configurations/option3" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                        Students
                                                     </Link>
                                                 </li>
                                                 <li>
-                                                    <Link to={`/superAdmin/schools/${schoolId}/classes`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                    <Link to="/superAdmin/configurations/option4" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                        Parents
+                                                    </Link>
+                                                </li>
+                                                <li>
+                                                    <Link to={`/superAdmin/schools/${schoolId}/staffs`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                        Staffs
+                                                    </Link>
+                                                </li>
+                                                <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Manage school</li>
+                                                <li>
+                                                    <Link to="/superAdmin/subjects" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
                                                         Classes
                                                     </Link>
                                                 </li>
                                                 <li>
-                                                    <Link to={`/superAdmin/schools/${schoolId}/teachers`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
-                                                        Teachers
+                                                    <Link to="/superAdmin/configurations/option3" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                        Syllabus
                                                     </Link>
+                                                </li>
+                                                <li>
+                                                    <Link to="/superAdmin/configurations/option3" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                        School
+                                                    </Link>
+                                                </li>
+                                                <li>
+                                                    <Link to="/superAdmin/sections" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                        Set principle                                                    </Link>
+                                                </li>
+                                                <li>
+                                                    <Link to="/superAdmin/sections" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                        Set admins                                                    </Link>
                                                 </li>
                                             </ul>
                                         )}
