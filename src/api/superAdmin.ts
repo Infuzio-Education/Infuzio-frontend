@@ -3,7 +3,36 @@ import superAdminEndpoints from '../endpoints/superAdmin';
 import axios from 'axios';
 
 
-export const superLogin = async (body: string) => {
+interface SuperAdminInfo {
+    token: string;
+  }
+  
+  Api.interceptors.request.use(
+    (config) => {
+      const superAdminInfoString = localStorage.getItem('superAdminInfo');
+      
+      if (superAdminInfoString) {
+        try {
+          const superAdminInfo = JSON.parse(superAdminInfoString) as SuperAdminInfo;
+          
+          if (superAdminInfo && superAdminInfo.token) {
+            config.headers['Authorization'] = `${superAdminInfo.token}`;
+          }
+        } catch (e) {
+          console.error('Error parsing superAdminInfo from localStorage:', e);
+        }
+      }
+  
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
+
+
+
+export const superLogin = async (body:{username:string,password:string})=>{
     try {
         const response = await Api.post(superAdminEndpoints.login, body);
 
@@ -60,4 +89,35 @@ export const createSchool = async (body: FormData) => {
         }
     }
 };
+
+
+export const createMediums = async (name:string) => {
+    try {
+        const response = await Api.post(superAdminEndpoints.mediums,{name:name});
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching syllabus:', error.response);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+}
+
+export const getMediums = async () => {
+    try {
+        const response = await Api.get(superAdminEndpoints.mediums);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching syllabus:', error.response);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+}
 

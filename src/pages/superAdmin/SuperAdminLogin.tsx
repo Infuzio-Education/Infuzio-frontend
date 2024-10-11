@@ -1,22 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Snackbar, Alert, AlertColor } from '@mui/material';
 import { ArrowRight } from 'lucide-react';
 import { useFormik } from "formik";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setSuperAdminInfo } from '../../redux/slices/superAdminSlice/superAdminSlice';
 import { LoginValidationSchema } from '../../validations/LoginValidationSchema';
 import { useNavigate } from 'react-router-dom';
+import { superLogin } from '../../api/superAdmin';
 
 const SuperAdminLogin = () => {
-
-  let dummyData = {
-    id: 'rithas12',
-    name: 'Rithas Ahamed',
-    profileUrl: 'https://img.freepik.com/premium-vector/young-man-face-avater-vector-illustration-design_968209-13.jpg'
-  }
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const {superAdminInfo} = useSelector((state:any)=> state.superAdminInfo);
+  useEffect(()=>{
+    if(superAdminInfo){
+      navigate("/superAdmin/schools");
+    }
+
+  },[])
 
 
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -30,37 +32,37 @@ const SuperAdminLogin = () => {
   const { handleSubmit, handleChange, handleBlur, values, errors, touched } =
   useFormik({
     initialValues: {
-      studentId: "",
+      username: "",
       password: "",
     },
     validationSchema: LoginValidationSchema,
     onSubmit: async (values) => {
       try {
-        console.log("Form submitted", values);
+        // console.log("Form submitted", values);
         
-        
-        if (values.studentId === dummyData.id && values.password === '123456') {
-          
-          dispatch(setSuperAdminInfo({
-            id: dummyData.id,
-            name: dummyData.name,
-            profileUrl: dummyData.profileUrl
-          }));
+       const response = await superLogin(values)
+      //  console.log("Login response:",response);
+       
+       if(response?.status == 200){
+        dispatch(setSuperAdminInfo({
+          username: response.data.data.username,
+          token: response.data.data.token
+        }));
 
-          // Set success message and show snackbar
-          setSnackbarMessage('Login successful!');
-          setSnackbarSeverity('success');
-          setOpenSnackbar(true);
+        // Set success message and show snackbar
+        setSnackbarMessage('Login successful!');
+        setSnackbarSeverity('success');
+        setOpenSnackbar(true);
 
-          
-          setTimeout(() => {
-            navigate('/superAdmin/schools');
-          }, 1000); 
+        setTimeout(() => {
+          navigate('/superAdmin/schools');
+        }, 1000);
 
-        } else {
-    
-          throw new Error('Invalid username or password');
-        }
+       }else if(response?.status == 401){
+        throw new Error("Invalid username or password!");
+       }else{
+        throw new Error("Unknown Error, Please Try again Later!");
+       }        
       } catch (error) {
         if (error instanceof Error) {
           console.error(error.message);
@@ -81,23 +83,23 @@ const SuperAdminLogin = () => {
         <div className="relative bg-white shadow-lg rounded-3xl p-10">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
                 USERNAME*
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <input
                   type="text"
-                  id="studentId"
-                  name="studentId"
-                  className={`block w-full pr-10 sm:text-sm rounded-md focus:ring-green-500 focus:border-green-500 h-14 px-4 ${errors.studentId && touched.studentId ? 'border-red-500' : 'border-gray-300'
+                  id="username"
+                  name="username"
+                  className={`block w-full pr-10 sm:text-sm rounded-md focus:ring-green-500 focus:border-green-500 h-14 px-4 ${errors.username && touched.username ? 'border-red-500' : 'border-gray-300'
                     }`}
-                  value={values.studentId}
+                  value={values.username}
                   placeholder='Enter your username'
                   onChange={handleChange}
                   onBlur={handleBlur}
                 />
-                {errors.studentId && touched.studentId && (
-                  <div className="text-red-500 text-sm mt-1">{errors.studentId}</div>
+                {errors.username && touched.username && (
+                  <div className="text-red-500 text-sm mt-1">{errors.username}</div>
                 )}
               </div>
             </div>

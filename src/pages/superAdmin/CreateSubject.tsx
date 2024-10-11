@@ -15,7 +15,7 @@ const CreateSubject: React.FC<CreateSubjectProps> = ({ initialData, onSave, onCa
         maxMarks: 100,
     });
 
-    const [teachers, setTeachers] = useState<Teacher[]>([
+    const [teachers, _setTeachers] = useState<Teacher[]>([
         { id: 1, name: 'John Doe', email: 'john@example.com' },
         { id: 2, name: 'Jane Smith', email: 'jane@example.com' },
     ]);
