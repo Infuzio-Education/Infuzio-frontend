@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Snackbar, Alert, AlertColor } from '@mui/material';
 import { ArrowRight } from 'lucide-react';
 import { useFormik } from "formik";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setSuperAdminInfo } from '../../redux/slices/superAdminSlice/superAdminSlice';
 import { LoginValidationSchema } from '../../validations/LoginValidationSchema';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,14 @@ import { superLogin } from '../../api/superAdmin';
 const SuperAdminLogin = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const {superAdminInfo} = useSelector((state:any)=> state.superAdminInfo);
+  useEffect(()=>{
+    if(superAdminInfo){
+      navigate("/superAdmin/schools");
+    }
+
+  },[])
 
 
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -30,10 +38,10 @@ const SuperAdminLogin = () => {
     validationSchema: LoginValidationSchema,
     onSubmit: async (values) => {
       try {
-        console.log("Form submitted", values);
+        // console.log("Form submitted", values);
         
        const response = await superLogin(values)
-       console.log("Login response:",response);
+      //  console.log("Login response:",response);
        
        if(response?.status == 200){
         dispatch(setSuperAdminInfo({
