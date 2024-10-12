@@ -79,6 +79,7 @@ const ListSubjects: React.FC = () => {
                                     onChange={handleSelectAll}
                                 />
                             </th>
+                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Sl.No</th>
                             <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-3/12">Subject Name</th>
                             <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Subject Code</th>
                             <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Min Marks</th>
@@ -87,7 +88,7 @@ const ListSubjects: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {subjects.map((subject) => (
+                        {subjects.map((subject, index) => (
                             <tr key={subject.id} className="cursor-pointer">
                                 <td className="text-center">
                                     <Checkbox
@@ -95,6 +96,9 @@ const ListSubjects: React.FC = () => {
                                         onChange={() => handleSelectSubject(subject.id)}
                                         onClick={(e) => e.stopPropagation()}
                                     />
+                                </td>
+                                <td className="text-center" onClick={() => handleOpenModal(subject)}>
+                                    <div className="text-sm font-medium text-gray-900">{index + 1}</div>
                                 </td>
                                 <td className="text-center" onClick={() => handleOpenModal(subject)}>
                                     <div className="text-sm font-medium text-gray-900">{subject.name}</div>

@@ -10,26 +10,31 @@ import ListStaffs from "../pages/superAdmin/ListStaffs";
 import ListStandards from "../pages/superAdmin/ListStandards";
 import ListMediums from "../pages/superAdmin/ListMediums";
 import { superAdminProtect as ProtectedRoute } from "../components/PrivateRoute";
+import { SchoolProvider } from "../contexts/SchoolContext";
+import ListSyllabus from "../pages/superAdmin/ListSyllabus";
 
 const SuperAdminRoutes = () => {
     return (
-        <Routes>
-            <Route path="/" element={<SuperAdminLogin />} />
-            
-            {/* Protected Routes */}
-            <Route element={<ProtectedRoute />}>
-                <Route element={<Navbar />}>
-                    <Route path="schools" element={<ListSchools />} />
-                    <Route path="schools/create" element={<CreateSchool />} />
-                    <Route path="schools/:id" element={<SchoolProfiles />} />
-                    <Route path="sections" element={<ListSections />} />
-                    <Route path="subjects" element={<ListSubjects />} />
-                    <Route path="schools/:id/staffs" element={<ListStaffs />} />
-                    <Route path="standards" element={<ListStandards />} />
-                    <Route path="mediums" element={<ListMediums />} />
+        <SchoolProvider>
+            <Routes>
+                <Route path="/" element={<SuperAdminLogin />} />
+
+                {/* Protected Routes */}
+                <Route element={<ProtectedRoute />}>
+                    <Route element={<Navbar />}>
+                        <Route path="schools" element={<ListSchools />} />
+                        <Route path="schools/create" element={<CreateSchool />} />
+                        <Route path="schools/:id" element={<SchoolProfiles />} />
+                        <Route path="sections" element={<ListSections />} />
+                        <Route path="subjects" element={<ListSubjects />} />
+                        <Route path="schools/:id/staffs" element={<ListStaffs />} />
+                        <Route path="standards" element={<ListStandards />} />
+                        <Route path="mediums" element={<ListMediums />} />
+                        <Route path="syllabus" element={<ListSyllabus />} />
+                    </Route>
                 </Route>
-            </Route>
-        </Routes>
+            </Routes>
+        </SchoolProvider>
     )
 }
 
