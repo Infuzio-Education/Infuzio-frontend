@@ -73,27 +73,31 @@ const ListSections: React.FC = () => {
                 <table className="w-full">
                     <thead>
                         <tr className="bg-gray-300">
-                            <th className=" text-center w-1/12">
+                            <th className="text-center w-1/12">
                                 <Checkbox
                                     checked={selectAll}
                                     onChange={handleSelectAll}
                                 />
                             </th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-4/12">Section Name</th>
+                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Sl. No.</th>
+                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-3/12">Section Name</th>
                             <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Section Code</th>
                             <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-4/12">Classes</th>
                             <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {sections.map((section) => (
+                        {sections.map((section, index) => (
                             <tr key={section.id} className="cursor-pointer">
-                                <td className=" text-center">
+                                <td className="text-center">
                                     <Checkbox
                                         checked={selectedSections.includes(section.id)}
                                         onChange={() => handleSelectSection(section.id)}
                                         onClick={(e) => e.stopPropagation()}
                                     />
+                                </td>
+                                <td className="text-center" onClick={() => handleOpenModal(section)}>
+                                    <div className="text-sm font-medium text-gray-900">{index + 1}</div>
                                 </td>
                                 <td className="text-center" onClick={() => handleOpenModal(section)}>
                                     <div className="text-sm font-medium text-gray-900">{section.name}</div>

@@ -5,34 +5,34 @@ import axios from 'axios';
 
 interface SuperAdminInfo {
     token: string;
-  }
-  
-  Api.interceptors.request.use(
+}
+
+Api.interceptors.request.use(
     (config) => {
-      const superAdminInfoString = localStorage.getItem('superAdminInfo');
-      
-      if (superAdminInfoString) {
-        try {
-          const superAdminInfo = JSON.parse(superAdminInfoString) as SuperAdminInfo;
-          
-          if (superAdminInfo && superAdminInfo.token) {
-            config.headers['Authorization'] = `${superAdminInfo.token}`;
-          }
-        } catch (e) {
-          console.error('Error parsing superAdminInfo from localStorage:', e);
+        const superAdminInfoString = localStorage.getItem('superAdminInfo');
+
+        if (superAdminInfoString) {
+            try {
+                const superAdminInfo = JSON.parse(superAdminInfoString) as SuperAdminInfo;
+
+                if (superAdminInfo && superAdminInfo.token) {
+                    config.headers['Authorization'] = `${superAdminInfo.token}`;
+                }
+            } catch (e) {
+                console.error('Error parsing superAdminInfo from localStorage:', e);
+            }
         }
-      }
-  
-      return config;
+
+        return config;
     },
     (error) => {
-      return Promise.reject(error);
+        return Promise.reject(error);
     }
-  );
+);
 
 
 
-export const superLogin = async (body:{username:string,password:string})=>{
+export const superLogin = async (body: { username: string, password: string }) => {
     try {
         const response = await Api.post(superAdminEndpoints.login, body);
 
@@ -50,7 +50,11 @@ export const superLogin = async (body:{username:string,password:string})=>{
 export const getSyllabus = async () => {
     try {
         const response = await Api.get(superAdminEndpoints.syllabus);
-        return response.data;
+        if (response.data && response.data.status === true) {
+            return response.data.data;
+        } else {
+            throw new Error('Unexpected response format');
+        }
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error('Error fetching syllabus:', error.response);
@@ -60,7 +64,22 @@ export const getSyllabus = async () => {
             throw error;
         }
     }
-}
+};
+
+export const createSyllabus = async (name: string) => {
+    try {
+        const response = await Api.post(superAdminEndpoints.createSyllabus, { name: name });
+        return response;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error creating syllabus:', error.response);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+};
 
 export const createSchool = async (body: FormData) => {
     try {
@@ -91,9 +110,9 @@ export const createSchool = async (body: FormData) => {
 };
 
 
-export const createMediums = async (name:string) => {
+export const createMediums = async (name: string) => {
     try {
-        const response = await Api.post(superAdminEndpoints.mediums,{name:name});
+        const response = await Api.post(superAdminEndpoints.mediums, { name: name });
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {

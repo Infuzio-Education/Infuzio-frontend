@@ -14,33 +14,29 @@ interface Medium {
 const ListMediums: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
     const [editingMedium, setEditingMedium] = useState<Medium | null>(null);
-    const [mediums, setMediums] = useState<Medium[]>([
-        { ID: 1, Name: "English Medium" },
-        { ID: 2, Name: "Malayalam Medium" },
-        { ID: 3, Name: "Hindi Medium" },
-    ]);
+    const [mediums, setMediums] = useState<Medium[]>([]);
 
-    useEffect(()=>{
+    useEffect(() => {
         fetchMediums();
-    },[])
+    }, [])
 
     const fetchMediums = async () => {
         try {
             const response = await getMediums();
             console.log(response);
-            
+
             if (response.status === true && Array.isArray(response.data)) {
                 setMediums(prevMediums => {
                     // Create a map of existing mediums by ID
                     const mediumMap = new Map(
                         prevMediums.map(medium => [medium.ID, medium])
                     );
-                    
+
                     // Update or add new mediums
                     response.data.forEach((apiMedium: Medium) => {
                         mediumMap.set(apiMedium.ID, apiMedium);
                     });
-                    
+
                     // Convert map back to array
                     return Array.from(mediumMap.values());
                 });
@@ -71,7 +67,7 @@ const ListMediums: React.FC = () => {
                 medium.ID === editingMedium.ID ? { ...medium, name } : medium
             ));
         } else {
-            setMediums([...mediums, { ID: mediums.length + 1, Name:name }]);
+            setMediums([...mediums, { ID: mediums.length + 1, Name: name }]);
         }
         handleCloseModal();
     };

@@ -1,7 +1,3 @@
-export interface Syllabus {
-    ID: number;
-    Name: string;
-}
 
 export interface SchoolAddress {
     street1: string;
@@ -75,5 +71,16 @@ export interface DynamicListsProps {
     onRowSelect?: (row: any) => void;
     onRowRemove?: (row: any) => void;
     showCloseIcon?: boolean;
+}
+
+export interface Syllabus {
+    ID: number;
+    Name: string;
+}
+
+export interface CreateSyllabusProps {
+    initialData: Syllabus | null;
+    onSave: (syllabus: Syllabus) => void;
+    onCancel: () => void;
 }
 

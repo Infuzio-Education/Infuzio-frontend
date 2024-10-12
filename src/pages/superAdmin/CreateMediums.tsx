@@ -37,7 +37,7 @@ const CreateMedium: React.FC<CreateMediumProps> = ({
     event.preventDefault();
     try {
       const response = await createMediums(name);
-    //   console.log("Mediums add Response:", response);
+      //   console.log("Mediums add Response:", response);
       if (response.status === true) {
         setSnackbar({
           open: true,
