@@ -84,3 +84,38 @@ export interface CreateSyllabusProps {
     onCancel: () => void;
 }
 
+export interface Medium {
+    ID: number;
+    Name: string;
+}
+
+export interface CreateMediumProps {
+    initialData: { ID: number; Name: string } | null;
+    onSave: (name: string) => void;
+    onCancel: () => void;
+  }
+
+
+export interface Standard {
+    ID: number;
+    Name: string;
+    HasGroup: boolean;
+    sequence: number;
+}
+
+export interface CreateStandardProps {
+    initialData: Standard | null;
+    onSave: (name: string, hasGroup: boolean, sequence: number) => void;
+    onCancel: () => void;
+} 
+
+export interface Group {
+    ID: number;
+    Name: string;
+  }
+
+export interface CreateGroupProps {
+    onSave: (name: string) => void;
+    onCancel: () => void;
+}
+
