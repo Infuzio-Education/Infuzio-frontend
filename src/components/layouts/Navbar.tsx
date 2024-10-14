@@ -138,7 +138,7 @@ const Navbar: React.FC = () => {
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link to="/superAdmin/configurations/option3" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                <Link to="/superAdmin/groups" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
                                                     Groups (HSS)
                                                 </Link>
                                             </li>

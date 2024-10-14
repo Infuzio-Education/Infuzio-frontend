@@ -15,7 +15,7 @@ Api.interceptors.request.use(
             try {
                 const superAdminInfo = JSON.parse(superAdminInfoString) as SuperAdminInfo;
 
-                if (superAdminInfo && superAdminInfo.token) {
+                if (superAdminInfo && superAdminInfo.token) {                    
                     config.headers['Authorization'] = `${superAdminInfo.token}`;
                 }
             } catch (e) {
@@ -68,7 +68,7 @@ export const getSyllabus = async () => {
 
 export const createSyllabus = async (name: string) => {
     try {
-        const response = await Api.post(superAdminEndpoints.createSyllabus, { name: name });
+        const response = await Api.post(superAdminEndpoints.syllabus, { name: name });
         return response;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -128,6 +128,67 @@ export const createMediums = async (name: string) => {
 export const getMediums = async () => {
     try {
         const response = await Api.get(superAdminEndpoints.mediums);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching syllabus:', error.response);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+}
+
+
+export const createStandard = async (name: string, hasGroup: boolean, sequence: number) => {
+    try {
+        const response = await Api.post(superAdminEndpoints.stadards, { name,hasGroup,sequence });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching syllabus:', error.response);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+}
+
+export const getStandards = async () => {
+    try {
+        const response = await Api.get(superAdminEndpoints.stadards);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching syllabus:', error.response);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+}
+
+export const createGroup = async (name: string) => {
+    try {
+        const response = await Api.post(superAdminEndpoints.groups, {name});
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching syllabus:', error.response);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+}
+
+export const getGroups = async () => {
+    try {
+        const response = await Api.get(superAdminEndpoints.groups);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {

@@ -1,14 +1,8 @@
 // src/pages/Mediums/CreateMedium.tsx
 import React, { useState, useEffect } from "react";
 import { TextField, Button } from "@mui/material";
-import { createMediums } from "../../api/superAdmin";
 import SnackbarComponent from "../../components/SnackbarComponent";
-
-interface CreateMediumProps {
-  initialData: { ID: number; Name: string } | null;
-  onSave: (name: string) => void;
-  onCancel: () => void;
-}
+import { CreateMediumProps } from "../../types/Types";
 
 const CreateMedium: React.FC<CreateMediumProps> = ({
   initialData,
@@ -33,12 +27,9 @@ const CreateMedium: React.FC<CreateMediumProps> = ({
     setSnackbar({ ...snackbar, open: false });
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
-      const response = await createMediums(name);
-      //   console.log("Mediums add Response:", response);
-      if (response.status === true) {
         setSnackbar({
           open: true,
           message: "Medium created successfully!",
@@ -46,9 +37,6 @@ const CreateMedium: React.FC<CreateMediumProps> = ({
           position: { vertical: "top", horizontal: "right" },
         });
         onSave(name);
-      } else {
-        throw new Error(response.data);
-      }
     } catch (error: any) {
       setSnackbar({
         open: true,
