@@ -16,7 +16,7 @@ const ListSyllabus: React.FC = () => {
     const [selectedSyllabuses, setSelectedSyllabuses] = useState<number[]>([]);
     const [selectAll, setSelectAll] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [viewMode, setViewMode] = useState<string>('list');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',

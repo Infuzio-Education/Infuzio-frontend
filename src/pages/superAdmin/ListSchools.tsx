@@ -1,30 +1,40 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowRight, PlusCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Checkbox from '@mui/material/Checkbox';
 import ListControls from '../../components/ListControls';
+import { useSchoolContext } from '../../contexts/SchoolContext';
+import { getSchools } from '../../api/superAdmin';
+import { School } from '../../types/Types';
 
-
-const ListSchools = () => {
-    const [viewMode, setViewMode] = useState('grid');
+const ListSchools: React.FC = () => {
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSchools, setSelectedSchools] = useState<number[]>([]);
+    const [schools, setSchools] = useState<School[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const { setSchoolInfo } = useSchoolContext();
     const navigate = useNavigate();
 
-    const schools = [
-        { id: 1, name: 'Arts College', syllabus: 'CBSE', logo: 'https://img.freepik.com/premium-vector/education-school-logo-icon-vector-template_644408-645.jpg', location: 'New York' },
-        { id: 2, name: 'Tech Institute', syllabus: 'ICSE', logo: 'https://png.pngtree.com/png-vector/20230415/ourmid/pngtree-school-logo-design-template-vector-png-image_6705854.png', location: 'California' },
-        { id: 3, name: 'Science Academy', syllabus: 'State Board', logo: 'https://png.pngtree.com/png-clipart/20230330/original/pngtree-school-and-education-logo-design-template-png-image_9012676.png', location: 'Texas' },
-        { id: 4, name: 'Commerce School', syllabus: 'CBSE', logo: 'https://i.pinimg.com/474x/35/b1/f3/35b1f31461c3a83ab53c5ee465fae2ce.jpg', location: 'Florida' },
-        { id: 5, name: 'International School', syllabus: 'IB', logo: 'https://i.pinimg.com/474x/81/50/35/815035e3fcb3bfb7b5aa4f36ff683a01.jpg', location: 'Washington' },
-        { id: 6, name: 'Sports Academy', syllabus: 'CBSE', logo: 'https://i.pinimg.com/600x315/85/f1/75/85f17562a2009da44875fb7c126a1ad9.jpg', location: 'Illinois' },
-        { id: 7, name: 'Language Institute', syllabus: 'ICSE', logo: 'https://marketplace.canva.com/EAFhSlq44Ng/1/0/1600w/canva-blue-and-pink-simple-school-logo-FNaMuAoD8S4.jpg', location: 'Massachusetts' },
-        { id: 8, name: 'Performing Arts School', syllabus: 'State Board', logo: 'https://marketplace.canva.com/EAGMDQfRTUc/1/0/1600w/canva-blue-and-white-vintage-school-logo-MuwnwiqDNfI.jpg', location: 'Nevada' }
-    ];
+    useEffect(() => {
+        const fetchSchools = async () => {
+            try {
+                setIsLoading(true);
+                const response = await getSchools();
+                setSchools(response.data);
+            } catch (error) {
+                console.error('Failed to fetch schools:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchSchools();
+    }, []);
 
     const filteredSchools = schools.filter(school =>
         school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        school.syllabus.toLowerCase().includes(searchTerm.toLowerCase())
+        school.school_code.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,7 +53,8 @@ const ListSchools = () => {
         );
     };
 
-    const handleSchoolClick = (school: any) => {
+    const handleSchoolClick = (school: School) => {
+        setSchoolInfo({ id: school.id, name: school.name });
         navigate(`/superAdmin/schools/${school.id}`, { state: { school } });
     };
 
@@ -62,20 +73,26 @@ const ListSchools = () => {
                     {filteredSchools.map((school) => (
                         <div
                             key={school.id}
-                            className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col cursor-pointer"
+                            className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col cursor-pointer transform transition duration-300 hover:scale-105 hover:shadow-xl"
                             onClick={() => handleSchoolClick(school)}
                         >
-                            <img
-                                src={school.logo}
-                                alt={`${school.name} logo`}
-                                className="w-100 h-40 object-cover"
-                            />
-                            <div className="p-1 bg-gray-300 flex-grow flex flex-row items-center">
+                            {school.logo ? (
+                                <img
+                                    src={school.logo}
+                                    alt={`${school.name} logo`}
+                                    className="w-full h-40 object-cover transition duration-300 group-hover:opacity-75"
+                                />
+                            ) : (
+                                <div className="w-full h-40 bg-white flex items-center justify-center transition duration-300 group-hover:bg-gray-100">
+                                    <span className="text-3xl font-bold text-gray-400">No Logo</span>
+                                </div>
+                            )}
+                            <div className="p-2 bg-gray-300 flex-grow flex flex-row items-center transition duration-300 group-hover:bg-gray-400">
                                 <div className="flex-grow min-w-0 mr-2">
                                     <h2 className="text-lg font-semibold break-words">{school.name}</h2>
-                                    <p className="text-sm text-gray-600">{school.syllabus}</p>
+                                    <p className="text-sm text-gray-600">CBSE</p>
                                 </div>
-                                <ArrowRight className="text-gray-600 flex-shrink-0" size={20} />
+                                <ArrowRight className="text-gray-600 flex-shrink-0 transition duration-300 group-hover:translate-x-1" size={20} />
                             </div>
                         </div>
                     ))}
@@ -119,10 +136,10 @@ const ListSchools = () => {
                                         <div className="text-sm font-medium text-gray-900">{school.name}</div>
                                     </td>
                                     <td className="p-2 whitespace-nowrap">
-                                        <div className="text-sm text-gray-500">{school.syllabus}</div>
+                                        <div className="text-sm text-gray-500">CBSE</div>
                                     </td>
                                     <td className="p-2 whitespace-nowrap">
-                                        <div className="text-sm text-gray-500">{school.location}</div>
+                                        <div className="text-sm text-gray-500">Kerala</div>
                                     </td>
                                     <td className="p-2 whitespace-nowrap text-right text-sm font-medium">
                                         <ArrowRight className="text-gray-600 inline" size={20} />

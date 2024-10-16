@@ -21,14 +21,13 @@ export interface SchoolFormData {
 export interface Section {
     id: number;
     name: string;
-    code: string;
-    classes: string[];
+    section_code: string;
 }
 
 
 export interface CreateSectionProps {
     initialData: Section | null;
-    onSave: (section: Section) => void;
+    onSave: (success: boolean) => void;
     onCancel: () => void;
 }
 
@@ -93,7 +92,7 @@ export interface CreateMediumProps {
     initialData: { ID: number; Name: string } | null;
     onSave: (name: string) => void;
     onCancel: () => void;
-  }
+}
 
 
 export interface Standard {
@@ -107,15 +106,30 @@ export interface CreateStandardProps {
     initialData: Standard | null;
     onSave: (name: string, hasGroup: boolean, sequence: number) => void;
     onCancel: () => void;
-} 
+}
 
 export interface Group {
     ID: number;
     Name: string;
-  }
+}
 
 export interface CreateGroupProps {
     onSave: (name: string) => void;
     onCancel: () => void;
+}
+
+export interface ListControlsProps {
+    searchTerm: string;
+    setSearchTerm: (term: string) => void;
+    viewMode: 'grid' | 'list'; // Ensure this is correctly typed
+    setViewMode: (mode: 'grid' | 'list') => void; // Change this line
+    itemCount: number;
+}
+
+export interface School {
+    id: number;
+    name: string;
+    school_code: string;
+    logo?: string;
 }
 

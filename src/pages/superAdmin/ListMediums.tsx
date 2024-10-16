@@ -17,7 +17,7 @@ const ListMediums: React.FC = () => {
     const [selectedMediums, setSelectedMediums] = useState<number[]>([]);
     const [selectAll, setSelectAll] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [viewMode, setViewMode] = useState<string>('list');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
@@ -76,26 +76,21 @@ const ListMediums: React.FC = () => {
                 throw new Error(response.data);
             }
         } catch (error: any) {
-            setSnackbar({
-                open: true,
-                message: error.response.data.error || 'Failed to create medium',
-                severity: 'error',
-                position: { vertical: 'top', horizontal: 'center' }
-            });
+            console.error('Error creating medium:', error);
         }
         handleCloseModal();
     };
 
     const handleDelete = async (id: number) => {
         try {
-            
-                setMediums(mediums.filter(medium => medium.ID !== id));
-                setSnackbar({
-                    open: true,
-                    message: 'Medium deleted successfully!',
-                    severity: 'success',
-                    position: { vertical: 'top', horizontal: 'center' }
-                });
+
+            setMediums(mediums.filter(medium => medium.ID !== id));
+            setSnackbar({
+                open: true,
+                message: 'Medium deleted successfully!',
+                severity: 'success',
+                position: { vertical: 'top', horizontal: 'center' }
+            });
         } catch (error: any) {
             setSnackbar({
                 open: true,
@@ -209,7 +204,7 @@ const ListMediums: React.FC = () => {
                     width: 400,
                     bgcolor: 'background.paper',
                     boxShadow: 24,
-                    p: 4,
+                    p: 3,
                     borderRadius: 2,
                 }}>
                     <CreateMedium
