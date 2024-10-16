@@ -1,13 +1,7 @@
 import React from 'react';
 import { Search, ChevronLeft, ChevronRight, Grid, List } from "lucide-react";
+import { ListControlsProps } from '../types/Types';
 
-interface ListControlsProps {
-    searchTerm: string;
-    setSearchTerm: (term: string) => void;
-    viewMode: string;
-    setViewMode: (mode: string) => void;
-    itemCount: number;
-}
 
 const ListControls: React.FC<ListControlsProps> = ({ searchTerm, setSearchTerm, viewMode, setViewMode, itemCount }) => {
     return (

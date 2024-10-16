@@ -16,7 +16,7 @@ const ListSubjects: React.FC = () => {
     const [selectedSubjects, setSelectedSubjects] = useState<number[]>([]);
     const [selectAll, setSelectAll] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [viewMode, setViewMode] = useState<string>('list');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
     const handleOpenModal = (subject: Subject | null) => {
         setEditingSubject(subject);

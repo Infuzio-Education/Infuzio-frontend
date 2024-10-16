@@ -1,44 +1,68 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, FormControl, InputLabel, Select, MenuItem, Button, Chip, Box } from '@mui/material';
-import { SelectChangeEvent } from '@mui/material/Select';
+import { TextField, Button } from '@mui/material';
 import { CreateSectionProps } from '../../types/Types';
+import { createSections } from '../../api/superAdmin';
 
 const CreateSection: React.FC<CreateSectionProps> = ({ initialData, onSave, onCancel }) => {
     const [sectionName, setSectionName] = useState('');
     const [sectionCode, setSectionCode] = useState('');
-    const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         if (initialData) {
             setSectionName(initialData.name);
-            setSectionCode(initialData.code);
-            setSelectedClasses(initialData.classes);
+            setSectionCode(initialData.section_code);
         }
     }, [initialData]);
 
-    const handleSectionNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSectionName(event.target.value);
+    const validateInput = (value: string) => {
+        return /^(?=.*[a-zA-Z])[a-zA-Z0-9\s]+$/.test(value);
     };
 
-    const handleSectionCodeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSectionCode(event.target.value);
+    const handleInputChange = (
+        event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+        setter: React.Dispatch<React.SetStateAction<string>>
+    ) => {
+        const value = event.target.value;
+        setter(value);
+        setError('');
     };
 
-    const handleClassChange = (event: SelectChangeEvent<string[]>) => {
-        const { value } = event.target;
-        setSelectedClasses(typeof value === 'string' ? value.split(',') : value);
-    };
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        onSave({ id: initialData?.id || 0, name: sectionName, code: sectionCode, classes: selectedClasses });
-    };
+        if (!validateInput(sectionName) || !validateInput(sectionCode)) {
+            setError('Both section name and code must contain at least one letter.');
+            return;
+        }
 
-    const classes = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th', '10th', '11th', '12th'];
+        setLoading(true);
+
+        try {
+            const response = await createSections({
+                sectionName: sectionName,
+                sectionCode: sectionCode,
+            });
+
+            if (response.status && response.resp_code === 'SUCCESS') {
+                onSave(true);
+                setSectionName('');
+                setSectionCode('');
+            } else {
+                throw new Error('Failed to create section');
+            }
+        } catch (err) {
+            console.error('Error creating section:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="p-4">
             <h2 className="text-xl font-bold mb-4">{initialData ? 'Edit Section' : 'Create Section'}</h2>
+            {error && <p className="text-red-500 mb-4">{error}</p>}
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="flex space-x-4">
                     <TextField
@@ -46,7 +70,7 @@ const CreateSection: React.FC<CreateSectionProps> = ({ initialData, onSave, onCa
                         variant="outlined"
                         fullWidth
                         value={sectionName}
-                        onChange={handleSectionNameChange}
+                        onChange={(e) => handleInputChange(e, setSectionName)}
                         required
                     />
                     <TextField
@@ -54,40 +78,17 @@ const CreateSection: React.FC<CreateSectionProps> = ({ initialData, onSave, onCa
                         variant="outlined"
                         fullWidth
                         value={sectionCode}
-                        onChange={handleSectionCodeChange}
+                        onChange={(e) => handleInputChange(e, setSectionCode)}
                         required
                     />
                 </div>
 
-                <FormControl fullWidth variant="outlined" required>
-                    <InputLabel id="class-multi-select-label">Classes</InputLabel>
-                    <Select
-                        labelId="class-multi-select-label"
-                        id="class-multi-select"
-                        multiple
-                        value={selectedClasses}
-                        onChange={handleClassChange}
-                        label="Classes"
-                        renderValue={(selected) => (
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                {selected.map((value) => (
-                                    <Chip key={value} label={value} />
-                                ))}
-                            </Box>
-                        )}
-                    >
-                        {classes.map((className) => (
-                            <MenuItem key={className} value={className}>
-                                {className}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-
                 <div className="flex justify-end space-x-2">
-                    <Button onClick={onCancel} variant="outlined" color="success">Cancel</Button>
-                    <Button type="submit" variant="contained" color="success">
-                        {initialData ? 'Save Changes' : 'Create Section'}
+                    <Button onClick={onCancel} variant="outlined" color="success" disabled={loading}>
+                        Cancel
+                    </Button>
+                    <Button type="submit" variant="contained" color="success" disabled={loading}>
+                        {loading ? 'Creating...' : (initialData ? 'Save Changes' : 'Create Section')}
                     </Button>
                 </div>
             </form>

@@ -17,7 +17,7 @@ const ListStandards: React.FC = () => {
   const [selectedStandards, setSelectedStandards] = useState<number[]>([]);
   const [selectAll, setSelectAll] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [viewMode, setViewMode] = useState<string>("list");
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -70,11 +70,11 @@ const ListStandards: React.FC = () => {
       const response = await createStandard(name, hasGroup, sequence);
       if (response.status && response.resp_code === "CREATED") {
         const newStandard: Standard = {
-            ID: Date.now(), // Use a temporary ID (you might want to use a more robust method in production)
-            Name: name,
-            HasGroup: hasGroup,
-            sequence: sequence
-          };
+          ID: Date.now(), // Use a temporary ID (you might want to use a more robust method in production)
+          Name: name,
+          HasGroup: hasGroup,
+          sequence: sequence
+        };
         setStandards((prevStandards) => [...prevStandards, newStandard]);
         setSnackbar({
           open: true,
@@ -85,7 +85,7 @@ const ListStandards: React.FC = () => {
       } else {
         throw new Error(response.data);
       }
-    } catch (error:any) {
+    } catch (error: any) {
       console.error("Error creating standard:", error);
       setSnackbar({
         open: true,
@@ -237,7 +237,7 @@ const ListStandards: React.FC = () => {
             width: 400,
             bgcolor: "background.paper",
             boxShadow: 24,
-            p: 4,
+            p: 3,
             borderRadius: 2,
           }}
         >
