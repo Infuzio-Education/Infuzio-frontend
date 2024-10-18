@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from "../../components/ListControls";
-import CreateStandard from "./CreateStandards";
+import CreateStandard from "./CreateStandard";
 import SnackbarComponent from "../../components/SnackbarComponent";
 import { getStandards, createStandard } from "../../api/superAdmin";
 import { Standard } from "../../types/Types";

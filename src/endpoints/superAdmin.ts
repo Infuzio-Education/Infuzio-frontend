@@ -7,6 +7,7 @@ const superAdminEndpoints = {
     listSchool: 'school/list',
     createSchool: 'school/create',
     mediums: 'global/medium',
+    religion: 'global/religion',
     stadards: 'global/standard',
     groups: 'global/groups',
     sections: 'global/sections'

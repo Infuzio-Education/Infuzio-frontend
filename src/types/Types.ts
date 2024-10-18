@@ -121,8 +121,8 @@ export interface CreateGroupProps {
 export interface ListControlsProps {
     searchTerm: string;
     setSearchTerm: (term: string) => void;
-    viewMode: 'grid' | 'list'; // Ensure this is correctly typed
-    setViewMode: (mode: 'grid' | 'list') => void; // Change this line
+    viewMode: 'grid' | 'list';
+    setViewMode: (mode: 'grid' | 'list') => void;
     itemCount: number;
 }
 
@@ -131,5 +131,16 @@ export interface School {
     name: string;
     school_code: string;
     logo?: string;
+}
+
+export interface Religion {
+    id: number,
+    name: string;
+}
+
+export interface CreateReligionProps {
+    initialData?: { name: string };
+    onSave: (name: string) => void;
+    onCancel: () => void;
 }
 
