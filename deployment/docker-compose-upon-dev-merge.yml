@@ -11,6 +11,8 @@ services:
       POSTGRES_DB: infuzio
     ports:
       - "5432:5432"
+    networks:
+      - infuzio_network
     volumes:
       - infuzio_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -40,6 +42,8 @@ services:
     container_name: infuzio-container
     ports:
       - "3000:3000"
+    networks:
+      - infuzio_network
     environment:
       PORT: 3000
       DB_HOST: postgres

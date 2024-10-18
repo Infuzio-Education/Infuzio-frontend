@@ -2,19 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
-import CreateMedium from './CreateMedium';
-import { getMediums, createMediums } from '../../api/superAdmin';
+import CreateReligion from './CreateReligion';
 import SnackbarComponent from '../../components/SnackbarComponent';
-import { Medium } from '../../types/Types';
+import { Religion } from '../../types/Types';
+import { createReligion, getReligions } from '../../api/superAdmin';
 
-
-const ListMediums: React.FC = () => {
+const ListReligions: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
-    const [editingMedium, setEditingMedium] = useState<Medium | null>(null);
-    const [mediums, setMediums] = useState<Medium[]>([]);
+    const [editingReligion, setEditingReligion] = useState<Religion | null>(null);
+    const [religions, setReligions] = useState<Religion[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [selectedMediums, setSelectedMediums] = useState<number[]>([]);
+    const [selectedReligions, setSelectedReligions] = useState<number[]>([]);
     const [selectAll, setSelectAll] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
@@ -26,21 +25,28 @@ const ListMediums: React.FC = () => {
     });
 
     useEffect(() => {
-        fetchMediums();
+        fetchReligions();
     }, []);
 
-    const fetchMediums = async () => {
+    const fetchReligions = async () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await getMediums();
-            if (response.status === true && Array.isArray(response.data)) {
-                setMediums(response.data);
+            const response = await getReligions();
+            console.log("API response:", response);
+            if (response.status === true) {
+                const mappedReligions = response.data.map((item: any) => ({
+                    id: item.ID,
+                    name: item.Name
+                }));
+                setReligions(mappedReligions);
+                console.log("REL", religions);
+
             } else {
-                throw new Error('Failed to fetch mediums');
+                throw new Error('Failed to fetch religions');
             }
         } catch (error) {
-            setError('Failed to load mediums. Please try again.');
+            setError('Failed to load religions. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -50,60 +56,54 @@ const ListMediums: React.FC = () => {
         setSnackbar(prev => ({ ...prev, open: false }));
     };
 
-    const handleOpenModal = (medium: Medium | null) => {
-        setEditingMedium(medium);
+    const handleOpenModal = (religion: Religion | null) => {
+        setEditingReligion(religion);
         setOpenModal(true);
     };
 
     const handleCloseModal = () => {
-        setEditingMedium(null);
+        setEditingReligion(null);
         setOpenModal(false);
     };
 
     const handleSave = async (name: string) => {
         try {
-            const response = await createMediums(name);
-            if (response.status && response.resp_code === "CREATED") {
-                const newMedium: Medium = {
-                    ID: Date.now(),
-                    Name: name,
+            const response = await createReligion(name);
+            console.log(response);
+            if (response.status === true) {
+                const newReligion: Religion = {
+                    id: Date.now(),
+                    name: name,
                 };
-                setMediums((prevMediums) => [...prevMediums, newMedium]);
+                setReligions((prevReligion) => [...prevReligion, newReligion]);
                 setSnackbar({
                     open: true,
-                    message: "Medium created successfully!",
-                    severity: "success",
-                    position: { vertical: "top", horizontal: "center" },
+                    message: 'Religion created successfully!',
+                    severity: 'success',
+                    position: { vertical: 'top', horizontal: 'center' }
                 });
             } else {
-                throw new Error(response.data || "Failed to create medium");
+                throw new Error(response.data);
             }
         } catch (error: any) {
-            console.error("Error creating medium:", error);
-            setSnackbar({
-                open: true,
-                message: error.response?.data?.error || "Failed to create medium. Please try again.",
-                severity: "error",
-                position: { vertical: "top", horizontal: "center" },
-            });
+            console.error('Error creating religion:', error);
         }
         handleCloseModal();
     };
 
     const handleDelete = async (id: number) => {
         try {
-
-            setMediums(mediums.filter(medium => medium.ID !== id));
+            setReligions(religions.filter(religion => religion.id !== id));
             setSnackbar({
                 open: true,
-                message: 'Medium deleted successfully!',
+                message: 'Religion deleted successfully!',
                 severity: 'success',
                 position: { vertical: 'top', horizontal: 'center' }
             });
         } catch (error: any) {
             setSnackbar({
                 open: true,
-                message: error.message || 'Failed to delete medium',
+                message: error.message || 'Failed to delete religion',
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'center' }
             });
@@ -111,20 +111,19 @@ const ListMediums: React.FC = () => {
     };
 
     const handleSelectAll = () => {
-        setSelectedMediums(selectAll ? [] : mediums.map(m => m.ID));
+        setSelectedReligions(selectAll ? [] : religions.map(r => r.id));
         setSelectAll(!selectAll);
     };
 
-    const handleSelectMedium = (id: number) => {
-        setSelectedMediums(prev =>
+    const handleSelectReligion = (id: number) => {
+        setSelectedReligions(prev =>
             prev.includes(id) ? prev.filter(selectedId => selectedId !== id) : [...prev, id]
         );
     };
 
-    const filteredMediums = mediums.filter(medium =>
-        medium.Name.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredReligions = religions.filter(religion =>
+        religion.name && religion.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
     return (
         <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">
             <ListControls
@@ -132,14 +131,14 @@ const ListMediums: React.FC = () => {
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
-                itemCount={filteredMediums.length}
+                itemCount={filteredReligions.length}
             />
 
             {loading ? (
-                <div>Loading mediums...</div>
+                <div>Loading religions...</div>
             ) : error ? (
                 <div className="text-red-500">{error}</div>
-            ) : filteredMediums.length > 0 ? (
+            ) : filteredReligions.length > 0 ? (
                 <div className="bg-white shadow-md rounded-lg overflow-hidden">
                     <table className="w-full">
                         <thead>
@@ -151,30 +150,30 @@ const ListMediums: React.FC = () => {
                                     />
                                 </th>
                                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Sl.No</th>
-                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-7/12">Medium Name</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-7/12">Religion Name</th>
                                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredMediums.map((medium, index) => (
-                                <tr key={medium.ID} className="cursor-pointer">
+                            {filteredReligions.map((religion, index) => (
+                                <tr key={religion.id} className="cursor-pointer">
                                     <td className="text-center">
                                         <Checkbox
-                                            checked={selectedMediums.includes(medium.ID)}
-                                            onChange={() => handleSelectMedium(medium.ID)}
+                                            checked={selectedReligions.includes(religion.id)}
+                                            onChange={() => handleSelectReligion(religion.id)}
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                     </td>
-                                    <td className="text-center" onClick={() => handleOpenModal(medium)}>
+                                    <td className="text-center" onClick={() => handleOpenModal(religion)}>
                                         <div className="text-sm font-medium text-gray-900">{index + 1}</div>
                                     </td>
-                                    <td className="text-center" onClick={() => handleOpenModal(medium)}>
-                                        <div className="text-sm font-medium text-gray-900">{medium.Name}</div>
+                                    <td className="text-center" onClick={() => handleOpenModal(religion)}>
+                                        <div className="text-sm font-medium text-gray-900">{religion.name}</div>
                                     </td>
                                     <td className="text-center">
                                         <IconButton
                                             aria-label="delete"
-                                            onClick={() => handleDelete(medium.ID)}
+                                            onClick={() => handleDelete(religion.id)}
                                         >
                                             <Trash2 size={20} className="text-red-500" />
                                         </IconButton>
@@ -185,7 +184,7 @@ const ListMediums: React.FC = () => {
                     </table>
                 </div>
             ) : (
-                <div>No mediums available</div>
+                <div>No religions available</div>
             )}
 
             <div className="fixed bottom-10 right-16 flex items-center space-x-2">
@@ -195,7 +194,7 @@ const ListMediums: React.FC = () => {
                 >
                     <PlusCircle size={34} />
                     <span className="absolute left-[-140px] top-1/2 transform -translate-y-1/2 bg-white text-black text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow">
-                        Create New Medium
+                        Create New Religion
                     </span>
                 </button>
             </div>
@@ -216,8 +215,8 @@ const ListMediums: React.FC = () => {
                     p: 3,
                     borderRadius: 2,
                 }}>
-                    <CreateMedium
-                        initialData={editingMedium}
+                    <CreateReligion
+                        initialData={editingReligion ? { name: editingReligion.name } : undefined}
                         onSave={handleSave}
                         onCancel={handleCloseModal}
                     />
@@ -235,4 +234,4 @@ const ListMediums: React.FC = () => {
     );
 };
 
-export default ListMediums;
+export default ListReligions;

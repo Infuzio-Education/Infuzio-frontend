@@ -155,6 +155,36 @@ export const getMediums = async () => {
     }
 }
 
+export const createReligion = async (name: string) => {
+    try {
+        const response = await Api.post(superAdminEndpoints.religion, { name: name });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching syllabus:', error.response);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+}
+
+export const getReligions = async () => {
+    try {
+        const response = await Api.get(superAdminEndpoints.religion);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching syllabus:', error.response);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+}
+
 
 export const createStandard = async (name: string, hasGroup: boolean, sequence: number) => {
     try {
