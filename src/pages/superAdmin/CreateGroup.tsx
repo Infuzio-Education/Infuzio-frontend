@@ -23,7 +23,7 @@ const CreateGroup: React.FC<CreateGroupProps> = ({ onSave, onCancel }) => {
                     required
                 />
                 <div className="flex justify-end space-x-2">
-                    <Button onClick={onCancel} variant="outlined" color="success">
+                    <Button onClick={onCancel} variant="outlined" color="error">
                         Cancel
                     </Button>
                     <Button type="submit" variant="contained" color="success">
