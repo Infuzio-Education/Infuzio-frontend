@@ -15,7 +15,7 @@ Api.interceptors.request.use(
             try {
                 const superAdminInfo = JSON.parse(superAdminInfoString) as SuperAdminInfo;
 
-                if (superAdminInfo && superAdminInfo.token) {
+                if (superAdminInfo && superAdminInfo.token) {                    
                     config.headers['Authorization'] = `${superAdminInfo.token}`;
                 }
             } catch (e) {

@@ -15,7 +15,7 @@ const ListGroups: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [viewMode, setViewMode] = useState<string>("list");
   const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
   const [snackbar, setSnackbar] = useState({
     open: false,

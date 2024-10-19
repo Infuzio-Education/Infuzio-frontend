@@ -6,7 +6,7 @@ const CreateSyllabus: React.FC<CreateSyllabusProps> = ({ initialData, onSave, on
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
+    useEffect(() => {   
         if (initialData) {
             setName(initialData.Name);
         } else {

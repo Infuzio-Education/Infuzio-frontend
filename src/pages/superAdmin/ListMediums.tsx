@@ -7,7 +7,6 @@ import { getMediums, createMediums } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { Medium } from '../../types/Types';
 
-
 const ListMediums: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
     const [editingMedium, setEditingMedium] = useState<Medium | null>(null);
@@ -92,7 +91,6 @@ const ListMediums: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-
             setMediums(mediums.filter(medium => medium.ID !== id));
             setSnackbar({
                 open: true,
