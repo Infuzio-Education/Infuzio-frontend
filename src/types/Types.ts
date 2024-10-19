@@ -1,4 +1,3 @@
-
 export interface SchoolAddress {
     street1: string;
     street2: string;
@@ -93,8 +92,7 @@ export interface CreateMediumProps {
     initialData: { ID: number; Name: string } | null;
     onSave: (name: string) => void;
     onCancel: () => void;
-  }
-
+}
 
 export interface Standard {
     ID: number;
@@ -107,15 +105,85 @@ export interface CreateStandardProps {
     initialData: Standard | null;
     onSave: (name: string, hasGroup: boolean, sequence: number) => void;
     onCancel: () => void;
-} 
+}
 
 export interface Group {
     ID: number;
     Name: string;
-  }
+}
 
 export interface CreateGroupProps {
     onSave: (name: string) => void;
     onCancel: () => void;
 }
 
+export interface Staff {
+    id: number;
+    name: string;
+    isTeachingStaff: boolean;
+    responsibility: string;
+    subjects: string[];
+    email: string;
+    mobile: string;
+    gender: string;
+    dateOfBirth: string;
+    address: {
+        line1: string;
+        city: string;
+        state: string;
+        pinCode: string;
+        country: string;
+    };
+    section: string;
+    imageUrl: string;
+}
+
+export interface CreateStaffProps {
+    initialData: Staff | null;
+    onSave: (staff: Staff) => void;
+    onCancel: () => void;
+}
+
+export interface Class {
+    id: number;
+    name: string;
+    section: string;
+    mediumId: number;
+    standardId: number;
+    classStaffId: number;
+    group_id: number;
+    syllabusId: number;
+    imageUrl?: string | null;
+}
+
+export interface CreateClassProps {
+    initialData: Class | null;
+    onSave: (classData: Class) => void;
+    onCancel: () => void;
+}
+
+export interface Student {
+    id: number;
+    name: string;
+    rollNumber: string;
+    classId: number;
+    dateOfBirth: string;
+    gender: string;
+    address: {
+        line1: string;
+        city: string;
+        state: string;
+        pinCode: string;
+        country: string;
+    };
+    guardianName: string;
+    guardianPhone: string;
+    guardianEmail: string;
+    imageUrl?: string;
+}
+
+export interface CreateStudentProps {
+    initialData: Student | null;
+    onSave: (student: Student) => void;
+    onCancel: () => void;
+}

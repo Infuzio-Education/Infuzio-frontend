@@ -13,6 +13,8 @@ import { superAdminProtect as ProtectedRoute } from "../components/PrivateRoute"
 import { SchoolProvider } from "../contexts/SchoolContext";
 import ListSyllabus from "../pages/superAdmin/ListSyllabus";
 import ListGroups from "../pages/superAdmin/ListGroups";
+import ListClass from "../pages/superAdmin/ListClass";
+import ListStudents from "../pages/superAdmin/ListStudents";
 
 const SuperAdminRoutes = () => {
     return (
@@ -33,6 +35,9 @@ const SuperAdminRoutes = () => {
                         <Route path="mediums" element={<ListMediums />} />
                         <Route path="syllabus" element={<ListSyllabus />} />
                         <Route path="groups" element={<ListGroups />} />
+                        <Route path="staffs" element={<ListStaffs />} />
+                        <Route path="classes" element={<ListClass/>} />
+                        <Route path="students" element={<ListStudents/>} />
                     </Route>
                 </Route>
             </Routes>
