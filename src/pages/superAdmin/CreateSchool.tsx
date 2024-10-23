@@ -6,6 +6,7 @@ import { createSchool, getSyllabus } from '../../api/superAdmin';
 import type { SchoolFormData, Syllabus } from '../../types/Types';
 import { X } from 'lucide-react';
 import SnackbarComponent from '../../components/SnackbarComponent';
+import { useNavigate } from 'react-router-dom';
 
 const initialValues: SchoolFormData = {
     name: '',
@@ -29,13 +30,19 @@ const CreateSchool: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [syllabusList, setSyllabusList] = useState<Syllabus[]>([]);
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error', position: { vertical: 'top', horizontal: 'right' } });
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchSyllabus = async () => {
             try {
                 const response = await getSyllabus();
-                if (response && response.status && response.resp_code === 'SUCCESS' && Array.isArray(response.data)) {
-                    setSyllabusList(response.data);
+                if (Array.isArray(response) && response.length > 0) {
+                    const formattedSyllabusList = response.map(syllabus => ({
+                        ...syllabus,
+                        label: syllabus.Name,
+                        value: syllabus.ID
+                    }));
+                    setSyllabusList(formattedSyllabusList);
                 } else {
                     console.error('Invalid syllabus data:', response);
                     setSyllabusList([]);
@@ -97,6 +104,9 @@ const CreateSchool: React.FC = () => {
 
                 if (response.status === 200 || response.status === 201) {
                     setSnackbar({ open: true, message: 'School created successfully!', severity: 'success', position: { vertical: 'top', horizontal: 'right' } });
+                    setTimeout(() => {
+                        navigate('/superAdmin/schools');
+                    }, 2000);
                 } else {
                     setSnackbar({ open: true, message: response.data.error, severity: 'error', position: { vertical: 'top', horizontal: 'right' } });
                 }

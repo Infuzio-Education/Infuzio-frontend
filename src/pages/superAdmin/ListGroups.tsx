@@ -1,23 +1,22 @@
 import React, { useState, useEffect } from "react";
-import { Checkbox, Modal, Box, IconButton } from "@mui/material";
+import { Modal, Box, IconButton, Checkbox } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from "../../components/ListControls";
-import CreateStandard from "./CreateStandard";
+
 import SnackbarComponent from "../../components/SnackbarComponent";
-import { getStandards, createStandard } from "../../api/superAdmin";
-import { Standard } from "../../types/Types";
+import { getGroups, createGroup } from "../../api/superAdmin";
+import CreateGroup from "./CreateGroup";
+import { Group } from "../../types/Types";
 
 
-const ListStandards: React.FC = () => {
+const ListGroups: React.FC = () => {
   const [openModal, setOpenModal] = useState<boolean>(false);
-  const [editingStandard, setEditingStandard] = useState<Standard | null>(null);
-  const [standards, setStandards] = useState<Standard[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedStandards, setSelectedStandards] = useState<number[]>([]);
-  const [selectAll, setSelectAll] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [viewMode, setViewMode] = useState<string>("list");
+  const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -26,21 +25,21 @@ const ListStandards: React.FC = () => {
   });
 
   useEffect(() => {
-    fetchStandards();
+    fetchGroups();
   }, []);
 
-  const fetchStandards = async () => {
+  const fetchGroups = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await getStandards();
+      const response = await getGroups();
       if (response.status && response.resp_code === "SUCCESS") {
-        setStandards(response.data);
+        setGroups(response.data);
       } else {
-        throw new Error("Failed to fetch standards");
+        throw new Error("Failed to fetch groups");
       }
     } catch (err) {
-      setError("Failed to load standards. Please try again.");
+      setError("Failed to load groups. Please try again.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -51,45 +50,37 @@ const ListStandards: React.FC = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
-  const handleOpenModal = (standard: Standard | null) => {
-    setEditingStandard(standard);
+  const handleOpenModal = () => {
     setOpenModal(true);
   };
 
   const handleCloseModal = () => {
-    setEditingStandard(null);
     setOpenModal(false);
   };
 
-  const handleSave = async (
-    name: string,
-    hasGroup: boolean,
-    sequence: number
-  ) => {
+  const handleSave = async (name: string) => {
     try {
-      const response = await createStandard(name, hasGroup, sequence);
+      const response = await createGroup(name);
       if (response.status && response.resp_code === "CREATED") {
-        const newStandard: Standard = {
-            ID: Date.now(), // Use a temporary ID (you might want to use a more robust method in production)
-            Name: name,
-            HasGroup: hasGroup,
-            sequence: sequence
-          };
-        setStandards((prevStandards) => [...prevStandards, newStandard]);
+        const newGroup: Group = {
+          ID: Date.now(), // Temporary ID
+          Name: name,
+        };
+        setGroups((prevGroups) => [...prevGroups, newGroup]);
         setSnackbar({
           open: true,
-          message: "Standard created successfully!",
+          message: "Group created successfully!",
           severity: "success",
           position: { vertical: "top", horizontal: "center" },
         });
       } else {
-        throw new Error(response.data);
+        throw new Error(response.data || "Failed to create group");
       }
-    } catch (error:any) {
-      console.error("Error creating standard:", error);
+    } catch (error: any) {
+      console.error("Error creating group:", error);
       setSnackbar({
         open: true,
-        message: error.response.data.error || "Failed to create standard. Please try again.",
+        message: error.response.data.error || "Failed to create group. Please try again.",
         severity: "error",
         position: { vertical: "top", horizontal: "center" },
       });
@@ -98,36 +89,32 @@ const ListStandards: React.FC = () => {
   };
 
   const handleDelete = (id: number) => {
-    // For now, we'll just remove it from the local state
-    // In a real application, you'd want to call an API to delete the standard
-    setStandards(standards.filter((standard) => standard.ID !== id));
+    setGroups(groups.filter((group) => group.ID !== id));
+    setSelectedGroups(selectedGroups.filter((groupId) => groupId !== id));
     setSnackbar({
       open: true,
-      message: "Standard deleted successfully!",
+      message: "Group deleted successfully!",
       severity: "success",
       position: { vertical: "top", horizontal: "center" },
     });
   };
 
-  const handleSelectAll = () => {
-    setSelectedStandards(
-      selectAll ? [] : standards.map((standard) => standard.ID)
-    );
-    setSelectAll(!selectAll);
-  };
-
-  const handleSelectStandard = (id: number) => {
-    setSelectedStandards((prev) =>
-      prev.includes(id)
-        ? prev.filter((selectedId) => selectedId !== id)
-        : [...prev, id]
+  const handleCheckboxChange = (id: number) => {
+    setSelectedGroups((prev) =>
+      prev.includes(id) ? prev.filter((groupId) => groupId !== id) : [...prev, id]
     );
   };
 
-  const filteredStandards = standards.filter((standard) =>
-    standard && standard.Name
-      ? standard.Name.toLowerCase().includes(searchTerm.toLowerCase())
-      : false
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      setSelectedGroups(filteredGroups.map((group) => group.ID));
+    } else {
+      setSelectedGroups([]);
+    }
+  };
+
+  const filteredGroups = groups.filter((group) =>
+    group.Name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -135,45 +122,48 @@ const ListStandards: React.FC = () => {
       <ListControls
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
-        viewMode={viewMode as "list" | "grid"}
+        viewMode={viewMode}
         setViewMode={setViewMode}
-        itemCount={filteredStandards.length}
+        itemCount={filteredGroups.length}
       />
 
       {loading ? (
-        <div>Loading standards...</div>
+        <div>Loading groups...</div>
       ) : error ? (
         <div className="text-red-500">{error}</div>
-      ) : filteredStandards.length > 0 ? (
+      ) : filteredGroups.length > 0 ? (
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
           <table className="w-full">
             <thead>
               <tr className="bg-gray-300">
-                <th className="text-center w-1/12">
-                  <Checkbox checked={selectAll} onChange={handleSelectAll} />
+                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">
+                  <Checkbox
+                    checked={selectedGroups.length === filteredGroups.length}
+                    onChange={handleSelectAll}
+                    indeterminate={
+                      selectedGroups.length > 0 &&
+                      selectedGroups.length < filteredGroups.length
+                    }
+                  />
                 </th>
                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">
                   SL No
                 </th>
-                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-5/12">
-                  Standard Name
+                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-8/12">
+                  Group Name
                 </th>
                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">
-                  Has Group
-                </th>
-                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredStandards.map((standard, index) => (
-                <tr key={standard.ID} className="cursor-pointer">
+              {filteredGroups.map((group, index) => (
+                <tr key={group.ID} className="cursor-pointer">
                   <td className="text-center">
                     <Checkbox
-                      checked={selectedStandards.includes(standard.ID)}
-                      onChange={() => handleSelectStandard(standard.ID)}
-                      onClick={(e) => e.stopPropagation()}
+                      checked={selectedGroups.includes(group.ID)}
+                      onChange={() => handleCheckboxChange(group.ID)}
                     />
                   </td>
                   <td className="text-center">
@@ -181,23 +171,15 @@ const ListStandards: React.FC = () => {
                       {index + 1}
                     </div>
                   </td>
-                  <td
-                    className="text-center"
-                    onClick={() => handleOpenModal(standard)}
-                  >
-                    <div className="text-sm font-medium text-gray-900">
-                      {standard.Name}
-                    </div>
-                  </td>
                   <td className="text-center">
                     <div className="text-sm font-medium text-gray-900">
-                      {standard.HasGroup ? "Yes" : "No"}
+                      {group.Name}
                     </div>
                   </td>
                   <td className="text-center">
                     <IconButton
                       aria-label="delete"
-                      onClick={() => handleDelete(standard.ID)}
+                      onClick={() => handleDelete(group.ID)}
                     >
                       <Trash2 size={20} className="text-red-500" />
                     </IconButton>
@@ -208,17 +190,17 @@ const ListStandards: React.FC = () => {
           </table>
         </div>
       ) : (
-        <div>No standards available</div>
+        <div>No groups available</div>
       )}
 
       <div className="fixed bottom-10 right-16 flex items-center space-x-2">
         <button
           className="bg-green-500 text-white p-2 rounded-full shadow-lg relative group hover:bg-green-600"
-          onClick={() => handleOpenModal(null)}
+          onClick={handleOpenModal}
         >
           <PlusCircle size={34} />
           <span className="absolute left-[-140px] top-1/2 transform -translate-y-1/2 bg-white text-black text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow">
-            Create New Standard
+            Create New Group
           </span>
         </button>
       </div>
@@ -241,11 +223,7 @@ const ListStandards: React.FC = () => {
             borderRadius: 2,
           }}
         >
-          <CreateStandard
-            initialData={editingStandard}
-            onSave={handleSave}
-            onCancel={handleCloseModal}
-          />
+          <CreateGroup onSave={handleSave} onCancel={handleCloseModal} />
         </Box>
       </Modal>
 
@@ -260,4 +238,4 @@ const ListStandards: React.FC = () => {
   );
 };
 
-export default ListStandards;
+export default ListGroups;

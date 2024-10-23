@@ -1,4 +1,3 @@
-
 export interface SchoolAddress {
     street1: string;
     street2: string;
@@ -21,14 +20,13 @@ export interface SchoolFormData {
 export interface Section {
     id: number;
     name: string;
-    code: string;
-    classes: string[];
+    section_code: string;
 }
 
 
 export interface CreateSectionProps {
     initialData: Section | null;
-    onSave: (section: Section) => void;
+    onSave: (success: boolean) => void;
     onCancel: () => void;
 }
 
@@ -84,3 +82,179 @@ export interface CreateSyllabusProps {
     onCancel: () => void;
 }
 
+export interface Medium {
+    ID: number;
+    Name: string;
+}
+
+export interface CreateMediumProps {
+    initialData: { ID: number; Name: string } | null;
+    onSave: (name: string) => void;
+    onCancel: () => void;
+}
+
+
+export interface Standard {
+    ID: number;
+    Name: string;
+    HasGroup: boolean;
+    sequence: number;
+}
+
+export interface CreateStandardProps {
+    initialData: Standard | null;
+    onSave: (name: string, hasGroup: boolean, sequence: number) => void;
+    onCancel: () => void;
+}
+
+export interface Group {
+    ID: number;
+    Name: string;
+}
+
+export interface CreateGroupProps {
+    onSave: (name: string) => void;
+    onCancel: () => void;
+}
+
+export interface ListControlsProps {
+    searchTerm: string;
+    setSearchTerm: (term: string) => void;
+    viewMode: 'grid' | 'list';
+    setViewMode: (mode: 'grid' | 'list') => void;
+    itemCount: number;
+}
+
+export interface School {
+    id: number;
+    name: string;
+    school_code: string;
+    logo?: string;
+}
+
+export interface Religion {
+    id: number,
+    name: string;
+}
+
+export interface CreateReligionProps {
+    initialData?: { name: string };
+    onSave: (name: string) => void;
+    onCancel: () => void;
+}
+
+export interface Medium {
+    ID: number;
+    Name: string;
+}
+
+export interface CreateMediumProps {
+    initialData: { ID: number; Name: string } | null;
+    onSave: (name: string) => void;
+    onCancel: () => void;
+}
+
+export interface Standard {
+    ID: number;
+    Name: string;
+    HasGroup: boolean;
+    sequence: number;
+}
+
+export interface CreateStandardProps {
+    initialData: Standard | null;
+    onSave: (name: string, hasGroup: boolean, sequence: number) => void;
+    onCancel: () => void;
+}
+
+export interface Group {
+    ID: number;
+    Name: string;
+}
+
+export interface CreateGroupProps {
+    onSave: (name: string) => void;
+    onCancel: () => void;
+}
+
+export interface Staff {
+    id: number;
+    name: string;
+    isTeachingStaff: boolean;
+    responsibility: string;
+    subjects: string[];
+    email: string;
+    mobile: string;
+    gender: string;
+    dateOfBirth: string;
+    address: {
+        line1: string;
+        city: string;
+        state: string;
+        pinCode: string;
+        country: string;
+    };
+    section: string;
+    imageUrl: string;
+}
+
+export interface CreateStaffProps {
+    initialData: Staff | null;
+    onSave: (staff: Staff) => void;
+    onCancel: () => void;
+}
+
+export interface Class {
+    id: number;
+    name: string;
+    section: string;
+    mediumId: number;
+    standardId: number;
+    classStaffId: number;
+    group_id: number;
+    syllabusId: number;
+    imageUrl?: string | null;
+}
+
+export interface CreateClassProps {
+    initialData: Class | null;
+    onSave: (classData: Class) => void;
+    onCancel: () => void;
+}
+
+export interface Student {
+    id: number;
+    name: string;
+    rollNumber: string;
+    classId: number;
+    dateOfBirth: string;
+    gender: string;
+    address: {
+        line1: string;
+        city: string;
+        state: string;
+        pinCode: string;
+        country: string;
+    };
+    guardianName: string;
+    guardianPhone: string;
+    guardianEmail: string;
+    imageUrl?: string;
+}
+
+export interface CreateStudentProps {
+    initialData: Student | null;
+    onSave: (student: Student) => void;
+    onCancel: () => void;
+}
+
+export interface Religion {
+    id: number,
+    name: string;
+}
+
+export interface CreateReligionProps {
+    initialData?: { name: string };
+    onSave: (name: string) => void;
+    onCancel: () => void;
+}

@@ -20,10 +20,10 @@ const CreateSyllabus: React.FC<CreateSyllabusProps> = ({ initialData, onSave, on
 
         try {
             const syllabus: Syllabus = {
-                ID: initialData?.ID || 0, // or null if you're creating a new syllabus
+                ID: initialData?.ID || 0,
                 Name: name
             };
-            await onSave(syllabus); // Pass the full Syllabus object
+            await onSave(syllabus);
         } catch (error) {
             console.error('Error creating syllabus:', error);
         } finally {

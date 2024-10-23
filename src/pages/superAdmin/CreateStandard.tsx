@@ -1,25 +1,27 @@
-// src/pages/Standards/CreateStandard.tsx
 import React, { useState, useEffect } from 'react';
-import { TextField, Button } from '@mui/material';
-
-interface CreateStandardProps {
-    initialData: { id: number; name: string; } | null;
-    onSave: (name: string) => void;
-    onCancel: () => void;
-}
+import { TextField, Button, Checkbox, FormControlLabel } from '@mui/material';
+import { CreateStandardProps } from '../../types/Types';
 
 const CreateStandard: React.FC<CreateStandardProps> = ({ initialData, onSave, onCancel }) => {
     const [name, setName] = useState('');
+    const [hasGroup, setHasGroup] = useState(false);
+    const [sequence, setSequence] = useState(0);
 
     useEffect(() => {
         if (initialData) {
-            setName(initialData.name);
+            setName(initialData.Name);
+            setHasGroup(initialData.HasGroup);
+            setSequence(initialData.sequence);
+        } else {
+            setName('');
+            setHasGroup(false);
+            setSequence(0);
         }
     }, [initialData]);
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        onSave(name);
+        onSave(name, hasGroup, sequence);
     };
 
     return (
@@ -33,6 +35,25 @@ const CreateStandard: React.FC<CreateStandardProps> = ({ initialData, onSave, on
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
+                />
+                <TextField
+                    label="Sequence"
+                    variant="outlined"
+                    fullWidth
+                    type="number"
+                    value={sequence}
+                    onChange={(e) => setSequence(Number(e.target.value))}
+                    required
+                />
+                <FormControlLabel
+                    control={
+                        <Checkbox
+                            checked={hasGroup}
+                            onChange={(e) => setHasGroup(e.target.checked)}
+                            color="primary"
+                        />
+                    }
+                    label="Has Group"
                 />
                 <div className="flex justify-end space-x-2">
                     <Button onClick={onCancel} variant="outlined" color="success">

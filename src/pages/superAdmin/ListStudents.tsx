@@ -2,87 +2,97 @@ import React, { useState } from 'react';
 import { Checkbox, Modal, Box, IconButton, Avatar } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
-import CreateStaffs from './CreateStaffs';
-import { Staff } from '../../types/Types';
+import CreateStudents from './CreateStudents';
+import { Student } from '../../types/Types';
 
-const ListStaffs: React.FC = () => {
+const ListStudents: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
-    const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
-    const [staffs, setStaffs] = useState<Staff[]>([
+    const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+    const [students, setStudents] = useState<Student[]>([
         {
-            id: 1, name: "John Doe", isTeachingStaff: true, responsibility: "Class Teacher", subjects: ["Mathematics", "Physics"], email: "john@example.com", mobile: "1234567890",
-            gender: '',
-            dateOfBirth: '',
+            id: 1,
+            name: "John Doe",
+            rollNumber: "001",
+            classId: 1,
+            dateOfBirth: "2005-05-15",
+            gender: "Male",
             address: {
-                line1: '',
-                city: '',
-                state: '',
-                pinCode: '',
-                country: ''
+                line1: "123 Main St",
+                city: "Anytown",
+                state: "State",
+                pinCode: "12345",
+                country: "Country"
             },
-            section: '',
-            imageUrl: ''
+            guardianName: "Jane Doe",
+            guardianPhone: "1234567890",
+            guardianEmail: "jane@example.com",
+            imageUrl: ""
         },
         {
-            id: 2, name: "Jane Smith", isTeachingStaff: false, responsibility: "Administrator", subjects: [], email: "jane@example.com", mobile: "9876543210",
-            gender: '',
-            dateOfBirth: '',
+            id: 2,
+            name: "Jane Smith",
+            rollNumber: "002",
+            classId: 1,
+            dateOfBirth: "2005-08-20",
+            gender: "Female",
             address: {
-                line1: '',
-                city: '',
-                state: '',
-                pinCode: '',
-                country: ''
+                line1: "456 Elm St",
+                city: "Othertown",
+                state: "State",
+                pinCode: "67890",
+                country: "Country"
             },
-            section: '',
-            imageUrl: ''
+            guardianName: "John Smith",
+            guardianPhone: "9876543210",
+            guardianEmail: "john@example.com",
+            imageUrl: ""
         },
     ]);
 
-    const [selectedStaffs, setSelectedStaffs] = useState<number[]>([]);
+    const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
     const [selectAll, setSelectAll] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+    const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
-    const handleOpenModal = (staff: Staff | null) => {
-        setEditingStaff(staff);
+    const handleOpenModal = (student: Student | null) => {
+        setEditingStudent(student);
         setOpenModal(true);
     };
 
     const handleCloseModal = () => {
-        setEditingStaff(null);
+        setEditingStudent(null);
         setOpenModal(false);
     };
 
-    const handleSave = (updatedStaff: Staff) => {
-        if (editingStaff) {
-            setStaffs(staffs.map(staff =>
-                staff.id === editingStaff.id ? { ...staff, ...updatedStaff } : staff
+    const handleSave = (updatedStudent: Student) => {
+        if (editingStudent) {
+            setStudents(students.map(student =>
+                student.id === editingStudent.id ? { ...student, ...updatedStudent } : student
             ));
         } else {
-            setStaffs([...staffs, { ...updatedStaff, id: staffs.length + 1 }]);
+            setStudents([...students, { ...updatedStudent, id: students.length + 1 }]);
         }
         handleCloseModal();
     };
 
     const handleDelete = (id: number) => {
-        setStaffs(staffs.filter(staff => staff.id !== id));
+        setStudents(students.filter(student => student.id !== id));
     };
 
     const handleSelectAll = () => {
         if (selectAll) {
-            setSelectedStaffs([]);
+            setSelectedStudents([]);
         } else {
-            setSelectedStaffs(staffs.map(staff => staff.id));
+            setSelectedStudents(students.map(student => student.id));
         }
         setSelectAll(!selectAll);
     };
 
-    const handleSelectStaff = (id: number) => {
-        if (selectedStaffs.includes(id)) {
-            setSelectedStaffs(selectedStaffs.filter(selectedId => selectedId !== id));
+    const handleSelectStudent = (id: number) => {
+        if (selectedStudents.includes(id)) {
+            setSelectedStudents(selectedStudents.filter(selectedId => selectedId !== id));
         } else {
-            setSelectedStaffs([...selectedStaffs, id]);
+            setSelectedStudents([...selectedStudents, id]);
         }
     };
 
@@ -93,7 +103,7 @@ const ListStaffs: React.FC = () => {
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
-                itemCount={staffs.length}
+                itemCount={students.length}
             />
             <div className="bg-white shadow-md rounded-lg overflow-hidden">
                 <table className="w-full">
@@ -108,51 +118,51 @@ const ListStaffs: React.FC = () => {
                             <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Sl.No</th>
                             <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Image</th>
                             <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Name</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Role</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Subjects</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Email</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Mobile</th>
+                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Roll No</th>
+                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Class</th>
+                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Guardian</th>
+                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Contact</th>
                             <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {staffs.map((staff, index) => (
-                            <tr key={staff.id} className="cursor-pointer">
+                        {students.map((student, index) => (
+                            <tr key={student.id} className="cursor-pointer">
                                 <td className="text-center">
                                     <Checkbox
-                                        checked={selectedStaffs.includes(staff.id)}
-                                        onChange={() => handleSelectStaff(staff.id)}
+                                        checked={selectedStudents.includes(student.id)}
+                                        onChange={() => handleSelectStudent(student.id)}
                                         onClick={(e) => e.stopPropagation()}
                                     />
                                 </td>
-                                <td className="text-center" onClick={() => handleOpenModal(staff)}>
+                                <td className="text-center" onClick={() => handleOpenModal(student)}>
                                     <div className="text-sm font-medium text-gray-900">{index + 1}</div>
                                 </td>
-                                <td className="text-center" onClick={() => handleOpenModal(staff)}>
+                                <td className="text-center" onClick={() => handleOpenModal(student)}>
                                     <Avatar
-                                        src={staff.imageUrl}
+                                        src={student.imageUrl}
                                         sx={{ width: 40, height: 40, margin: 'auto' }}
                                     />
                                 </td>
-                                <td className="text-center" onClick={() => handleOpenModal(staff)}>
-                                    <div className="text-sm font-medium text-gray-900">{staff.name}</div>
+                                <td className="text-center" onClick={() => handleOpenModal(student)}>
+                                    <div className="text-sm font-medium text-gray-900">{student.name}</div>
                                 </td>
-                                <td className="text-center" onClick={() => handleOpenModal(staff)}>
-                                    <div className="text-sm font-medium text-gray-900">{staff.isTeachingStaff ? 'Teaching Staff' : 'Non-Teaching Staff'}</div>
+                                <td className="text-center" onClick={() => handleOpenModal(student)}>
+                                    <div className="text-sm font-medium text-gray-900">{student.rollNumber}</div>
                                 </td>
-                                <td className="text-center" onClick={() => handleOpenModal(staff)}>
-                                    <div className="text-sm font-medium text-gray-900">{staff.subjects.join(', ')}</div>
+                                <td className="text-center" onClick={() => handleOpenModal(student)}>
+                                    <div className="text-sm font-medium text-gray-900">Class {student.classId}</div>
                                 </td>
-                                <td className="text-center" onClick={() => handleOpenModal(staff)}>
-                                    <div className="text-sm font-medium text-gray-900">{staff.email}</div>
+                                <td className="text-center" onClick={() => handleOpenModal(student)}>
+                                    <div className="text-sm font-medium text-gray-900">{student.guardianName}</div>
                                 </td>
-                                <td className="text-center" onClick={() => handleOpenModal(staff)}>
-                                    <div className="text-sm font-medium text-gray-900">{staff.mobile}</div>
+                                <td className="text-center" onClick={() => handleOpenModal(student)}>
+                                    <div className="text-sm font-medium text-gray-900">{student.guardianPhone}</div>
                                 </td>
                                 <td className="text-center">
                                     <IconButton
                                         aria-label="delete"
-                                        onClick={() => handleDelete(staff.id)}
+                                        onClick={() => handleDelete(student.id)}
                                     >
                                         <Trash2 size={20} className="text-red-500" />
                                     </IconButton>
@@ -169,7 +179,7 @@ const ListStaffs: React.FC = () => {
                 >
                     <PlusCircle size={34} />
                     <span className="absolute left-[-140px] top-1/2 transform -translate-y-1/2 bg-white text-black text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow">
-                        Create New Staff
+                        Create New Student
                     </span>
                 </button>
             </div>
@@ -184,17 +194,18 @@ const ListStaffs: React.FC = () => {
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: 1000,
-                    maxWidth: '90%',
-                    height: 900,
-                    maxHeight: '90%',
+                    width: '90%',
+                    maxWidth: 1000,
+                    height: '90%', // Adjusted to 90% of viewport height
+                    maxHeight: 900,
                     bgcolor: 'background.paper',
                     boxShadow: 24,
                     p: 4,
                     borderRadius: 2,
+                    overflow: 'auto', // Add scrolling if content exceeds the height
                 }}>
-                    <CreateStaffs
-                        initialData={editingStaff}
+                    <CreateStudents
+                        initialData={editingStudent}
                         onSave={handleSave}
                         onCancel={handleCloseModal}
                     />
@@ -204,4 +215,4 @@ const ListStaffs: React.FC = () => {
     );
 };
 
-export default ListStaffs;
+export default ListStudents;

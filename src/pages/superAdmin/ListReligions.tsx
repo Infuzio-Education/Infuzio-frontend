@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
-import CreateSyllabus from './CreateSyllubus';
-import { Syllabus } from '../../types/Types';
-import { getSyllabus, createSyllabus } from '../../api/superAdmin';
+import CreateReligion from './CreateReligion';
 import SnackbarComponent from '../../components/SnackbarComponent';
+import { Religion } from '../../types/Types';
+import { createReligion, getReligions } from '../../api/superAdmin';
 
-const ListSyllabus: React.FC = () => {
+const ListReligions: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
-    const [editingIndex, setEditingIndex] = useState<number | null>(null);
-    const [syllabuses, setSyllabuses] = useState<Syllabus[]>([]);
+    const [editingReligion, setEditingReligion] = useState<Religion | null>(null);
+    const [religions, setReligions] = useState<Religion[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [selectedSyllabuses, setSelectedSyllabuses] = useState<number[]>([]);
+    const [selectedReligions, setSelectedReligions] = useState<number[]>([]);
     const [selectAll, setSelectAll] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
@@ -25,21 +25,28 @@ const ListSyllabus: React.FC = () => {
     });
 
     useEffect(() => {
-        fetchSyllabuses();
+        fetchReligions();
     }, []);
 
-    const fetchSyllabuses = async () => {
+    const fetchReligions = async () => {
         setLoading(true);
         setError(null);
         try {
-            const data = await getSyllabus();
-            if (Array.isArray(data)) {
-                setSyllabuses(data);
+            const response = await getReligions();
+            console.log("API response:", response);
+            if (response.status === true) {
+                const mappedReligions = response.data.map((item: any) => ({
+                    id: item.ID,
+                    name: item.Name
+                }));
+                setReligions(mappedReligions);
+                console.log("REL", religions);
+
             } else {
-                setError('Syllabus data format is incorrect.');
+                throw new Error('Failed to fetch religions');
             }
-        } catch (err) {
-            setError('Failed to load syllabuses. Please try again.');
+        } catch (error) {
+            setError('Failed to load religions. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -49,58 +56,74 @@ const ListSyllabus: React.FC = () => {
         setSnackbar(prev => ({ ...prev, open: false }));
     };
 
-    const handleOpenModal = (index: number | null) => {
-        setEditingIndex(index);
+    const handleOpenModal = (religion: Religion | null) => {
+        setEditingReligion(religion);
         setOpenModal(true);
     };
 
     const handleCloseModal = () => {
-        setEditingIndex(null);
+        setEditingReligion(null);
         setOpenModal(false);
     };
 
-    const handleSave = async (syllabus: Syllabus) => {
+    const handleSave = async (name: string) => {
         try {
-            const response = await createSyllabus(syllabus.Name);
-            if (response.status === 200 || response.status === 201) {
-                const newSyllabus: Syllabus = { ID: response.data.id, Name: syllabus.Name };
-                setSyllabuses([...syllabuses, newSyllabus]);
+            const response = await createReligion(name);
+            console.log(response);
+            if (response.status === true) {
+                const newReligion: Religion = {
+                    id: Date.now(),
+                    name: name,
+                };
+                setReligions((prevReligion) => [...prevReligion, newReligion]);
                 setSnackbar({
                     open: true,
-                    message: 'Syllabus created successfully!',
+                    message: 'Religion created successfully!',
                     severity: 'success',
                     position: { vertical: 'top', horizontal: 'center' }
                 });
             } else {
-                throw new Error(response.data.error || 'Failed to create syllabus');
+                throw new Error(response.data);
             }
         } catch (error: any) {
-            setSnackbar({
-                open: true,
-                message: error.message || 'Failed to create syllabus',
-                severity: 'error',
-                position: { vertical: 'top', horizontal: 'center' }
-            });
+            console.error('Error creating religion:', error);
         }
         handleCloseModal();
     };
 
+    const handleDelete = async (id: number) => {
+        try {
+            setReligions(religions.filter(religion => religion.id !== id));
+            setSnackbar({
+                open: true,
+                message: 'Religion deleted successfully!',
+                severity: 'success',
+                position: { vertical: 'top', horizontal: 'center' }
+            });
+        } catch (error: any) {
+            setSnackbar({
+                open: true,
+                message: error.message || 'Failed to delete religion',
+                severity: 'error',
+                position: { vertical: 'top', horizontal: 'center' }
+            });
+        }
+    };
 
     const handleSelectAll = () => {
-        setSelectedSyllabuses(selectAll ? [] : syllabuses.map(s => s.ID));
+        setSelectedReligions(selectAll ? [] : religions.map(r => r.id));
         setSelectAll(!selectAll);
     };
 
-    const handleSelectSyllabus = (id: number) => {
-        setSelectedSyllabuses(prev =>
+    const handleSelectReligion = (id: number) => {
+        setSelectedReligions(prev =>
             prev.includes(id) ? prev.filter(selectedId => selectedId !== id) : [...prev, id]
         );
     };
 
-    const filteredSyllabuses = syllabuses.filter(syllabus =>
-        syllabus.Name.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredReligions = religions.filter(religion =>
+        religion.name && religion.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
     return (
         <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">
             <ListControls
@@ -108,14 +131,14 @@ const ListSyllabus: React.FC = () => {
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
-                itemCount={filteredSyllabuses.length}
+                itemCount={filteredReligions.length}
             />
 
             {loading ? (
-                <div>Loading syllabuses...</div>
+                <div>Loading religions...</div>
             ) : error ? (
                 <div className="text-red-500">{error}</div>
-            ) : filteredSyllabuses.length > 0 ? (
+            ) : filteredReligions.length > 0 ? (
                 <div className="bg-white shadow-md rounded-lg overflow-hidden">
                     <table className="w-full">
                         <thead>
@@ -127,30 +150,30 @@ const ListSyllabus: React.FC = () => {
                                     />
                                 </th>
                                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Sl.No</th>
-                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-7/12">Syllabus Name</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-7/12">Religion Name</th>
                                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredSyllabuses.map((syllabus, index) => (
-                                <tr key={syllabus.ID} className="cursor-pointer">
+                            {filteredReligions.map((religion, index) => (
+                                <tr key={religion.id} className="cursor-pointer">
                                     <td className="text-center">
                                         <Checkbox
-                                            checked={selectedSyllabuses.includes(syllabus.ID)}
-                                            onChange={() => handleSelectSyllabus(syllabus.ID)}
+                                            checked={selectedReligions.includes(religion.id)}
+                                            onChange={() => handleSelectReligion(religion.id)}
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                     </td>
-                                    <td className="text-center" onClick={() => handleOpenModal(index)}>
+                                    <td className="text-center" onClick={() => handleOpenModal(religion)}>
                                         <div className="text-sm font-medium text-gray-900">{index + 1}</div>
                                     </td>
-                                    <td className="text-center" onClick={() => handleOpenModal(index)}>
-                                        <div className="text-sm font-medium text-gray-900">{syllabus.Name}</div>
+                                    <td className="text-center" onClick={() => handleOpenModal(religion)}>
+                                        <div className="text-sm font-medium text-gray-900">{religion.name}</div>
                                     </td>
                                     <td className="text-center">
                                         <IconButton
                                             aria-label="delete"
-                                        // onClick={() => handleDelete(syllabus.ID)}
+                                            onClick={() => handleDelete(religion.id)}
                                         >
                                             <Trash2 size={20} className="text-red-500" />
                                         </IconButton>
@@ -161,7 +184,7 @@ const ListSyllabus: React.FC = () => {
                     </table>
                 </div>
             ) : (
-                <div>No syllabuses available</div>
+                <div>No religions available</div>
             )}
 
             <div className="fixed bottom-10 right-16 flex items-center space-x-2">
@@ -171,7 +194,7 @@ const ListSyllabus: React.FC = () => {
                 >
                     <PlusCircle size={34} />
                     <span className="absolute left-[-140px] top-1/2 transform -translate-y-1/2 bg-white text-black text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow">
-                        Create New Syllabus
+                        Create New Religion
                     </span>
                 </button>
             </div>
@@ -189,11 +212,11 @@ const ListSyllabus: React.FC = () => {
                     width: 400,
                     bgcolor: 'background.paper',
                     boxShadow: 24,
-                    p: 4,
+                    p: 3,
                     borderRadius: 2,
                 }}>
-                    <CreateSyllabus
-                        initialData={editingIndex !== null ? syllabuses[editingIndex] : null}
+                    <CreateReligion
+                        initialData={editingReligion ? { name: editingReligion.name } : undefined}
                         onSave={handleSave}
                         onCancel={handleCloseModal}
                     />
@@ -211,4 +234,4 @@ const ListSyllabus: React.FC = () => {
     );
 };
 
-export default ListSyllabus;
+export default ListReligions;

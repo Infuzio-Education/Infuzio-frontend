@@ -138,7 +138,7 @@ const Navbar: React.FC = () => {
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link to="/superAdmin/configurations/option3" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                <Link to="/superAdmin/groups" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
                                                     Groups (HSS)
                                                 </Link>
                                             </li>
@@ -166,8 +166,8 @@ const Navbar: React.FC = () => {
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link to="/superAdmin/configurations/option3" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
-                                                    Religion / Caste
+                                                <Link to="/superAdmin/religions" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                    Religions
                                                 </Link>
                                             </li>
                                             <li>
@@ -178,6 +178,22 @@ const Navbar: React.FC = () => {
                                             <li>
                                                 <Link to="/superAdmin/syllabus" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
                                                     Syllabus
+                                                </Link>
+                                            </li>
+                                            <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Manage</li>
+                                            <li>
+                                                <Link to="/superAdmin/staffs" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                    Staffs
+                                                </Link>
+                                            </li>
+                                            <li>
+                                                <Link to="/superAdmin/classes" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                    Classes
+                                                </Link>
+                                            </li>
+                                            <li>
+                                                <Link to="/superAdmin/students" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                    Students
                                                 </Link>
                                             </li>
                                         </ul>

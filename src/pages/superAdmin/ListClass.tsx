@@ -2,61 +2,65 @@ import React, { useState } from 'react';
 import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
-import CreateSubject from './CreateSubject';
-import { Subject } from '../../types/Types';
+import CreateClass from './CreateClass';
+import { Class } from '../../types/Types';
 
-const ListSubjects: React.FC = () => {
+const ListClass: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
-    const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
-    const [subjects, setSubjects] = useState<Subject[]>([
-        { id: 1, name: "Mathematics", code: "MATH", minMarks: 35, maxMarks: 100 },
-        { id: 2, name: "Science", code: "SCI", minMarks: 35, maxMarks: 100 },
+    const [editingClass, setEditingClass] = useState<Class | null>(null);
+    const [classes, setClasses] = useState<Class[]>([
+        {
+            id: 1, name: "Class 1A", section: "A", mediumId: 1, standardId: 1, classStaffId: 1, group_id: 1, syllabusId: 1
+        },
+        {
+            id: 2, name: "Class 2B", section: "B", mediumId: 2, standardId: 2, classStaffId: 2, group_id: 2, syllabusId: 2
+        },
     ]);
 
-    const [selectedSubjects, setSelectedSubjects] = useState<number[]>([]);
+    const [selectedClasses, setSelectedClasses] = useState<number[]>([]);
     const [selectAll, setSelectAll] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+    const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
-    const handleOpenModal = (subject: Subject | null) => {
-        setEditingSubject(subject);
+    const handleOpenModal = (classData: Class | null) => {
+        setEditingClass(classData);
         setOpenModal(true);
     };
 
     const handleCloseModal = () => {
-        setEditingSubject(null);
+        setEditingClass(null);
         setOpenModal(false);
     };
 
-    const handleSave = (updatedSubject: Subject) => {
-        if (editingSubject) {
-            setSubjects(subjects.map(subject =>
-                subject.id === editingSubject.id ? { ...subject, ...updatedSubject } : subject
+    const handleSave = (updatedClass: Class) => {
+        if (editingClass) {
+            setClasses(classes.map(c =>
+                c.id === editingClass.id ? { ...c, ...updatedClass } : c
             ));
         } else {
-            setSubjects([...subjects, { ...updatedSubject, id: subjects.length + 1 }]);
+            setClasses([...classes, { ...updatedClass, id: classes.length + 1 }]);
         }
         handleCloseModal();
     };
 
     const handleDelete = (id: number) => {
-        setSubjects(subjects.filter(subject => subject.id !== id));
+        setClasses(classes.filter(c => c.id !== id));
     };
 
     const handleSelectAll = () => {
         if (selectAll) {
-            setSelectedSubjects([]);
+            setSelectedClasses([]);
         } else {
-            setSelectedSubjects(subjects.map(subject => subject.id));
+            setSelectedClasses(classes.map(c => c.id));
         }
         setSelectAll(!selectAll);
     };
 
-    const handleSelectSubject = (id: number) => {
-        if (selectedSubjects.includes(id)) {
-            setSelectedSubjects(selectedSubjects.filter(selectedId => selectedId !== id));
+    const handleSelectClass = (id: number) => {
+        if (selectedClasses.includes(id)) {
+            setSelectedClasses(selectedClasses.filter(selectedId => selectedId !== id));
         } else {
-            setSelectedSubjects([...selectedSubjects, id]);
+            setSelectedClasses([...selectedClasses, id]);
         }
     };
 
@@ -67,7 +71,7 @@ const ListSubjects: React.FC = () => {
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
-                itemCount={subjects.length}
+                itemCount={classes.length}
             />
             <div className="bg-white shadow-md rounded-lg overflow-hidden">
                 <table className="w-full">
@@ -80,42 +84,42 @@ const ListSubjects: React.FC = () => {
                                 />
                             </th>
                             <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Sl.No</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-3/12">Subject Name</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Subject Code</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Min Marks</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Max Marks</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Actions</th>
+                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Name</th>
+                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Section</th>
+                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Medium</th>
+                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Standard</th>
+                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {subjects.map((subject, index) => (
-                            <tr key={subject.id} className="cursor-pointer">
+                        {classes.map((classData, index) => (
+                            <tr key={classData.id} className="cursor-pointer">
                                 <td className="text-center">
                                     <Checkbox
-                                        checked={selectedSubjects.includes(subject.id)}
-                                        onChange={() => handleSelectSubject(subject.id)}
+                                        checked={selectedClasses.includes(classData.id)}
+                                        onChange={() => handleSelectClass(classData.id)}
                                         onClick={(e) => e.stopPropagation()}
                                     />
                                 </td>
-                                <td className="text-center" onClick={() => handleOpenModal(subject)}>
+                                <td className="text-center" onClick={() => handleOpenModal(classData)}>
                                     <div className="text-sm font-medium text-gray-900">{index + 1}</div>
                                 </td>
-                                <td className="text-center" onClick={() => handleOpenModal(subject)}>
-                                    <div className="text-sm font-medium text-gray-900">{subject.name}</div>
+                                <td className="text-center" onClick={() => handleOpenModal(classData)}>
+                                    <div className="text-sm font-medium text-gray-900">{classData.name}</div>
                                 </td>
-                                <td className="text-center" onClick={() => handleOpenModal(subject)}>
-                                    <div className="text-sm font-medium text-gray-900">{subject.code}</div>
+                                <td className="text-center" onClick={() => handleOpenModal(classData)}>
+                                    <div className="text-sm font-medium text-gray-900">{classData.section}</div>
                                 </td>
-                                <td className="text-center" onClick={() => handleOpenModal(subject)}>
-                                    <div className="text-sm font-medium text-gray-900">{subject.minMarks}</div>
+                                <td className="text-center" onClick={() => handleOpenModal(classData)}>
+                                    <div className="text-sm font-medium text-gray-900">{classData.mediumId}</div>
                                 </td>
-                                <td className="text-center" onClick={() => handleOpenModal(subject)}>
-                                    <div className="text-sm font-medium text-gray-900">{subject.maxMarks}</div>
+                                <td className="text-center" onClick={() => handleOpenModal(classData)}>
+                                    <div className="text-sm font-medium text-gray-900">{classData.standardId}</div>
                                 </td>
                                 <td className="text-center">
                                     <IconButton
                                         aria-label="delete"
-                                        onClick={() => handleDelete(subject.id)}
+                                        onClick={() => handleDelete(classData.id)}
                                     >
                                         <Trash2 size={20} className="text-red-500" />
                                     </IconButton>
@@ -132,7 +136,7 @@ const ListSubjects: React.FC = () => {
                 >
                     <PlusCircle size={34} />
                     <span className="absolute left-[-140px] top-1/2 transform -translate-y-1/2 bg-white text-black text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow">
-                        Create New Subject
+                        Create New Class
                     </span>
                 </button>
             </div>
@@ -156,8 +160,8 @@ const ListSubjects: React.FC = () => {
                     p: 4,
                     borderRadius: 2,
                 }}>
-                    <CreateSubject
-                        initialData={editingSubject}
+                    <CreateClass
+                        initialData={editingClass}
                         onSave={handleSave}
                         onCancel={handleCloseModal}
                     />
@@ -167,4 +171,4 @@ const ListSubjects: React.FC = () => {
     );
 };
 
-export default ListSubjects;
+export default ListClass;

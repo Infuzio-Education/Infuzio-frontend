@@ -1,22 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
 import CreateSection from './CreateSection';
 import { Section } from '../../types/Types';
-import ListControls from '../../components/ListControls'; // Import the new component
+import ListControls from '../../components/ListControls';
+import { getSections } from '../../api/superAdmin';
+import SnackbarComponent from '../../components/SnackbarComponent';
 
 const ListSections: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
     const [editingSection, setEditingSection] = useState<Section | null>(null);
-    const [sections, setSections] = useState<Section[]>([
-        { id: 1, name: "Lower Primary", code: "LP", classes: ["1st", "2nd", "3rd", "4th"] },
-        { id: 2, name: "Upper Primary", code: "UP", classes: ["5th", "6th", "7th", "8th"] },
-    ]);
+    const [sections, setSections] = useState<Section[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
     const [selectedSections, setSelectedSections] = useState<number[]>([]);
     const [selectAll, setSelectAll] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [viewMode, setViewMode] = useState<string>('list');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success' as 'success' | 'error',
+        position: { vertical: 'top' as const, horizontal: 'center' as const }
+    });
+
+    useEffect(() => {
+        fetchSections();
+    }, []);
+
+    const fetchSections = async () => {
+        try {
+            setLoading(true);
+            const response = await getSections();
+            if (response.status && response.resp_code === 'SUCCESS' && Array.isArray(response.data.sections)) {
+                setSections(response.data.sections);
+                setError(null);
+            } else {
+                throw new Error('Invalid response structure');
+            }
+        } catch (err) {
+            setError('Failed to fetch sections. Please try again later.');
+            console.error('Error fetching sections:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCloseSnackbar = () => {
+        setSnackbar(prev => ({ ...prev, open: false }));
+    };
 
     const handleOpenModal = (section: Section | null) => {
         setEditingSection(section);
@@ -28,13 +61,29 @@ const ListSections: React.FC = () => {
         setOpenModal(false);
     };
 
-    const handleSave = (updatedSection: Section) => {
-        if (editingSection) {
-            setSections(sections.map(section =>
-                section.id === editingSection.id ? { ...section, ...updatedSection } : section
-            ));
-        } else {
-            setSections([...sections, { ...updatedSection, id: sections.length + 1 }]);
+    const handleSave = async (success: boolean) => {
+        try {
+            if (!editingSection) {
+
+                if (success) {
+                    setSnackbar({
+                        open: true,
+                        message: 'Section created successfully!',
+                        severity: 'success',
+                        position: { vertical: 'top', horizontal: 'center' }
+                    });
+                } else {
+                    throw new Error('Failed to create section');
+                }
+            }
+        } catch (error) {
+            console.error('Error creating section:', error);
+            setSnackbar({
+                open: true,
+                message: 'Failed to create section. Please try again.',
+                severity: 'error',
+                position: { vertical: 'top', horizontal: 'center' }
+            });
         }
         handleCloseModal();
     };
@@ -60,6 +109,14 @@ const ListSections: React.FC = () => {
         }
     };
 
+    if (loading) {
+        return <div className="min-h-screen bg-gray-200 p-8 flex items-center justify-center">Loading...</div>;
+    }
+
+    if (error) {
+        return <div className="min-h-screen bg-gray-200 p-8 flex items-center justify-center text-red-500">{error}</div>;
+    }
+
     return (
         <div className="min-h-screen bg-gray-200 p-8 relative">
             <ListControls
@@ -82,7 +139,6 @@ const ListSections: React.FC = () => {
                             <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Sl. No.</th>
                             <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-3/12">Section Name</th>
                             <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Section Code</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-4/12">Classes</th>
                             <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Actions</th>
                         </tr>
                     </thead>
@@ -103,10 +159,7 @@ const ListSections: React.FC = () => {
                                     <div className="text-sm font-medium text-gray-900">{section.name}</div>
                                 </td>
                                 <td className="text-center" onClick={() => handleOpenModal(section)}>
-                                    <div className="text-sm font-medium text-gray-900">{section.code}</div>
-                                </td>
-                                <td className="text-center" onClick={() => handleOpenModal(section)}>
-                                    <div className="text-sm font-medium text-gray-900">{section.classes.join(", ")}</div>
+                                    <div className="text-sm font-medium text-gray-900">{section.section_code}</div>
                                 </td>
                                 <td className="text-center">
                                     <IconButton
@@ -142,11 +195,11 @@ const ListSections: React.FC = () => {
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: 600,
-                    height: 600,
+                    width: 400,
                     bgcolor: 'background.paper',
                     boxShadow: 24,
-                    p: 4,
+                    p: 1,
+                    borderRadius: 2,
                 }}>
                     <CreateSection
                         initialData={editingSection}
@@ -155,6 +208,14 @@ const ListSections: React.FC = () => {
                     />
                 </Box>
             </Modal>
+
+            <SnackbarComponent
+                open={snackbar.open}
+                message={snackbar.message}
+                severity={snackbar.severity}
+                position={snackbar.position}
+                onClose={handleCloseSnackbar}
+            />
         </div>
     );
 };
