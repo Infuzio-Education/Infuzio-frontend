@@ -26,7 +26,7 @@ export interface Section {
 
 export interface CreateSectionProps {
     initialData: Section | null;
-    onSave: (success: boolean) => void;
+    onSave: (data: { sectionName: string; sectionCode: string }) => void;
     onCancel: () => void;
 }
 

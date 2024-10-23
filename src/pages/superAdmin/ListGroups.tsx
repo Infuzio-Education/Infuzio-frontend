@@ -15,7 +15,7 @@ const ListGroups: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [viewMode, setViewMode] = useState<string>("list");
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -63,7 +63,7 @@ const ListGroups: React.FC = () => {
       const response = await createGroup(name);
       if (response.status && response.resp_code === "CREATED") {
         const newGroup: Group = {
-          ID: Date.now(), // Temporary ID
+          ID: Date.now(),
           Name: name,
         };
         setGroups((prevGroups) => [...prevGroups, newGroup]);

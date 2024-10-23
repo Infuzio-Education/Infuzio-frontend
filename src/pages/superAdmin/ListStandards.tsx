@@ -70,11 +70,11 @@ const ListStandards: React.FC = () => {
       const response = await createStandard(name, hasGroup, sequence);
       if (response.status && response.resp_code === "CREATED") {
         const newStandard: Standard = {
-            ID: Date.now(), // Use a temporary ID (you might want to use a more robust method in production)
-            Name: name,
-            HasGroup: hasGroup,
-            sequence: sequence
-          };
+          ID: Date.now(),
+          Name: name,
+          HasGroup: hasGroup,
+          sequence: sequence
+        };
         setStandards((prevStandards) => [...prevStandards, newStandard]);
         setSnackbar({
           open: true,
@@ -85,7 +85,7 @@ const ListStandards: React.FC = () => {
       } else {
         throw new Error(response.data);
       }
-    } catch (error:any) {
+    } catch (error: any) {
       console.error("Error creating standard:", error);
       setSnackbar({
         open: true,
