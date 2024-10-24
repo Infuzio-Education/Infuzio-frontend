@@ -14,8 +14,9 @@ import { SchoolProvider } from "../contexts/SchoolContext";
 import ListSyllabus from "../pages/superAdmin/ListSyllabus";
 import ListReligions from "../pages/superAdmin/ListReligions";
 import ListGroups from "../pages/superAdmin/ListGroups";
-import ListClass from "../pages/superAdmin/ListClass";
+import ListClasses from "../pages/superAdmin/ListClasses";
 import ListStudents from "../pages/superAdmin/ListStudents";
+import ListCastes from "../pages/superAdmin/ListCastes";
 
 const SuperAdminRoutes = () => {
     return (
@@ -38,8 +39,9 @@ const SuperAdminRoutes = () => {
                         <Route path="religions" element={<ListReligions />} />
                         <Route path="groups" element={<ListGroups />} />
                         <Route path="staffs" element={<ListStaffs />} />
-                        <Route path="classes" element={<ListClass />} />
-                        <Route path="students" element={<ListStudents />} />
+                        <Route path="schools/:id/classes" element={<ListClasses />} />
+                        <Route path="schools/:id/students" element={<ListStudents />} />
+                        <Route path="castes" element={<ListCastes />} />
                     </Route>
                 </Route>
             </Routes>

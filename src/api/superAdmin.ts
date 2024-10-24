@@ -279,3 +279,63 @@ export const createSections = async (data: { sectionName: string; sectionCode: s
         }
     }
 };
+
+
+export const createCaste = async (data: { Name: string, ReligionID: number }) => {
+    try {
+
+        const response = await Api.post(superAdminEndpoints.castes, {
+            name: data.Name,
+            religion_id: data.ReligionID
+
+        });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error creating caste:', error.response?.data || error.message);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+};
+
+export const getCastes = async () => {
+    try {
+        const response = await Api.get(superAdminEndpoints.castes);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching castes:', error.response);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+};
+
+export const updateReligion = async (id: number, name: string) => {
+    try {
+        console.log("id", id);
+        console.log("name", name);
+        const response = await Api.put(superAdminEndpoints.religion, { id, name });
+        console.log("response", response);
+        return response.data;
+
+    } catch (error) {
+        console.error('Error updating religion:', error);
+        throw error;
+    }
+};
+
+export const deleteReligion = async (id: number) => {
+    try {
+        const response = await Api.delete(`${superAdminEndpoints.religion}/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting religion:', error);
+        throw error;
+    }
+};

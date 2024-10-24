@@ -10,7 +10,8 @@ const superAdminEndpoints = {
     religion: 'global/religion',
     stadards: 'global/standard',
     groups: 'global/groups',
-    sections: 'global/sections'
+    sections: 'global/sections',
+    castes: 'global/caste'
 
 }
 

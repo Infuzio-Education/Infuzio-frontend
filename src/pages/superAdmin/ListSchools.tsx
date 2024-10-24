@@ -28,7 +28,6 @@ const ListSchools: React.FC = () => {
                 setIsLoading(false);
             }
         };
-
         fetchSchools();
     }, []);
 
