@@ -4,7 +4,7 @@ import { PlusCircle, Trash2 } from "lucide-react";
 import CreateSection from './CreateSection';
 import { Section } from '../../types/Types';
 import ListControls from '../../components/ListControls';
-import { getSections } from '../../api/superAdmin';
+import { createSections, getSections } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 
 const ListSections: React.FC = () => {
@@ -61,22 +61,27 @@ const ListSections: React.FC = () => {
         setOpenModal(false);
     };
 
-    const handleSave = async (success: boolean) => {
+    const handleSave = async (sectionData: { sectionName: string, sectionCode: string }) => {
         try {
-            if (!editingSection) {
-
-                if (success) {
-                    setSnackbar({
-                        open: true,
-                        message: 'Section created successfully!',
-                        severity: 'success',
-                        position: { vertical: 'top', horizontal: 'center' }
-                    });
-                } else {
-                    throw new Error('Failed to create section');
-                }
+            const response = await createSections(sectionData);
+            console.log(response);
+            if (response.status && response.resp_code === 'SUCCESS') {
+                const newSection: Section = {
+                    id: Date.now(),
+                    name: sectionData.sectionName,
+                    section_code: sectionData.sectionCode
+                };
+                setSections((prevSections) => [...prevSections, newSection]);
+                setSnackbar({
+                    open: true,
+                    message: 'Section created successfully!',
+                    severity: 'success',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            } else {
+                throw new Error(response.data);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating section:', error);
             setSnackbar({
                 open: true,

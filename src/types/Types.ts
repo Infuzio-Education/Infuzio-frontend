@@ -26,7 +26,7 @@ export interface Section {
 
 export interface CreateSectionProps {
     initialData: Section | null;
-    onSave: (success: boolean) => void;
+    onSave: (data: { sectionName: string; sectionCode: string }) => void;
     onCancel: () => void;
 }
 
@@ -133,8 +133,8 @@ export interface School {
 }
 
 export interface Religion {
-    id: number,
-    name: string;
+    ID: number,
+    Name: string;
 }
 
 export interface CreateReligionProps {
@@ -249,8 +249,8 @@ export interface CreateStudentProps {
 }
 
 export interface Religion {
-    id: number,
-    name: string;
+    ID: number;
+    Name: string;
 }
 
 export interface CreateReligionProps {
@@ -258,3 +258,16 @@ export interface CreateReligionProps {
     onSave: (name: string) => void;
     onCancel: () => void;
 }
+
+export interface Caste {
+    ID: number;
+    Name: string;
+    ReligionID: number;
+}
+
+export interface CreateCasteProps {
+    initialData?: Caste;
+    onSave: (name: string, religionId: number) => void;
+    onCancel: () => void;
+}
+

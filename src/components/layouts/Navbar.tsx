@@ -84,7 +84,7 @@ const Navbar: React.FC = () => {
                                                 </li>
                                                 <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Profiles</li>
                                                 <li>
-                                                    <Link to="/superAdmin/configurations/option3" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                    <Link to={`/superAdmin/schools/${schoolId}/students`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
                                                         Students
                                                     </Link>
                                                 </li>
@@ -100,7 +100,7 @@ const Navbar: React.FC = () => {
                                                 </li>
                                                 <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Manage school</li>
                                                 <li>
-                                                    <Link to="/superAdmin/subjects" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                    <Link to={`/superAdmin/schools/${schoolId}/classes`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
                                                         Classes
                                                     </Link>
                                                 </li>
@@ -147,12 +147,6 @@ const Navbar: React.FC = () => {
                                                     Mediums
                                                 </Link>
                                             </li>
-                                            <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Academic years</li>
-                                            <li>
-                                                <Link to="/superAdmin/configurations/option3" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
-                                                    Years
-                                                </Link>
-                                            </li>
                                             <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Subjects</li>
                                             <li>
                                                 <Link to="/superAdmin/subjects" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
@@ -162,12 +156,17 @@ const Navbar: React.FC = () => {
                                             <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">School configuration</li>
                                             <li>
                                                 <Link to="/superAdmin/configurations/option3" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
-                                                    Grade
+                                                    Grades
                                                 </Link>
                                             </li>
                                             <li>
                                                 <Link to="/superAdmin/religions" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
                                                     Religions
+                                                </Link>
+                                            </li>
+                                            <li>
+                                                <Link to="/superAdmin/castes" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                    Castes
                                                 </Link>
                                             </li>
                                             <li>
@@ -177,23 +176,7 @@ const Navbar: React.FC = () => {
                                             </li>
                                             <li>
                                                 <Link to="/superAdmin/syllabus" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
-                                                    Syllabus
-                                                </Link>
-                                            </li>
-                                            <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Manage</li>
-                                            <li>
-                                                <Link to="/superAdmin/staffs" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
-                                                    Staffs
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link to="/superAdmin/classes" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
-                                                    Classes
-                                                </Link>
-                                            </li>
-                                            <li>
-                                                <Link to="/superAdmin/students" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
-                                                    Students
+                                                    Syllabuses
                                                 </Link>
                                             </li>
                                         </ul>

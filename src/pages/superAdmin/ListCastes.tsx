@@ -2,18 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
-import CreateReligion from './CreateReligion';
 import SnackbarComponent from '../../components/SnackbarComponent';
-import { Religion } from '../../types/Types';
-import { createReligion, getReligions, updateReligion } from '../../api/superAdmin';
+import { Caste } from '../../types/Types';
+import { createCaste, getCastes } from '../../api/superAdmin';
+import CreateCaste from './CreateCaste';
 
-const ListReligions: React.FC = () => {
+const ListCastes: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
-    const [editingReligion, setEditingReligion] = useState<Religion | null>(null);
-    const [religions, setReligions] = useState<Religion[]>([]);
+    const [editingCaste, setEditingCaste] = useState<Caste | null>(null);
+    const [castes, setCastes] = useState<Caste[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [selectedReligions, setSelectedReligions] = useState<number[]>([]);
+    const [selectedCastes, setSelectedCastes] = useState<number[]>([]);
     const [selectAll, setSelectAll] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
@@ -24,22 +24,30 @@ const ListReligions: React.FC = () => {
         position: { vertical: 'top' as const, horizontal: 'center' as const }
     });
 
+    console.log("castes", castes);
+
     useEffect(() => {
-        fetchReligions();
+        fetchCastes();
     }, []);
 
-    const fetchReligions = async () => {
+
+    const fetchCastes = async () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await getReligions();
+            const response = await getCastes();
             if (response.status === true) {
-                setReligions(response.data);
+                const mappedCastes = response.data.map((item: any) => ({
+                    ID: item.ID,
+                    Name: item.Name,
+                    ReligionID: item.ReligionID
+                }));
+                setCastes(mappedCastes);
             } else {
-                throw new Error('Failed to fetch religions');
+                throw new Error('Failed to fetch castes');
             }
         } catch (error) {
-            setError('Failed to load religions. Please try again.');
+            setError('Failed to load castes. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -49,46 +57,41 @@ const ListReligions: React.FC = () => {
         setSnackbar(prev => ({ ...prev, open: false }));
     };
 
-    const handleOpenModal = (religion: Religion | null) => {
-        setEditingReligion(religion);
+    const handleOpenModal = (caste: Caste | null) => {
+        setEditingCaste(caste);
         setOpenModal(true);
     };
 
     const handleCloseModal = () => {
-        setEditingReligion(null);
+        setEditingCaste(null);
         setOpenModal(false);
     };
 
-    const handleSave = async (name: string) => {
+    const handleSave = async (name: string, religion_id: number) => {
         try {
-            if (editingReligion) {
-                // Update existing religion
-                const response = await updateReligion(editingReligion.ID, name);
-                if (response.status === true) {
-                    setReligions(prevReligions => prevReligions.map(religion =>
-                        religion.ID === editingReligion.ID ? { ...religion, Name: name } : religion
-                    ));
-                    setSnackbar({
-                        open: true,
-                        message: 'Religion updated successfully!',
-                        severity: 'success',
-                        position: { vertical: 'top', horizontal: 'center' }
-                    });
-                } else {
-                    throw new Error(response.data);
-                }
+            if (editingCaste) {
+                setCastes(prevCastes => prevCastes.map(caste =>
+                    caste.ID === editingCaste.ID ? { ...caste, Name: name, ReligionID: religion_id } : caste
+                ));
+                setSnackbar({
+                    open: true,
+                    message: 'Caste updated successfully!',
+                    severity: 'success',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
             } else {
-                // Create new religion
-                const response = await createReligion(name);
+                // Create new caste logic (remains the same)
+                const response = await createCaste({ Name: name, ReligionID: religion_id });
                 if (response.status === true) {
-                    const newReligion: Religion = {
+                    const newCaste: Caste = {
                         ID: Date.now(),
                         Name: name,
+                        ReligionID: religion_id
                     };
-                    setReligions((prevReligion) => [...prevReligion, newReligion]);
+                    setCastes((prevCastes) => [...prevCastes, newCaste]);
                     setSnackbar({
                         open: true,
-                        message: 'Religion created successfully!',
+                        message: 'Caste created successfully!',
                         severity: 'success',
                         position: { vertical: 'top', horizontal: 'center' }
                     });
@@ -97,10 +100,10 @@ const ListReligions: React.FC = () => {
                 }
             }
         } catch (error: any) {
-            console.error('Error creating/updating religion:', error);
+            console.error('Error creating/updating caste:', error);
             setSnackbar({
                 open: true,
-                message: 'Failed to create/update religion',
+                message: 'Failed to create/update caste',
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'center' }
             });
@@ -110,17 +113,17 @@ const ListReligions: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            setReligions(religions.filter(religion => religion.ID !== id));
+            setCastes(castes.filter(caste => caste.ID !== id));
             setSnackbar({
                 open: true,
-                message: 'Religion deleted successfully!',
+                message: 'Caste deleted successfully!',
                 severity: 'success',
                 position: { vertical: 'top', horizontal: 'center' }
             });
         } catch (error: any) {
             setSnackbar({
                 open: true,
-                message: error.message || 'Failed to delete religion',
+                message: error.message || 'Failed to delete caste',
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'center' }
             });
@@ -128,18 +131,18 @@ const ListReligions: React.FC = () => {
     };
 
     const handleSelectAll = () => {
-        setSelectedReligions(selectAll ? [] : religions.map(r => r.ID));
+        setSelectedCastes(selectAll ? [] : castes.map(c => c.ID));
         setSelectAll(!selectAll);
     };
 
-    const handleSelectReligion = (id: number) => {
-        setSelectedReligions(prev =>
+    const handleSelectCaste = (id: number) => {
+        setSelectedCastes(prev =>
             prev.includes(id) ? prev.filter(selectedId => selectedId !== id) : [...prev, id]
         );
     };
 
-    const filteredReligions = religions.filter(religion =>
-        religion.Name && religion.Name.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredCastes = castes.filter(caste =>
+        caste.Name && caste.Name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -149,14 +152,14 @@ const ListReligions: React.FC = () => {
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
-                itemCount={filteredReligions.length}
+                itemCount={filteredCastes.length}
             />
 
             {loading ? (
-                <div>Loading religions...</div>
+                <div>Loading castes...</div>
             ) : error ? (
                 <div className="text-red-500">{error}</div>
-            ) : filteredReligions.length > 0 ? (
+            ) : filteredCastes.length > 0 ? (
                 <div className="bg-white shadow-md rounded-lg overflow-hidden">
                     <table className="w-full">
                         <thead>
@@ -168,30 +171,30 @@ const ListReligions: React.FC = () => {
                                     />
                                 </th>
                                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Sl.No</th>
-                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-7/12">Religion Name</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-7/12">Caste Name</th>
                                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredReligions.map((religion, index) => (
-                                <tr key={religion.ID} className="cursor-pointer">
+                            {filteredCastes.map((caste, index) => (
+                                <tr key={caste.ID} className="cursor-pointer">
                                     <td className="text-center">
                                         <Checkbox
-                                            checked={selectedReligions.includes(religion.ID)}
-                                            onChange={() => handleSelectReligion(religion.ID)}
+                                            checked={selectedCastes.includes(caste.ID)}
+                                            onChange={() => handleSelectCaste(caste.ID)}
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                     </td>
-                                    <td className="text-center" onClick={() => handleOpenModal(religion)}>
+                                    <td className="text-center" onClick={() => handleOpenModal(caste)}>
                                         <div className="text-sm font-medium text-gray-900">{index + 1}</div>
                                     </td>
-                                    <td className="text-center" onClick={() => handleOpenModal(religion)}>
-                                        <div className="text-sm font-medium text-gray-900">{religion.Name}</div>
+                                    <td className="text-center" onClick={() => handleOpenModal(caste)}>
+                                        <div className="text-sm font-medium text-gray-900">{caste.Name}</div>
                                     </td>
                                     <td className="text-center">
                                         <IconButton
                                             aria-label="delete"
-                                            onClick={() => handleDelete(religion.ID)}
+                                            onClick={() => handleDelete(caste.ID)}
                                         >
                                             <Trash2 size={20} className="text-red-500" />
                                         </IconButton>
@@ -202,7 +205,7 @@ const ListReligions: React.FC = () => {
                     </table>
                 </div>
             ) : (
-                <div>No religions available</div>
+                <div>No castes available</div>
             )}
 
             <div className="fixed bottom-10 right-16 flex items-center space-x-2">
@@ -212,7 +215,7 @@ const ListReligions: React.FC = () => {
                 >
                     <PlusCircle size={34} />
                     <span className="absolute left-[-140px] top-1/2 transform -translate-y-1/2 bg-white text-black text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow">
-                        Create New Religion
+                        Create New Caste
                     </span>
                 </button>
             </div>
@@ -234,8 +237,8 @@ const ListReligions: React.FC = () => {
                     p: 3,
                     borderRadius: 2,
                 }}>
-                    <CreateReligion
-                        initialData={editingReligion ? { name: editingReligion.Name } : undefined}
+                    <CreateCaste
+                        initialData={editingCaste || undefined}
                         onSave={handleSave}
                         onCancel={handleCloseModal}
                     />
@@ -253,4 +256,4 @@ const ListReligions: React.FC = () => {
     );
 };
 
-export default ListReligions;
+export default ListCastes;
