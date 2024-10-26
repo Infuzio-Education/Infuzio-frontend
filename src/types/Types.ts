@@ -98,13 +98,16 @@ export interface Standard {
     ID: number;
     Name: string;
     HasGroup: boolean;
-    sequence: number;
+    SectionId:number;
+    SequenceNumber: number;
+    section:string;
 }
 
 export interface CreateStandardProps {
     initialData: Standard | null;
-    onSave: (name: string, hasGroup: boolean, sequence: number) => void;
+    onSave: (name: string, hasGroup: boolean, sequence: number,sequenceNumber:number) => void;
     onCancel: () => void;
+    sections:Section[];
 }
 
 export interface Group {
@@ -151,19 +154,6 @@ export interface Medium {
 export interface CreateMediumProps {
     initialData: { ID: number; Name: string } | null;
     onSave: (name: string) => void;
-    onCancel: () => void;
-}
-
-export interface Standard {
-    ID: number;
-    Name: string;
-    HasGroup: boolean;
-    sequence: number;
-}
-
-export interface CreateStandardProps {
-    initialData: Standard | null;
-    onSave: (name: string, hasGroup: boolean, sequence: number) => void;
     onCancel: () => void;
 }
 
