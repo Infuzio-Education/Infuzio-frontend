@@ -186,9 +186,9 @@ export const getReligions = async () => {
 }
 
 
-export const createStandard = async (name: string, hasGroup: boolean, sequence: number) => {
+export const createStandard = async (values:{name: string, hasGroup: boolean,sectionId:number, sequenceNumber: number}) => {
     try {
-        const response = await Api.post(superAdminEndpoints.stadards, { name, hasGroup, sequence });
+        const response = await Api.post(superAdminEndpoints.stadards, values);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {

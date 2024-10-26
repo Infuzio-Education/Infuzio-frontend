@@ -4,14 +4,14 @@ import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from "../../components/ListControls";
 import CreateStandard from "./CreateStandard";
 import SnackbarComponent from "../../components/SnackbarComponent";
-import { getStandards, createStandard } from "../../api/superAdmin";
-import { Standard } from "../../types/Types";
-
+import { getStandards, createStandard, getSections } from "../../api/superAdmin";
+import { Standard, Section } from "../../types/Types";
 
 const ListStandards: React.FC = () => {
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [editingStandard, setEditingStandard] = useState<Standard | null>(null);
   const [standards, setStandards] = useState<Standard[]>([]);
+  const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedStandards, setSelectedStandards] = useState<number[]>([]);
@@ -27,7 +27,21 @@ const ListStandards: React.FC = () => {
 
   useEffect(() => {
     fetchStandards();
+    fetchSections();
   }, []);
+
+  const fetchSections = async () => {
+    try {
+      const response = await getSections();
+      console.log('response:',response);
+      
+      if (response.status && response.resp_code === "SUCCESS") {
+        setSections(response.data.sections);
+      }
+    } catch (err) {
+      console.error("Failed to fetch sections:", err);
+    }
+  };
 
   const fetchStandards = async () => {
     setLoading(true);
@@ -35,7 +49,11 @@ const ListStandards: React.FC = () => {
     try {
       const response = await getStandards();
       if (response.status && response.resp_code === "SUCCESS") {
-        setStandards(response.data);
+        // Sort standards by sequence number
+        const sortedStandards = response.data.sort((a: Standard, b: Standard) => 
+          a.SequenceNumber - b.SequenceNumber
+        );
+        setStandards(sortedStandards);
       } else {
         throw new Error("Failed to fetch standards");
       }
@@ -64,18 +82,30 @@ const ListStandards: React.FC = () => {
   const handleSave = async (
     name: string,
     hasGroup: boolean,
-    sequence: number
+    sectionId: number,
+    sequenceNumber: number
   ) => {
     try {
-      const response = await createStandard(name, hasGroup, sequence);
+      const response = await createStandard({
+        name,
+        hasGroup,
+        sectionId,
+        sequenceNumber
+      });
+      
       if (response.status && response.resp_code === "CREATED") {
         const newStandard: Standard = {
           ID: Date.now(),
           Name: name,
           HasGroup: hasGroup,
-          sequence: sequence
+          SectionId: sectionId,
+          SequenceNumber: sequenceNumber,
+          section: sections.find(s => s.id === sectionId)?.name || '',
         };
-        setStandards((prevStandards) => [...prevStandards, newStandard]);
+        setStandards((prevStandards) => {
+          const updatedStandards = [...prevStandards, newStandard];
+          return updatedStandards.sort((a, b) => a.SequenceNumber - b.SequenceNumber);
+        });
         setSnackbar({
           open: true,
           message: "Standard created successfully!",
@@ -89,7 +119,7 @@ const ListStandards: React.FC = () => {
       console.error("Error creating standard:", error);
       setSnackbar({
         open: true,
-        message: error.response.data.error || "Failed to create standard. Please try again.",
+        message: error.response?.data?.error || "Failed to create standard. Please try again.",
         severity: "error",
         position: { vertical: "top", horizontal: "center" },
       });
@@ -98,8 +128,6 @@ const ListStandards: React.FC = () => {
   };
 
   const handleDelete = (id: number) => {
-    // For now, we'll just remove it from the local state
-    // In a real application, you'd want to call an API to delete the standard
     setStandards(standards.filter((standard) => standard.ID !== id));
     setSnackbar({
       open: true,
@@ -152,11 +180,14 @@ const ListStandards: React.FC = () => {
                 <th className="text-center w-1/12">
                   <Checkbox checked={selectAll} onChange={handleSelectAll} />
                 </th>
-                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">
-                  SL No
+                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">
+                  Sequence
                 </th>
-                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-5/12">
+                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-4/12">
                   Standard Name
+                </th>
+                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">
+                  Section
                 </th>
                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">
                   Has Group
@@ -167,7 +198,7 @@ const ListStandards: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredStandards.map((standard, index) => (
+              {filteredStandards.map((standard) => (
                 <tr key={standard.ID} className="cursor-pointer">
                   <td className="text-center">
                     <Checkbox
@@ -178,7 +209,7 @@ const ListStandards: React.FC = () => {
                   </td>
                   <td className="text-center">
                     <div className="text-sm font-medium text-gray-900">
-                      {index + 1}
+                      {standard.SequenceNumber}
                     </div>
                   </td>
                   <td
@@ -187,6 +218,11 @@ const ListStandards: React.FC = () => {
                   >
                     <div className="text-sm font-medium text-gray-900">
                       {standard.Name}
+                    </div>
+                  </td>
+                  <td className="text-center">
+                    <div className="text-sm font-medium text-gray-900">
+                      {sections.find(s => s.id === standard.SectionId)?.name || ''}
                     </div>
                   </td>
                   <td className="text-center">
@@ -245,6 +281,7 @@ const ListStandards: React.FC = () => {
             initialData={editingStandard}
             onSave={handleSave}
             onCancel={handleCloseModal}
+            sections={sections}
           />
         </Box>
       </Modal>
