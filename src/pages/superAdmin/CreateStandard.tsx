@@ -52,7 +52,7 @@ const CreateStandard: React.FC<CreateStandardProps> = ({
                         onChange={(e) => setSectionId(Number(e.target.value))}
                         required
                     >
-                        {sections.map((section: Section) => (
+                        {sections?.map((section: Section) => (
                             <MenuItem key={section.ID} value={section.ID}>
                                 {section.Name}
                             </MenuItem>
