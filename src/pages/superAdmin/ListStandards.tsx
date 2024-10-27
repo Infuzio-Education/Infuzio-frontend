@@ -36,7 +36,7 @@ const ListStandards: React.FC = () => {
       console.log('response:',response);
       
       if (response.status && response.resp_code === "SUCCESS") {
-        setSections(response.data.sections);
+        setSections(response.data);
       }
     } catch (err) {
       console.error("Failed to fetch sections:", err);
@@ -48,7 +48,6 @@ const ListStandards: React.FC = () => {
     setError(null);
     try {
       const response = await getStandards();
-      console.log('response:',response);
       
       if (response.status && response.resp_code === "SUCCESS") {
         // Sort standards by sequence number
