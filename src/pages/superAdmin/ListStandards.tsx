@@ -33,8 +33,8 @@ const ListStandards: React.FC = () => {
   const fetchSections = async () => {
     try {
       const response = await getSections();
-      console.log('response:',response);
-      
+      console.log('response:', response);
+
       if (response.status && response.resp_code === "SUCCESS") {
         setSections(response.data);
       }
@@ -48,10 +48,10 @@ const ListStandards: React.FC = () => {
     setError(null);
     try {
       const response = await getStandards();
-      
+
       if (response.status && response.resp_code === "SUCCESS") {
         // Sort standards by sequence number
-        const sortedStandards = response.data.sort((a: Standard, b: Standard) => 
+        const sortedStandards = response.data.sort((a: Standard, b: Standard) =>
           a.SequenceNumber - b.SequenceNumber
         );
         setStandards(sortedStandards);
@@ -93,7 +93,7 @@ const ListStandards: React.FC = () => {
         sectionId,
         sequenceNumber
       });
-      
+
       if (response.status && response.resp_code === "CREATED") {
         const newStandard: Standard = {
           ID: Date.now(),
@@ -166,14 +166,27 @@ const ListStandards: React.FC = () => {
         setSearchTerm={setSearchTerm}
         viewMode={viewMode as "list" | "grid"}
         setViewMode={setViewMode}
-        itemCount={filteredStandards.length}
+        itemCount={standards.length}
       />
 
       {loading ? (
-        <div>Loading standards...</div>
+        <div className="rounded-lg p-8 text-center">
+          <p className="text-xl font-semibold">Loading standards...</p>
+        </div>
       ) : error ? (
-        <div className="text-red-500">{error}</div>
-      ) : filteredStandards.length > 0 ? (
+        <div className="rounded-lg p-8 text-center">
+          <p className="text-xl font-semibold text-red-500">{error}</p>
+        </div>
+      ) : standards.length === 0 ? (
+        <div className="rounded-lg p-8 text-center">
+          <p className="text-xl font-semibold mb-4">No standards found.</p>
+          <p className="text-gray-600">Click the "+" button to create a new standard.</p>
+        </div>
+      ) : filteredStandards.length === 0 ? (
+        <div className="rounded-lg p-8 text-center">
+          <p className="text-lg font-semibold">No standards match your search criteria.</p>
+        </div>
+      ) : (
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
           <table className="w-full">
             <thead>
@@ -244,8 +257,6 @@ const ListStandards: React.FC = () => {
             </tbody>
           </table>
         </div>
-      ) : (
-        <div>No standards available</div>
       )}
 
       <div className="fixed bottom-10 right-16 flex items-center space-x-2">

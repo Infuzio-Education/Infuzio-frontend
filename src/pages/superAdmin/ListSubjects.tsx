@@ -60,6 +60,10 @@ const ListSubjects: React.FC = () => {
         }
     };
 
+    const filteredSubjects = subjects.filter(subject =>
+        subject.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div className="min-h-screen bg-gray-200 p-8 relative">
             <ListControls
@@ -69,62 +73,75 @@ const ListSubjects: React.FC = () => {
                 setViewMode={setViewMode}
                 itemCount={subjects.length}
             />
-            <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                <table className="w-full">
-                    <thead>
-                        <tr className="bg-gray-300">
-                            <th className="text-center w-1/12">
-                                <Checkbox
-                                    checked={selectAll}
-                                    onChange={handleSelectAll}
-                                />
-                            </th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Sl.No</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-3/12">Subject Name</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Subject Code</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Min Marks</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Max Marks</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {subjects.map((subject, index) => (
-                            <tr key={subject.id} className="cursor-pointer">
-                                <td className="text-center">
+
+            {subjects.length === 0 ? (
+                <div className="bg-white rounded-lg p-8 text-center">
+                    <p className="text-xl font-semibold mb-4">No subjects found.</p>
+                    <p className="text-gray-600">Click the "+" button to create a new subject.</p>
+                </div>
+            ) : filteredSubjects.length === 0 ? (
+                <div className="bg-white rounded-lg p-8 text-center">
+                    <p className="text-lg font-semibold">No subjects match your search criteria.</p>
+                </div>
+            ) : (
+                <div className="bg-white shadow-md rounded-lg overflow-hidden">
+                    <table className="w-full">
+                        <thead>
+                            <tr className="bg-gray-300">
+                                <th className="text-center w-1/12">
                                     <Checkbox
-                                        checked={selectedSubjects.includes(subject.id)}
-                                        onChange={() => handleSelectSubject(subject.id)}
-                                        onClick={(e) => e.stopPropagation()}
+                                        checked={selectAll}
+                                        onChange={handleSelectAll}
                                     />
-                                </td>
-                                <td className="text-center" onClick={() => handleOpenModal(subject)}>
-                                    <div className="text-sm font-medium text-gray-900">{index + 1}</div>
-                                </td>
-                                <td className="text-center" onClick={() => handleOpenModal(subject)}>
-                                    <div className="text-sm font-medium text-gray-900">{subject.name}</div>
-                                </td>
-                                <td className="text-center" onClick={() => handleOpenModal(subject)}>
-                                    <div className="text-sm font-medium text-gray-900">{subject.code}</div>
-                                </td>
-                                <td className="text-center" onClick={() => handleOpenModal(subject)}>
-                                    <div className="text-sm font-medium text-gray-900">{subject.minMarks}</div>
-                                </td>
-                                <td className="text-center" onClick={() => handleOpenModal(subject)}>
-                                    <div className="text-sm font-medium text-gray-900">{subject.maxMarks}</div>
-                                </td>
-                                <td className="text-center">
-                                    <IconButton
-                                        aria-label="delete"
-                                        onClick={() => handleDelete(subject.id)}
-                                    >
-                                        <Trash2 size={20} className="text-red-500" />
-                                    </IconButton>
-                                </td>
+                                </th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Sl.No</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-3/12">Subject Name</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Subject Code</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Min Marks</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Max Marks</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {subjects.map((subject, index) => (
+                                <tr key={subject.id} className="cursor-pointer">
+                                    <td className="text-center">
+                                        <Checkbox
+                                            checked={selectedSubjects.includes(subject.id)}
+                                            onChange={() => handleSelectSubject(subject.id)}
+                                            onClick={(e) => e.stopPropagation()}
+                                        />
+                                    </td>
+                                    <td className="text-center" onClick={() => handleOpenModal(subject)}>
+                                        <div className="text-sm font-medium text-gray-900">{index + 1}</div>
+                                    </td>
+                                    <td className="text-center" onClick={() => handleOpenModal(subject)}>
+                                        <div className="text-sm font-medium text-gray-900">{subject.name}</div>
+                                    </td>
+                                    <td className="text-center" onClick={() => handleOpenModal(subject)}>
+                                        <div className="text-sm font-medium text-gray-900">{subject.code}</div>
+                                    </td>
+                                    <td className="text-center" onClick={() => handleOpenModal(subject)}>
+                                        <div className="text-sm font-medium text-gray-900">{subject.minMarks}</div>
+                                    </td>
+                                    <td className="text-center" onClick={() => handleOpenModal(subject)}>
+                                        <div className="text-sm font-medium text-gray-900">{subject.maxMarks}</div>
+                                    </td>
+                                    <td className="text-center">
+                                        <IconButton
+                                            aria-label="delete"
+                                            onClick={() => handleDelete(subject.id)}
+                                        >
+                                            <Trash2 size={20} className="text-red-500" />
+                                        </IconButton>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
             <div className="fixed bottom-10 right-16 flex items-center space-x-2">
                 <button
                     className="bg-green-500 text-white p-2 rounded-full shadow-lg relative group hover:bg-green-600"
