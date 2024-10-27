@@ -33,8 +33,10 @@ const ListSections: React.FC = () => {
         try {
             setLoading(true);
             const response = await getSections();
-            if (response.status && response.resp_code === 'SUCCESS' && Array.isArray(response.data.sections)) {
-                setSections(response.data.sections);
+            console.log('responseSections:',response);
+            
+            if (response.status && response.resp_code === 'SUCCESS' && Array.isArray(response.data)) {
+                setSections(response.data);
                 setError(null);
             } else {
                 throw new Error('Invalid response structure');
@@ -67,9 +69,9 @@ const ListSections: React.FC = () => {
             console.log(response);
             if (response.status && response.resp_code === 'SUCCESS') {
                 const newSection: Section = {
-                    id: Date.now(),
-                    name: sectionData.sectionName,
-                    section_code: sectionData.sectionCode
+                    ID: Date.now(),
+                    Name: sectionData.sectionName,
+                    SectionCode: sectionData.sectionCode
                 };
                 setSections((prevSections) => [...prevSections, newSection]);
                 setSnackbar({
@@ -94,14 +96,14 @@ const ListSections: React.FC = () => {
     };
 
     const handleDelete = (id: number) => {
-        setSections(sections.filter(section => section.id !== id));
+        setSections(sections.filter(section => section.ID !== id));
     };
 
     const handleSelectAll = () => {
         if (selectAll) {
             setSelectedSections([]);
         } else {
-            setSelectedSections(sections.map(section => section.id));
+            setSelectedSections(sections.map(section => section.ID));
         }
         setSelectAll(!selectAll);
     };
@@ -149,11 +151,11 @@ const ListSections: React.FC = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {sections.map((section, index) => (
-                            <tr key={section.id} className="cursor-pointer">
+                            <tr key={section.ID} className="cursor-pointer">
                                 <td className="text-center">
                                     <Checkbox
-                                        checked={selectedSections.includes(section.id)}
-                                        onChange={() => handleSelectSection(section.id)}
+                                        checked={selectedSections.includes(section.ID)}
+                                        onChange={() => handleSelectSection(section.ID)}
                                         onClick={(e) => e.stopPropagation()}
                                     />
                                 </td>
@@ -161,15 +163,15 @@ const ListSections: React.FC = () => {
                                     <div className="text-sm font-medium text-gray-900">{index + 1}</div>
                                 </td>
                                 <td className="text-center" onClick={() => handleOpenModal(section)}>
-                                    <div className="text-sm font-medium text-gray-900">{section.name}</div>
+                                    <div className="text-sm font-medium text-gray-900">{section.Name}</div>
                                 </td>
                                 <td className="text-center" onClick={() => handleOpenModal(section)}>
-                                    <div className="text-sm font-medium text-gray-900">{section.section_code}</div>
+                                    <div className="text-sm font-medium text-gray-900">{section.SectionCode}</div>
                                 </td>
                                 <td className="text-center">
                                     <IconButton
                                         aria-label="delete"
-                                        onClick={() => handleDelete(section.id)}
+                                        onClick={() => handleDelete(section.ID)}
                                     >
                                         <Trash2 size={20} className="text-red-500" />
                                     </IconButton>

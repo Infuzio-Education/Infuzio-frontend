@@ -18,9 +18,9 @@ export interface SchoolFormData {
 }
 
 export interface Section {
-    id: number;
-    name: string;
-    section_code: string;
+    ID: number;
+    Name: string;
+    SectionCode: string;
 }
 
 

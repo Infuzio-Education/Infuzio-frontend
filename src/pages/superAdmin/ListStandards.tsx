@@ -48,6 +48,8 @@ const ListStandards: React.FC = () => {
     setError(null);
     try {
       const response = await getStandards();
+      console.log('response:',response);
+      
       if (response.status && response.resp_code === "SUCCESS") {
         // Sort standards by sequence number
         const sortedStandards = response.data.sort((a: Standard, b: Standard) => 
@@ -100,7 +102,7 @@ const ListStandards: React.FC = () => {
           HasGroup: hasGroup,
           SectionId: sectionId,
           SequenceNumber: sequenceNumber,
-          section: sections.find(s => s.id === sectionId)?.name || '',
+          section: sections.find(s => s.ID === sectionId)?.Name || '',
         };
         setStandards((prevStandards) => {
           const updatedStandards = [...prevStandards, newStandard];
@@ -222,7 +224,7 @@ const ListStandards: React.FC = () => {
                   </td>
                   <td className="text-center">
                     <div className="text-sm font-medium text-gray-900">
-                      {sections.find(s => s.id === standard.SectionId)?.name || ''}
+                      {sections?.find(s => s.ID === standard.SectionId)?.Name || ''}
                     </div>
                   </td>
                   <td className="text-center">

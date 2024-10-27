@@ -11,7 +11,7 @@ const CreateStandard: React.FC<CreateStandardProps> = ({
     const [name, setName] = useState('');
     const [hasGroup, setHasGroup] = useState(false);
     const [sectionId, setSectionId] = useState<number>(0);
-    const [sequenceNumber, setSequenceNumber] = useState(0);
+    const [sequenceNumber, setSequenceNumber] = useState<number|undefined>();
 
     useEffect(() => {
         if (initialData) {
@@ -29,7 +29,7 @@ const CreateStandard: React.FC<CreateStandardProps> = ({
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        onSave(name, hasGroup, sectionId, sequenceNumber);
+        onSave(name, hasGroup, sectionId, sequenceNumber||0);
     };
 
     return (
@@ -53,8 +53,8 @@ const CreateStandard: React.FC<CreateStandardProps> = ({
                         required
                     >
                         {sections.map((section: Section) => (
-                            <MenuItem key={section.id} value={section.id}>
-                                {section.name}
+                            <MenuItem key={section.ID} value={section.ID}>
+                                {section.Name}
                             </MenuItem>
                         ))}
                     </Select>
