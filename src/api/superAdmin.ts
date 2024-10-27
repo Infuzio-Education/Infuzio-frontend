@@ -52,7 +52,8 @@ export const getSyllabus = async () => {
     try {
         const response = await Api.get(superAdminEndpoints.syllabus);
         if (response.data && response.data.status === true) {
-            return response.data.data;
+            console.log('response', response.data);
+            return response.data;
         } else {
             throw new Error('Unexpected response format');
         }

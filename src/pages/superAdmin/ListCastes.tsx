@@ -80,7 +80,6 @@ const ListCastes: React.FC = () => {
                     position: { vertical: 'top', horizontal: 'center' }
                 });
             } else {
-                // Create new caste logic (remains the same)
                 const response = await createCaste({ Name: name, ReligionID: religion_id });
                 if (response.status === true) {
                     const newCaste: Caste = {
@@ -152,14 +151,27 @@ const ListCastes: React.FC = () => {
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
-                itemCount={filteredCastes.length}
+                itemCount={castes.length}
             />
 
             {loading ? (
-                <div>Loading castes...</div>
+                <div className="rounded-lg p-8 text-center">
+                    <p className="text-xl font-semibold">Loading castes...</p>
+                </div>
             ) : error ? (
-                <div className="text-red-500">{error}</div>
-            ) : filteredCastes.length > 0 ? (
+                <div className="rounded-lg p-8 text-center">
+                    <p className="text-xl font-semibold text-red-500">{error}</p>
+                </div>
+            ) : castes.length === 0 ? (
+                <div className="rounded-lg p-8 text-center">
+                    <p className="text-xl font-semibold mb-4">No castes found.</p>
+                    <p className="text-gray-600">Click the "+" button to create a new caste.</p>
+                </div>
+            ) : filteredCastes.length === 0 ? (
+                <div className="rounded-lg p-8 text-center">
+                    <p className="text-lg font-semibold">No castes match your search criteria.</p>
+                </div>
+            ) : (
                 <div className="bg-white shadow-md rounded-lg overflow-hidden">
                     <table className="w-full">
                         <thead>
@@ -204,8 +216,6 @@ const ListCastes: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-            ) : (
-                <div>No castes available</div>
             )}
 
             <div className="fixed bottom-10 right-16 flex items-center space-x-2">

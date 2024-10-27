@@ -149,14 +149,27 @@ const ListReligions: React.FC = () => {
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
-                itemCount={filteredReligions.length}
+                itemCount={religions.length}
             />
 
             {loading ? (
-                <div>Loading religions...</div>
+                <div className="rounded-lg p-8 text-center">
+                    <p className="text-xl font-semibold">Loading religions...</p>
+                </div>
             ) : error ? (
-                <div className="text-red-500">{error}</div>
-            ) : filteredReligions.length > 0 ? (
+                <div className="rounded-lg p-8 text-center">
+                    <p className="text-xl font-semibold text-red-500">{error}</p>
+                </div>
+            ) : religions.length === 0 ? (
+                <div className=" rounded-lg p-8 text-center">
+                    <p className="text-xl font-semibold mb-4">No religions found.</p>
+                    <p className="text-gray-600">Click the "+" button to create a new religion.</p>
+                </div>
+            ) : filteredReligions.length === 0 ? (
+                <div className=" rounded-lg p-8 text-center">
+                    <p className="text-lg font-semibold">No religions match your search criteria.</p>
+                </div>
+            ) : (
                 <div className="bg-white shadow-md rounded-lg overflow-hidden">
                     <table className="w-full">
                         <thead>
@@ -201,8 +214,6 @@ const ListReligions: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-            ) : (
-                <div>No religions available</div>
             )}
 
             <div className="fixed bottom-10 right-16 flex items-center space-x-2">
