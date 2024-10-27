@@ -11,7 +11,11 @@ const superAdminEndpoints = {
     stadards: 'global/standard',
     groups: 'global/groups',
     sections: 'global/sections',
-    castes: 'global/caste'
+    castes: 'global/caste',
+    createStaff: 'staff/create',
+    listStaff: 'staff/list',
+    updateStaff: 'staff/update',
+    deleteStaff: 'staff/delete',
 
 }
 

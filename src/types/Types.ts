@@ -18,9 +18,9 @@ export interface SchoolFormData {
 }
 
 export interface Section {
-    id: number;
-    name: string;
-    section_code: string;
+    ID: number;
+    Name: string;
+    SectionCode: string;
 }
 
 
@@ -167,31 +167,12 @@ export interface CreateGroupProps {
     onCancel: () => void;
 }
 
-export interface Staff {
-    id: number;
-    name: string;
-    isTeachingStaff: boolean;
-    responsibility: string;
-    subjects: string[];
-    email: string;
-    mobile: string;
-    gender: string;
-    dateOfBirth: string;
-    address: {
-        line1: string;
-        city: string;
-        state: string;
-        pinCode: string;
-        country: string;
-    };
-    section: string;
-    imageUrl: string;
-}
 
 export interface CreateStaffProps {
     initialData: Staff | null;
     onSave: (staff: Staff) => void;
     onCancel: () => void;
+    schoolPrefix : string
 }
 
 export interface Class {
@@ -261,3 +242,44 @@ export interface CreateCasteProps {
     onCancel: () => void;
 }
 
+export interface StaffAddress {
+    street1: string;
+    street2?: string;
+    city: string;
+    state: string;
+    pinCode: string;
+    country: string;
+}
+
+export interface CreateStaffPayload {
+    id_card_number: string;
+    name: string;
+    gender: 'male' | 'female' | 'other';
+    dob: string;
+    mobile: string;
+    email: string;
+    blood_group: string;
+    religion: string;
+    caste: string;
+    category: string;
+    pwd: boolean;
+    is_teaching_staff: boolean;
+    remarks?: string;
+    street1: string;
+    street2?: string;
+    city: string;
+    state: string;
+    pin_code: string;
+    country: string;
+    profile_pic?: File;
+    responsibility?: string;
+    subjects?: string[];
+    section?: string;
+    ID:number, 
+    profile_pic_link:string
+}
+
+export interface Staff extends Omit<CreateStaffPayload, 'profile_pic'> {
+    ID: number;
+    profile_pic_link: string;
+}

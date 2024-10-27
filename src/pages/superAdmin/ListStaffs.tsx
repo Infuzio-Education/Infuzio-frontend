@@ -1,43 +1,39 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Checkbox, Modal, Box, IconButton, Avatar } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
 import CreateStaffs from './CreateStaffs';
 import { Staff } from '../../types/Types';
+import { listStaff } from '../../api/superAdmin';
+
+
 
 const ListStaffs: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
     const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
-    const [staffs, setStaffs] = useState<Staff[]>([
-        {
-            id: 1, name: "John Doe", isTeachingStaff: true, responsibility: "Class Teacher", subjects: ["Mathematics", "Physics"], email: "john@example.com", mobile: "1234567890",
-            gender: '',
-            dateOfBirth: '',
-            address: {
-                line1: '',
-                city: '',
-                state: '',
-                pinCode: '',
-                country: ''
-            },
-            section: '',
-            imageUrl: ''
-        },
-        {
-            id: 2, name: "Jane Smith", isTeachingStaff: false, responsibility: "Administrator", subjects: [], email: "jane@example.com", mobile: "9876543210",
-            gender: '',
-            dateOfBirth: '',
-            address: {
-                line1: '',
-                city: '',
-                state: '',
-                pinCode: '',
-                country: ''
-            },
-            section: '',
-            imageUrl: ''
-        },
-    ]);
+    const [staffs, setStaffs] = useState<Staff[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchStaffList = async () => {
+        try {
+            setLoading(true);
+            const response = await listStaff("MKKDY");
+            if (response.status && response.resp_code === "SUCCESS") {
+                setStaffs(response.data);
+            } else {
+                setError("Failed to fetch staff data");
+            }
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'An error occurred while fetching staff data');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchStaffList();
+    }, []);
 
     const [selectedStaffs, setSelectedStaffs] = useState<number[]>([]);
     const [selectAll, setSelectAll] = useState<boolean>(false);
@@ -54,26 +50,20 @@ const ListStaffs: React.FC = () => {
         setOpenModal(false);
     };
 
-    const handleSave = (updatedStaff: Staff) => {
-        if (editingStaff) {
-            setStaffs(staffs.map(staff =>
-                staff.id === editingStaff.id ? { ...staff, ...updatedStaff } : staff
-            ));
-        } else {
-            setStaffs([...staffs, { ...updatedStaff, id: staffs.length + 1 }]);
-        }
+    const handleSave = async () => {
+        await fetchStaffList(); // Refresh the list after save
         handleCloseModal();
     };
 
     const handleDelete = (id: number) => {
-        setStaffs(staffs.filter(staff => staff.id !== id));
+        setStaffs(staffs.filter(staff => staff.ID !== id));
     };
 
     const handleSelectAll = () => {
         if (selectAll) {
             setSelectedStaffs([]);
         } else {
-            setSelectedStaffs(staffs.map(staff => staff.id));
+            setSelectedStaffs(staffs.map(staff => staff.ID));
         }
         setSelectAll(!selectAll);
     };
@@ -85,6 +75,14 @@ const ListStaffs: React.FC = () => {
             setSelectedStaffs([...selectedStaffs, id]);
         }
     };
+
+    if (loading) {
+        return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    }
+
+    if (error) {
+        return <div className="min-h-screen flex items-center justify-center text-red-500">{error}</div>;
+    }
 
     return (
         <div className="min-h-screen bg-gray-200 p-8 relative">
@@ -117,11 +115,11 @@ const ListStaffs: React.FC = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {staffs.map((staff, index) => (
-                            <tr key={staff.id} className="cursor-pointer">
+                            <tr key={staff.ID} className="cursor-pointer">
                                 <td className="text-center">
                                     <Checkbox
-                                        checked={selectedStaffs.includes(staff.id)}
-                                        onChange={() => handleSelectStaff(staff.id)}
+                                        checked={selectedStaffs.includes(staff.ID)}
+                                        onChange={() => handleSelectStaff(staff.ID)}
                                         onClick={(e) => e.stopPropagation()}
                                     />
                                 </td>
@@ -130,7 +128,7 @@ const ListStaffs: React.FC = () => {
                                 </td>
                                 <td className="text-center" onClick={() => handleOpenModal(staff)}>
                                     <Avatar
-                                        src={staff.imageUrl}
+                                        src={staff.profile_pic_link}
                                         sx={{ width: 40, height: 40, margin: 'auto' }}
                                     />
                                 </td>
@@ -138,10 +136,14 @@ const ListStaffs: React.FC = () => {
                                     <div className="text-sm font-medium text-gray-900">{staff.name}</div>
                                 </td>
                                 <td className="text-center" onClick={() => handleOpenModal(staff)}>
-                                    <div className="text-sm font-medium text-gray-900">{staff.isTeachingStaff ? 'Teaching Staff' : 'Non-Teaching Staff'}</div>
+                                    <div className="text-sm font-medium text-gray-900">
+                                        {staff.is_teaching_staff ? 'Teaching Staff' : 'Non-Teaching Staff'}
+                                    </div>
                                 </td>
                                 <td className="text-center" onClick={() => handleOpenModal(staff)}>
-                                    <div className="text-sm font-medium text-gray-900">{staff.subjects.join(', ')}</div>
+                                    <div className="text-sm font-medium text-gray-900">
+                                        {Array.isArray(staff.subjects) ? staff.subjects.join(', ') : ''}
+                                    </div>
                                 </td>
                                 <td className="text-center" onClick={() => handleOpenModal(staff)}>
                                     <div className="text-sm font-medium text-gray-900">{staff.email}</div>
@@ -152,7 +154,7 @@ const ListStaffs: React.FC = () => {
                                 <td className="text-center">
                                     <IconButton
                                         aria-label="delete"
-                                        onClick={() => handleDelete(staff.id)}
+                                        onClick={() => handleDelete(staff.ID)}
                                     >
                                         <Trash2 size={20} className="text-red-500" />
                                     </IconButton>
@@ -197,6 +199,7 @@ const ListStaffs: React.FC = () => {
                         initialData={editingStaff}
                         onSave={handleSave}
                         onCancel={handleCloseModal}
+                        schoolPrefix='MKKDY'
                     />
                 </Box>
             </Modal>

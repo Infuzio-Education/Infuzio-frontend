@@ -1,6 +1,7 @@
 import Api from './axiosConfig';
 import superAdminEndpoints from '../endpoints/superAdmin';
 import axios from 'axios';
+import { CreateStaffPayload } from '../types/Types';
 
 
 interface SuperAdminInfo {
@@ -336,6 +337,106 @@ export const deleteReligion = async (id: number) => {
         return response.data;
     } catch (error) {
         console.error('Error deleting religion:', error);
+        throw error;
+    }
+};
+
+
+export const createStaff = async (values: CreateStaffPayload, schoolPrefix: string) => {
+    try {
+        const formData = new FormData();
+        console.log('hey');
+        
+        Object.entries(values).forEach(([key, value]) => {
+            if (key === 'subjects' && Array.isArray(value)) {
+                formData.append(key, JSON.stringify(value));
+            } else if (key === 'profile_pic' && value instanceof File) {
+                formData.append(key, value);
+            } else {
+                formData.append(key, String(value));
+            }
+        });
+
+        const response = await Api.post(
+            `${superAdminEndpoints.createStaff}?school_prefix=${schoolPrefix}`,
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }
+        );
+        return response.data; // Ensure this returns the correct data type
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error creating staff:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+export const listStaff = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.listStaff}?school_prefix=${schoolPrefix}`);
+        return response.data; // Ensure this returns the correct data type
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error listing staff:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+export const updateStaff = async (staffId: number, values: Partial<CreateStaffPayload>, schoolPrefix: string) => {
+    try {
+        const formData = new FormData();
+        
+        Object.entries(values).forEach(([key, value]) => {
+            if (key === 'subjects' && Array.isArray(value)) {
+                formData.append(key, JSON.stringify(value));
+            } else if (key === 'profile_pic' && value instanceof File) {
+                formData.append(key, value);
+            } else if (value !== undefined) {
+                formData.append(key, String(value));
+            }
+        });
+
+        const response = await Api.put(
+            `${superAdminEndpoints.updateStaff}/${staffId}?school_prefix=${schoolPrefix}`,
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }
+        );
+        return response.data; // Ensure this returns the correct data type
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating staff:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+export const deleteStaff = async (staffId: number, schoolPrefix: string) => {
+    try {
+        const response = await Api.delete(
+            `${superAdminEndpoints.deleteStaff}/${staffId}?school_prefix=${schoolPrefix}`
+        );
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error deleting staff:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
         throw error;
     }
 };
