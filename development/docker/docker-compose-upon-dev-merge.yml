@@ -65,7 +65,7 @@ services:
       postgres:
         condition: service_healthy  # Wait for PostgreSQL to be healthy
     volumes:
-      - ./../log:/log
+      - ./../log:/development/log
     # restart: on-failure  # Restart the infuzio container on failure
 
 
