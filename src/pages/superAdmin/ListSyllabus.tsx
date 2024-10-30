@@ -32,14 +32,11 @@ const ListSyllabus: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            const data = await getSyllabus();
-            if (Array.isArray(data)) {
-                setSyllabuses(data);
-            } else {
-                setError('Syllabus data format is incorrect.');
-            }
+            const response = await getSyllabus();
+            setSyllabuses(response);
         } catch (err) {
             setError('Failed to load syllabuses. Please try again.');
+            setSyllabuses([]);
         } finally {
             setLoading(false);
         }
@@ -85,7 +82,6 @@ const ListSyllabus: React.FC = () => {
         handleCloseModal();
     };
 
-
     const handleSelectAll = () => {
         setSelectedSyllabuses(selectAll ? [] : syllabuses.map(s => s.ID));
         setSelectAll(!selectAll);
@@ -97,9 +93,11 @@ const ListSyllabus: React.FC = () => {
         );
     };
 
-    const filteredSyllabuses = syllabuses.filter(syllabus =>
-        syllabus.Name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredSyllabuses = Array.isArray(syllabuses)
+        ? syllabuses.filter(syllabus =>
+            syllabus?.Name?.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        : [];
 
     return (
         <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">
@@ -112,10 +110,23 @@ const ListSyllabus: React.FC = () => {
             />
 
             {loading ? (
-                <div>Loading syllabuses...</div>
+                <div className="rounded-lg p-8 text-center">
+                    <p className="text-xl font-semibold">Loading syllabuses...</p>
+                </div>
             ) : error ? (
-                <div className="text-red-500">{error}</div>
-            ) : filteredSyllabuses.length > 0 ? (
+                <div className="rounded-lg p-8 text-center">
+                    <p className="text-xl font-semibold text-red-500">{error}</p>
+                </div>
+            ) : syllabuses.length === 0 ? (
+                <div className="rounded-lg p-8 text-center">
+                    <p className="text-xl font-semibold mb-4">No syllabuses found.</p>
+                    <p className="text-gray-600">Click the "+" button to create a new syllabus.</p>
+                </div>
+            ) : filteredSyllabuses.length === 0 ? (
+                <div className="rounded-lg p-8 text-center">
+                    <p className="text-lg font-semibold">No syllabuses match your search criteria.</p>
+                </div>
+            ) : (
                 <div className="bg-white shadow-md rounded-lg overflow-hidden">
                     <table className="w-full">
                         <thead>
@@ -160,8 +171,6 @@ const ListSyllabus: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-            ) : (
-                <div>No syllabuses available</div>
             )}
 
             <div className="fixed bottom-10 right-16 flex items-center space-x-2">

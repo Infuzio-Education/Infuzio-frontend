@@ -1,39 +1,128 @@
-import React, { useState, useEffect } from 'react';
-import { TextField, Button, Switch, FormControlLabel, Select, MenuItem, InputLabel, FormControl, Grid, Avatar } from '@mui/material';
-import { CreateStaffProps, Staff } from '../../types/Types';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+    TextField, Button, Switch, FormControlLabel, Select, MenuItem,
+    InputLabel, FormControl, Grid, Avatar, Alert, CircularProgress
+} from '@mui/material';
+import { CreateStaffProps, Section, CreateStaffPayload } from '../../types/Types';
 import CustomTabs from '../../components/CustomTabs';
 import { Upload } from 'lucide-react';
+import { createStaff, getSections, updateStaff } from '../../api/superAdmin';
 
-const CreateStaffs: React.FC<CreateStaffProps> = ({ initialData, onSave, onCancel }) => {
-    const [staff, setStaff] = useState<Staff>({
-        id: 0,
-        name: '',
-        isTeachingStaff: false,
-        responsibility: '',
-        subjects: [],
-        email: '',
-        mobile: '',
-        gender: '',
-        dateOfBirth: '',
-        address: {
-            line1: '',
-            city: '',
-            state: '',
-            pinCode: '',
-            country: '',
-        },
-        section: '',
-        imageUrl: ''
-    });
+const INITIAL_STAFF_STATE: CreateStaffPayload = {
+    id_card_number: '',
+    name: '',
+    gender: 'male',
+    dob: '',
+    mobile: '',
+    email: '',
+    blood_group: '',
+    religion: '',
+    caste: '',
+    category: '',
+    pwd: false,
+    is_teaching_staff: false,
+    remarks: '',
+    street1: '',
+    street2: '',
+    city: '',
+    state: '',
+    pin_code: '',
+    country: '',
+    responsibility: '',
+    subjects: [],
+    section: '',
+    ID:0,
+    profile_pic_link:""
+};
 
-    const [_image, setImage] = useState<File | null>(null);
+
+
+const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+const SUBJECTS = ['Mathematics', 'Science', 'English', 'Social Studies', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography'];
+
+const CreateStaffs: React.FC<CreateStaffProps> = ({ 
+    initialData, 
+    onSave, 
+    onCancel, 
+    schoolPrefix = "MKKDY" 
+}) => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [sections, setSections] = useState<Section[]>([]);
+    const [sectionError, setSectionError] = useState<string | null>(null);
+    const [loadingSections, setLoadingSections] = useState(false);
+    const [staff, setStaff] = useState<CreateStaffPayload>(INITIAL_STAFF_STATE);
+    const [profilePic, setProfilePic] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
     useEffect(() => {
         if (initialData) {
-            setStaff(initialData);
+            try {
+                setStaff({
+                    ...initialData,
+                    dob: initialData.dob ? new Date(initialData.dob).toISOString().split('T')[0] : '',
+                    subjects: Array.isArray(initialData.subjects) ? initialData.subjects : [],
+                });
+                if (initialData.profile_pic_link) {
+                    setImagePreview(initialData.profile_pic_link);
+                }
+            } catch (err) {
+                console.error('Error setting initial data:', err);
+                setError('Error loading initial staff data');
+            }
         }
     }, [initialData]);
+
+    const fetchSections = useCallback(async () => {
+        setLoadingSections(true);
+        setSectionError(null);
+        try {
+            const response = await getSections();
+            
+            if (response.status && response.resp_code === "SUCCESS") {
+                if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+                    setSections(response.data);
+                } else {
+                    throw new Error('No sections data available');
+                }
+            } else {
+                throw new Error('Failed to fetch sections');
+            }
+        } catch (err) {
+            console.error("Failed to fetch sections:", err);
+            setSectionError('Error loading sections. Please try again later.');
+            setSections([]); // Reset to empty array on error
+        } finally {
+            setLoadingSections(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchSections();
+    }, [fetchSections]);
+
+    const validateForm = (): boolean => {
+        const errors: Record<string, string> = {};
+
+        if (!staff.id_card_number) errors.id_card_number = 'ID Card Number is required';
+        if (!staff.name) errors.name = 'Name is required';
+        if (!staff.dob) errors.dob = 'Date of Birth is required';
+        if (!staff.mobile) errors.mobile = 'Mobile number is required';
+        if (!staff.email) errors.email = 'Email is required';
+        if (staff.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(staff.email)) {
+            errors.email = 'Invalid email format';
+        }
+        // if (staff.mobile && !/^\d{10}$/.test(staff.mobile)) {
+        //     errors.mobile = 'Mobile number must be 10 digits';
+        // }
+        if (staff.pin_code && !/^\d{6}$/.test(staff.pin_code)) {
+            errors.pin_code = 'Pin code must be 6 digits';
+        }
+
+        setValidationErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
@@ -41,28 +130,37 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({ initialData, onSave, onCance
             ...prev,
             [name]: value,
         }));
+        // Clear validation error when field is changed
+        if (validationErrors[name]) {
+            setValidationErrors(prev => ({
+                ...prev,
+                [name]: ''
+            }));
+        }
     };
 
-    const handleAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSelectChange = (event: any) => {
         const { name, value } = event.target;
         setStaff(prev => ({
             ...prev,
-            address: {
-                ...prev.address,
-                [name]: value,
-            },
+            [name]: value,
         }));
-    };
-
-    const handleSubmit = (event: React.MouseEvent<HTMLButtonElement>) => {
-        event.preventDefault();
-        onSave(staff);
     };
 
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files[0]) {
             const file = event.target.files[0];
-            setImage(file);
+            // Validate file size (e.g., max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                setError('Image size should not exceed 5MB');
+                return;
+            }
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                setError('Please upload an image file');
+                return;
+            }
+            setProfilePic(file);
             const reader = new FileReader();
             reader.onloadend = () => {
                 setImagePreview(reader.result as string);
@@ -71,17 +169,55 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({ initialData, onSave, onCance
         }
     };
 
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
+        
+        if (!validateForm()) {
+            setError('Please fix the validation errors before submitting');
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            const staffData: CreateStaffPayload = {
+                ...staff,
+                profile_pic: profilePic || undefined
+            };
+
+            if (initialData?.ID) {
+                await updateStaff(initialData.ID, staffData, schoolPrefix);
+            } else {
+                await createStaff(staffData, schoolPrefix);
+            }
+            
+            onSave(staffData);
+        } catch (err: any) {
+            console.error('Error saving staff:', err);
+            setError(err.response?.data?.message || 'An error occurred while saving staff data');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="flex flex-col h-full">
             <div className="flex-grow overflow-auto p-4">
-                <h2 className="text-xl font-bold mb-4">{initialData ? 'Edit Staff' : 'Create Staff'}</h2>
-                <form onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSubmit(e as unknown as React.MouseEvent<HTMLButtonElement>);
-                }} className="space-y-4">
+                <h2 className="text-xl font-bold mb-4">
+                    {initialData ? 'Edit Staff' : 'Create Staff'}
+                </h2>
+                
+                {error && (
+                    <Alert severity="error" className="mb-4">
+                        {error}
+                    </Alert>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="mb-4 flex flex-col items-center">
                         <Avatar
-                            src={imagePreview || initialData?.imageUrl}
+                            src={imagePreview || undefined}
                             sx={{ width: 100, height: 100, mb: 2 }}
                         />
                         <input
@@ -92,75 +228,170 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({ initialData, onSave, onCance
                             onChange={handleImageUpload}
                         />
                         <label htmlFor="raised-button-file">
-                            <Button variant="outlined" component="span" startIcon={<Upload />}>
+                            <Button 
+                                variant="outlined" 
+                                component="span" 
+                                startIcon={<Upload />}
+                            >
                                 {imagePreview ? 'Change Image' : 'Upload Staff Image'}
                             </Button>
                         </label>
                     </div>
 
-                    <TextField
-                        label="Employee Name"
-                        variant="outlined"
-                        fullWidth
-                        name="name"
-                        value={staff.name}
-                        onChange={handleChange}
-                        required
-                    />
-
-                    <FormControlLabel
-                        control={
-                            <Switch
-                                checked={staff.isTeachingStaff}
-                                onChange={(e) => setStaff(prev => ({ ...prev, isTeachingStaff: e.target.checked }))}
-                                name="isTeachingStaff"
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                label="ID Card Number"
+                                variant="outlined"
+                                fullWidth
+                                name="id_card_number"
+                                value={staff.id_card_number}
+                                onChange={handleChange}
+                                required
+                                error={!!validationErrors.id_card_number}
+                                helperText={validationErrors.id_card_number}
                             />
-                        }
-                        label="Is Teaching Staff"
-                    />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                label="Name"
+                                variant="outlined"
+                                fullWidth
+                                name="name"
+                                value={staff.name}
+                                onChange={handleChange}
+                                required
+                                error={!!validationErrors.name}
+                                helperText={validationErrors.name}
+                            />
+                        </Grid>
+                    </Grid>
 
-                    <TextField
-                        label="Responsibility of Academic Class"
-                        variant="outlined"
-                        fullWidth
-                        name="responsibility"
-                        value={staff.responsibility}
-                        onChange={handleChange}
-                    />
-
-                    <FormControl fullWidth variant="outlined">
-                        <InputLabel>Select Subjects</InputLabel>
-                        <Select
-                            multiple
-                            value={staff.subjects}
-                            onChange={(e) => setStaff(prev => ({ ...prev, subjects: e.target.value as string[] }))}
-                            label="Select Subjects"
-                        >
-                            <MenuItem value="Mathematics">Mathematics</MenuItem>
-                            <MenuItem value="Science">Science</MenuItem>
-                            <MenuItem value="English">English</MenuItem>
-                            {/* Add more subjects as needed */}
-                        </Select>
-                    </FormControl>
-
-                    <CustomTabs labels={['More Information']}>
-                        <div className="space-y-4">
-                            <FormControl fullWidth variant="outlined">
-                                <InputLabel>Section</InputLabel>
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} md={6}>
+                            <FormControl fullWidth>
+                                <InputLabel>Gender</InputLabel>
                                 <Select
-                                    value={staff.section}
-                                    onChange={(e) => setStaff(prev => ({ ...prev, section: e.target.value as string }))}
-                                    label="Section"
+                                    name="gender"
+                                    value={staff.gender}
+                                    onChange={handleSelectChange}
+                                    label="Gender"
+                                    required
                                 >
-                                    <MenuItem value="A">A</MenuItem>
-                                    <MenuItem value="B">B</MenuItem>
-                                    <MenuItem value="C">C</MenuItem>
-                                    {/* Add more sections as needed */}
+                                    <MenuItem value="male">Male</MenuItem>
+                                    <MenuItem value="female">Female</MenuItem>
+                                    <MenuItem value="other">Other</MenuItem>
                                 </Select>
                             </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                label="Date of Birth"
+                                type="date"
+                                variant="outlined"
+                                fullWidth
+                                name="dob"
+                                value={staff.dob}
+                                onChange={handleChange}
+                                InputLabelProps={{ shrink: true }}
+                                required
+                                error={!!validationErrors.dob}
+                                helperText={validationErrors.dob}
+                            />
+                        </Grid>
+                    </Grid>
+
+                    <CustomTabs labels={['Basic Info', 'Contact', 'Additional Info']}>
+                        {/* Basic Info Tab */}
+                        <div className="space-y-4">
+                            <Grid container spacing={2}>
+                                <Grid item xs={12} md={6}>
+                                    <FormControl fullWidth>
+                                        <InputLabel>Blood Group</InputLabel>
+                                        <Select
+                                            name="blood_group"
+                                            value={staff.blood_group}
+                                            onChange={handleSelectChange}
+                                            label="Blood Group"
+                                        >
+                                            {BLOOD_GROUPS.map(group => (
+                                                <MenuItem key={group} value={group}>{group}</MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <TextField
+                                        label="Religion"
+                                        variant="outlined"
+                                        fullWidth
+                                        name="religion"
+                                        value={staff.religion}
+                                        onChange={handleChange}
+                                    />
+                                </Grid>
+                            </Grid>
 
                             <Grid container spacing={2}>
-                                <Grid item xs={6}>
+                                <Grid item xs={12} md={6}>
+                                    <TextField
+                                        label="Caste"
+                                        variant="outlined"
+                                        fullWidth
+                                        name="caste"
+                                        value={staff.caste}
+                                        onChange={handleChange}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <TextField
+                                        label="Category"
+                                        variant="outlined"
+                                        fullWidth
+                                        name="category"
+                                        value={staff.category}
+                                        onChange={handleChange}
+                                    />
+                                </Grid>
+                            </Grid>
+
+                            <div>
+                                <FormControlLabel
+                                    control={
+                                        <Switch
+                                            checked={staff.pwd}
+                                            onChange={(e) => setStaff(prev => ({ 
+                                                ...prev, 
+                                                pwd: e.target.checked 
+                                            }))}
+                                            name="pwd"
+                                        />
+                                    }
+                                    label="Person with Disability"
+                                />
+                            </div>
+
+                            <div>
+                                <FormControlLabel
+                                    control={
+                                        <Switch
+                                            checked={staff.is_teaching_staff}
+                                            onChange={(e) => setStaff(prev => ({ 
+                                                ...prev, 
+                                                is_teaching_staff: e.target.checked 
+                                            }))}
+                                            name="is_teaching_staff"
+                                        />
+                                    }
+                                    label="Teaching Staff"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Contact Tab */}
+                        <div className="space-y-4">
+                            <Grid container spacing={2}>
+                                <Grid item xs={12} md={6}>
                                     <TextField
                                         label="Mobile"
                                         variant="outlined"
@@ -168,9 +399,12 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({ initialData, onSave, onCance
                                         name="mobile"
                                         value={staff.mobile}
                                         onChange={handleChange}
+                                        required
+                                        error={!!validationErrors.mobile}
+                                        helperText={validationErrors.mobile}
                                     />
                                 </Grid>
-                                <Grid item xs={6}>
+                                <Grid item xs={12} md={6}>
                                     <TextField
                                         label="Email"
                                         variant="outlined"
@@ -179,101 +413,169 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({ initialData, onSave, onCance
                                         value={staff.email}
                                         onChange={handleChange}
                                         type="email"
+                                        required
+                                        error={!!validationErrors.email}
+                                        helperText={validationErrors.email}
                                     />
                                 </Grid>
                             </Grid>
 
-                            <FormControl fullWidth variant="outlined">
-                                <InputLabel>Gender</InputLabel>
-                                <Select
-                                    value={staff.gender}
-                                    onChange={(e) => setStaff(prev => ({ ...prev, gender: e.target.value as string }))}
-                                    label="Gender"
-                                >
-                                    <MenuItem value="Male">Male</MenuItem>
-                                    <MenuItem value="Female">Female</MenuItem>
-                                </Select>
-                            </FormControl>
-
                             <TextField
-                                label="Date of Birth"
+                                label="Street 1"
                                 variant="outlined"
                                 fullWidth
-                                name="dateOfBirth"
-                                value={staff.dateOfBirth}
+                                name="street1"
+                                value={staff.street1}
                                 onChange={handleChange}
-                                type="date"
-                                InputLabelProps={{ shrink: true }}
                             />
 
                             <TextField
-                                label="Address Line 1"
+                                label="Street 2"
                                 variant="outlined"
                                 fullWidth
-                                name="line1"
-                                value={staff.address.line1}
-                                onChange={handleAddressChange}
+                                name="street2"
+                                value={staff.street2}
+                                onChange={handleChange}
                             />
 
                             <Grid container spacing={2}>
-                                <Grid item xs={6}>
+                                <Grid item xs={12} md={6}>
                                     <TextField
                                         label="City"
                                         variant="outlined"
                                         fullWidth
                                         name="city"
-                                        value={staff.address.city}
-                                        onChange={handleAddressChange}
+                                        value={staff.city}
+                                        onChange={handleChange}
                                     />
                                 </Grid>
-                                <Grid item xs={6}>
+                                <Grid item xs={12} md={6}>
                                     <TextField
                                         label="State"
                                         variant="outlined"
                                         fullWidth
                                         name="state"
-                                        value={staff.address.state}
-                                        onChange={handleAddressChange}
+                                        value={staff.state}
+                                        onChange={handleChange}
                                     />
                                 </Grid>
                             </Grid>
 
                             <Grid container spacing={2}>
-                                <Grid item xs={6}>
+                                <Grid item xs={12} md={6}>
                                     <TextField
                                         label="Pin Code"
                                         variant="outlined"
                                         fullWidth
-                                        name="pinCode"
-                                        value={staff.address.pinCode}
-                                        onChange={handleAddressChange}
+                                        name="pin_code"
+                                        value={staff.pin_code}
+                                        onChange={handleChange}
+                                        error={!!validationErrors.pin_code}
+                                        helperText={validationErrors.pin_code}
                                     />
                                 </Grid>
-                                <Grid item xs={6}>
+                                <Grid item xs={12} md={6}>
                                     <TextField
                                         label="Country"
                                         variant="outlined"
                                         fullWidth
                                         name="country"
-                                        value={staff.address.country}
-                                        onChange={handleAddressChange}
+                                        value={staff.country}
+                                        onChange={handleChange}
                                     />
                                 </Grid>
                             </Grid>
+                        </div>
+
+                        {/* Additional Info Tab */}
+                        <div className="space-y-4">
+                            <TextField
+                                label="Responsibility"
+                                variant="outlined"
+                                fullWidth
+                                name="responsibility"
+                                value={staff.responsibility}
+                                onChange={handleChange}
+                            />
+
+                            <FormControl fullWidth>
+                                <InputLabel>Subjects</InputLabel>
+                                <Select
+                                    multiple
+                                    name="subjects"
+                                    value={Array.isArray(staff.subjects) ? staff.subjects : []}
+                                    onChange={handleSelectChange}
+                                    label="Subjects"
+                                >
+                                    {SUBJECTS.map(subject => (
+                                        <MenuItem key={subject} value={subject}>
+                                            {subject}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+
+                            {loadingSections ? (
+                                <div className="flex justify-center p-4">
+                                    <CircularProgress size={24} />
+                                </div>
+                            ) : (
+                                <FormControl fullWidth>
+                                    <InputLabel>Section</InputLabel>
+                                    <Select
+                                        name="section"
+                                        value={staff.section}
+                                        onChange={handleSelectChange}
+                                        label="Section"
+                                        error={!!sectionError}
+                                    >
+                                        {sections.map((section: Section) => (
+                                            <MenuItem key={section.ID} value={section.ID}>
+                                                {section.Name}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                    {sectionError && (
+                                        <span className="text-red-500 text-sm mt-1">
+                                            {sectionError}
+                                        </span>
+                                    )}
+                                </FormControl>
+                            )}
+
+                            <TextField
+                                label="Remarks"
+                                variant="outlined"
+                                fullWidth
+                                multiline
+                                rows={4}
+                                name="remarks"
+                                value={staff.remarks}
+                                onChange={handleChange}
+                            />
                         </div>
                     </CustomTabs>
                 </form>
             </div>
 
-            <div className="mt-auto">
-                <div className="flex justify-end space-x-2">
-                    <Button onClick={onCancel} variant="outlined" color="error">
-                        Cancel
-                    </Button>
-                    <Button onClick={handleSubmit} variant="contained" color="success">
-                        {initialData ? 'Save Changes' : 'Create Staff'}
-                    </Button>
-                </div>
+            <div className="mt-4 flex justify-end space-x-2 p-4 border-t">
+                <Button 
+                    onClick={onCancel} 
+                    variant="outlined" 
+                    color="error"
+                    disabled={loading}
+                >
+                    Cancel
+                </Button>
+                <Button 
+                    onClick={handleSubmit}
+                    variant="contained" 
+                    color="primary"
+                    disabled={loading}
+                    startIcon={loading && <CircularProgress size={20} color="inherit" />}
+                >
+                    {loading ? 'Saving...' : (initialData ? 'Update Staff' : 'Create Staff')}
+                </Button>
             </div>
         </div>
     );

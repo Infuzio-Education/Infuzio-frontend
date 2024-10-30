@@ -21,7 +21,7 @@ const ListSections: React.FC = () => {
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
-        severity: 'success' as 'success' | 'error',
+        severity: 'success' as 'success' | 'error' | 'info',
         position: { vertical: 'top' as const, horizontal: 'center' as const }
     });
 
@@ -33,15 +33,27 @@ const ListSections: React.FC = () => {
         try {
             setLoading(true);
             const response = await getSections();
-            if (response.status && response.resp_code === 'SUCCESS' && Array.isArray(response.data.sections)) {
-                setSections(response.data.sections);
+            console.log(response);
+
+            if (response.status && response.resp_code === 'SUCCESS') {
+                const sectionsData = Array.isArray(response.data)
+                    ? response.data
+                    : response.data?.sections || [];
+
+                setSections(sectionsData);
                 setError(null);
             } else {
-                throw new Error('Invalid response structure');
+                throw new Error(response.message || 'Failed to fetch sections');
             }
         } catch (err) {
             setError('Failed to fetch sections. Please try again later.');
             console.error('Error fetching sections:', err);
+            setSnackbar({
+                open: true,
+                message: 'Failed to fetch sections. Create a new section to get started!',
+                severity: 'error',
+                position: { vertical: 'top', horizontal: 'center' }
+            });
         } finally {
             setLoading(false);
         }
@@ -64,12 +76,20 @@ const ListSections: React.FC = () => {
     const handleSave = async (sectionData: { sectionName: string, sectionCode: string }) => {
         try {
             const response = await createSections(sectionData);
+<<<<<<< HEAD
             console.log(response);
             if (response.status && response.resp_code === 'SUCCESS') {
                 const newSection: Section = {
                     id: Date.now(),
                     name: sectionData.sectionName,
                     section_code: sectionData.sectionCode
+=======
+            if (response.status && response.resp_code === 'SUCCESS') {
+                const newSection: Section = {
+                    ID: Date.now(),
+                    Name: sectionData.sectionName,
+                    SectionCode: sectionData.sectionCode
+>>>>>>> dev
                 };
                 setSections((prevSections) => [...prevSections, newSection]);
                 setSnackbar({
@@ -78,14 +98,20 @@ const ListSections: React.FC = () => {
                     severity: 'success',
                     position: { vertical: 'top', horizontal: 'center' }
                 });
+<<<<<<< HEAD
             } else {
                 throw new Error(response.data);
+=======
+                fetchSections();
+            } else {
+                throw new Error(response.message || 'Failed to create section');
+>>>>>>> dev
             }
         } catch (error: any) {
             console.error('Error creating section:', error);
             setSnackbar({
                 open: true,
-                message: 'Failed to create section. Please try again.',
+                message: error.message || 'Failed to create section. Please try again.',
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'center' }
             });
@@ -94,14 +120,14 @@ const ListSections: React.FC = () => {
     };
 
     const handleDelete = (id: number) => {
-        setSections(sections.filter(section => section.id !== id));
+        setSections(sections.filter(section => section.ID !== id));
     };
 
     const handleSelectAll = () => {
         if (selectAll) {
             setSelectedSections([]);
         } else {
-            setSelectedSections(sections.map(section => section.id));
+            setSelectedSections(sections.map(section => section.ID));
         }
         setSelectAll(!selectAll);
     };
@@ -113,17 +139,13 @@ const ListSections: React.FC = () => {
             setSelectedSections([...selectedSections, id]);
         }
     };
-
-    if (loading) {
-        return <div className="min-h-screen bg-gray-200 p-8 flex items-center justify-center">Loading...</div>;
-    }
-
-    if (error) {
-        return <div className="min-h-screen bg-gray-200 p-8 flex items-center justify-center text-red-500">{error}</div>;
-    }
+    const filteredSections = sections.filter(section =>
+        section.Name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        section.SectionCode.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
-        <div className="min-h-screen bg-gray-200 p-8 relative">
+        <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">
             <ListControls
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
@@ -131,54 +153,75 @@ const ListSections: React.FC = () => {
                 setViewMode={setViewMode}
                 itemCount={sections.length}
             />
-            <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                <table className="w-full">
-                    <thead>
-                        <tr className="bg-gray-300">
-                            <th className="text-center w-1/12">
-                                <Checkbox
-                                    checked={selectAll}
-                                    onChange={handleSelectAll}
-                                />
-                            </th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Sl. No.</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-3/12">Section Name</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Section Code</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {sections.map((section, index) => (
-                            <tr key={section.id} className="cursor-pointer">
-                                <td className="text-center">
+
+            {loading ? (
+                <div className="rounded-lg p-8 text-center">
+                    <p className="text-xl font-semibold">Loading sections...</p>
+                </div>
+            ) : error ? (
+                <div className="rounded-lg p-8 text-center">
+                    <p className="text-xl font-semibold text-red-500">{error}</p>
+                </div>
+            ) : sections.length === 0 ? (
+                <div className="rounded-lg p-8 text-center">
+                    <p className="text-xl font-semibold mb-4">No sections found</p>
+                    <p className="text-gray-600 mb-4">Click the "+" button below to create your first section</p>
+                </div>
+            ) : filteredSections.length === 0 ? (
+                <div className="rounded-lg p-8 text-center">
+                    <p className="text-lg font-semibold">No sections match your search criteria.</p>
+                </div>
+            ) : (
+                <div className="bg-white shadow-md rounded-lg overflow-hidden">
+                    <table className="w-full">
+                        <thead>
+                            <tr className="bg-gray-300">
+                                <th className="text-center w-1/12">
                                     <Checkbox
-                                        checked={selectedSections.includes(section.id)}
-                                        onChange={() => handleSelectSection(section.id)}
-                                        onClick={(e) => e.stopPropagation()}
+                                        checked={selectAll}
+                                        onChange={handleSelectAll}
                                     />
-                                </td>
-                                <td className="text-center" onClick={() => handleOpenModal(section)}>
-                                    <div className="text-sm font-medium text-gray-900">{index + 1}</div>
-                                </td>
-                                <td className="text-center" onClick={() => handleOpenModal(section)}>
-                                    <div className="text-sm font-medium text-gray-900">{section.name}</div>
-                                </td>
-                                <td className="text-center" onClick={() => handleOpenModal(section)}>
-                                    <div className="text-sm font-medium text-gray-900">{section.section_code}</div>
-                                </td>
-                                <td className="text-center">
-                                    <IconButton
-                                        aria-label="delete"
-                                        onClick={() => handleDelete(section.id)}
-                                    >
-                                        <Trash2 size={20} className="text-red-500" />
-                                    </IconButton>
-                                </td>
+                                </th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Sl. No.</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-3/12">Section Name</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Section Code</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {sections.map((section, index) => (
+                                <tr key={section.ID} className="cursor-pointer">
+                                    <td className="text-center">
+                                        <Checkbox
+                                            checked={selectedSections.includes(section.ID)}
+                                            onChange={() => handleSelectSection(section.ID)}
+                                            onClick={(e) => e.stopPropagation()}
+                                        />
+                                    </td>
+                                    <td className="text-center" onClick={() => handleOpenModal(section)}>
+                                        <div className="text-sm font-medium text-gray-900">{index + 1}</div>
+                                    </td>
+                                    <td className="text-center" onClick={() => handleOpenModal(section)}>
+                                        <div className="text-sm font-medium text-gray-900">{section.Name}</div>
+                                    </td>
+                                    <td className="text-center" onClick={() => handleOpenModal(section)}>
+                                        <div className="text-sm font-medium text-gray-900">{section.SectionCode}</div>
+                                    </td>
+                                    <td className="text-center">
+                                        <IconButton
+                                            aria-label="delete"
+                                            onClick={() => handleDelete(section.ID)}
+                                        >
+                                            <Trash2 size={20} className="text-red-500" />
+                                        </IconButton>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
             <div className="fixed bottom-10 right-16 flex items-center space-x-2">
                 <button
                     className="bg-green-500 text-white p-2 rounded-full shadow-lg relative group hover:bg-green-600"
@@ -190,8 +233,10 @@ const ListSections: React.FC = () => {
                     </span>
                 </button>
             </div>
+
             <Modal
                 open={openModal}
+                onClose={handleCloseModal}
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
             >

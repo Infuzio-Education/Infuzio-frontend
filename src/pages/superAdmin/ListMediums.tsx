@@ -130,14 +130,27 @@ const ListMediums: React.FC = () => {
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
-                itemCount={filteredMediums.length}
+                itemCount={mediums.length}
             />
 
             {loading ? (
-                <div>Loading mediums...</div>
+                <div className="rounded-lg p-8 text-center">
+                    <p className="text-xl font-semibold">Loading mediums...</p>
+                </div>
             ) : error ? (
-                <div className="text-red-500">{error}</div>
-            ) : filteredMediums.length > 0 ? (
+                <div className=" rounded-lg p-8 text-center">
+                    <p className="text-xl font-semibold text-red-500">{error}</p>
+                </div>
+            ) : mediums.length === 0 ? (
+                <div className="rounded-lg p-8 text-center">
+                    <p className="text-xl font-semibold mb-4">No mediums found.</p>
+                    <p className="text-gray-600">Click the "+" button to create a new medium.</p>
+                </div>
+            ) : filteredMediums.length === 0 ? (
+                <div className="rounded-lg p-8 text-center">
+                    <p className="text-lg font-semibold">No mediums match your search criteria.</p>
+                </div>
+            ) : (
                 <div className="bg-white shadow-md rounded-lg overflow-hidden">
                     <table className="w-full">
                         <thead>
@@ -182,8 +195,6 @@ const ListMediums: React.FC = () => {
                         </tbody>
                     </table>
                 </div>
-            ) : (
-                <div>No mediums available</div>
             )}
 
             <div className="fixed bottom-10 right-16 flex items-center space-x-2">

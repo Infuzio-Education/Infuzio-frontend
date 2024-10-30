@@ -1,27 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Checkbox, FormControlLabel } from '@mui/material';
-import { CreateStandardProps } from '../../types/Types';
+import { TextField, Button, Checkbox, FormControlLabel, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
+import { CreateStandardProps, Section } from '../../types/Types';
 
-const CreateStandard: React.FC<CreateStandardProps> = ({ initialData, onSave, onCancel }) => {
+const CreateStandard: React.FC<CreateStandardProps> = ({ 
+  initialData, 
+  onSave, 
+  onCancel,
+  sections 
+}) => {
     const [name, setName] = useState('');
     const [hasGroup, setHasGroup] = useState(false);
-    const [sequence, setSequence] = useState(0);
+    const [sectionId, setSectionId] = useState<number>(0);
+    const [sequenceNumber, setSequenceNumber] = useState<number|undefined>();
 
     useEffect(() => {
         if (initialData) {
             setName(initialData.Name);
             setHasGroup(initialData.HasGroup);
-            setSequence(initialData.sequence);
+            setSectionId(initialData.SectionId || 0);
+            setSequenceNumber(initialData.SequenceNumber || 0);
         } else {
             setName('');
             setHasGroup(false);
-            setSequence(0);
+            setSectionId(0);
+            setSequenceNumber(0);
         }
     }, [initialData]);
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        onSave(name, hasGroup, sequence);
+        onSave(name, hasGroup, sectionId, sequenceNumber||0);
     };
 
     return (
@@ -36,13 +44,28 @@ const CreateStandard: React.FC<CreateStandardProps> = ({ initialData, onSave, on
                     onChange={(e) => setName(e.target.value)}
                     required
                 />
+                <FormControl fullWidth>
+                    <InputLabel>Section</InputLabel>
+                    <Select
+                        value={sectionId}
+                        label="Section"
+                        onChange={(e) => setSectionId(Number(e.target.value))}
+                        required
+                    >
+                        {sections?.map((section: Section) => (
+                            <MenuItem key={section.ID} value={section.ID}>
+                                {section.Name}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
                 <TextField
-                    label="Sequence"
+                    label="Sequence Number"
                     variant="outlined"
                     fullWidth
                     type="number"
-                    value={sequence}
-                    onChange={(e) => setSequence(Number(e.target.value))}
+                    value={sequenceNumber}
+                    onChange={(e) => setSequenceNumber(Number(e.target.value))}
                     required
                 />
                 <FormControlLabel

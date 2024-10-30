@@ -21,9 +21,10 @@ const ListSchools: React.FC = () => {
             try {
                 setIsLoading(true);
                 const response = await getSchools();
-                setSchools(response.data);
+                setSchools(response.data || []); // Ensure schools is always an array
             } catch (error) {
                 console.error('Failed to fetch schools:', error);
+                setSchools([]); // Set schools to an empty array if there's an error
             } finally {
                 setIsLoading(false);
             }
@@ -31,10 +32,10 @@ const ListSchools: React.FC = () => {
         fetchSchools();
     }, []);
 
-    const filteredSchools = schools.filter(school =>
+    const filteredSchools = schools ? schools.filter(school =>
         school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         school.school_code.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    ) : [];
 
     const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
@@ -57,6 +58,12 @@ const ListSchools: React.FC = () => {
         navigate(`/superAdmin/schools/${school.id}`, { state: { school } });
     };
 
+    if (isLoading) {
+        return <div className="min-h-screen bg-gray-200 p-8 flex items-center justify-center">
+            <p className="text-xl font-semibold">Loading schools...</p>
+        </div>;
+    }
+
     return (
         <div className="min-h-screen bg-gray-200 p-8 relative">
             <ListControls
@@ -67,7 +74,16 @@ const ListSchools: React.FC = () => {
                 itemCount={schools.length}
             />
 
-            {viewMode === 'grid' ? (
+            {schools.length === 0 ? (
+                <div className=" rounded-lg p-8 text-center">
+                    <p className="text-xl font-semibold mb-4">No schools found.</p>
+                    <p className="text-gray-600">Click the "+" button to create a new school.</p>
+                </div>
+            ) : filteredSchools.length === 0 ? (
+                <div className="bg-white rounded-lg shadow-md p-4 text-center">
+                    <p className="text-lg font-semibold">No schools match your search criteria.</p>
+                </div>
+            ) : viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
                     {filteredSchools.map((school) => (
                         <div
