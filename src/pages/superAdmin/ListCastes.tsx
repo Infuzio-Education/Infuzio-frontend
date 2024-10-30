@@ -4,7 +4,7 @@ import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { Caste } from '../../types/Types';
-import { createCaste, getCastes } from '../../api/superAdmin';
+import { createCaste, getCastes, updateCaste } from '../../api/superAdmin';
 import CreateCaste from './CreateCaste';
 
 const ListCastes: React.FC = () => {
@@ -70,24 +70,29 @@ const ListCastes: React.FC = () => {
     const handleSave = async (name: string, religion_id: number) => {
         try {
             if (editingCaste) {
-                setCastes(prevCastes => prevCastes.map(caste =>
-                    caste.ID === editingCaste.ID ? { ...caste, Name: name, ReligionID: religion_id } : caste
-                ));
-                setSnackbar({
-                    open: true,
-                    message: 'Caste updated successfully!',
-                    severity: 'success',
-                    position: { vertical: 'top', horizontal: 'center' }
-                });
+                const response = await updateCaste(editingCaste.ID, name, religion_id);
+                if (response.status === true) {
+                    setCastes(prevCastes => prevCastes.map(caste =>
+                        caste.ID === editingCaste.ID
+                            ? { ...caste, Name: name, ReligionID: religion_id }
+                            : caste
+                    ));
+                    setSnackbar({
+                        open: true,
+                        message: 'Caste updated successfully!',
+                        severity: 'success',
+                        position: { vertical: 'top', horizontal: 'center' }
+                    });
+                } else {
+                    throw new Error(response.data);
+                }
             } else {
                 const response = await createCaste({ Name: name, ReligionID: religion_id });
+                console.log('Create caste response:', response);
+
                 if (response.status === true) {
-                    const newCaste: Caste = {
-                        ID: Date.now(),
-                        Name: name,
-                        ReligionID: religion_id
-                    };
-                    setCastes((prevCastes) => [...prevCastes, newCaste]);
+                    await fetchCastes();
+
                     setSnackbar({
                         open: true,
                         message: 'Caste created successfully!',
@@ -102,7 +107,7 @@ const ListCastes: React.FC = () => {
             console.error('Error creating/updating caste:', error);
             setSnackbar({
                 open: true,
-                message: 'Failed to create/update caste',
+                message: error.message || 'Failed to create/update caste',
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'center' }
             });

@@ -33,18 +33,10 @@ const ListSyllabus: React.FC = () => {
         setError(null);
         try {
             const response = await getSyllabus();
-            if (response.status === true) {
-                // Handle successful response with null data
-                if (response.data === null) {
-                    setSyllabuses([]);
-                } else {
-                    setSyllabuses(response.data);
-                }
-            } else {
-                setError('Failed to fetch syllabuses');
-            }
+            setSyllabuses(response);
         } catch (err) {
             setError('Failed to load syllabuses. Please try again.');
+            setSyllabuses([]);
         } finally {
             setLoading(false);
         }
@@ -101,9 +93,11 @@ const ListSyllabus: React.FC = () => {
         );
     };
 
-    const filteredSyllabuses = syllabuses.filter(syllabus =>
-        syllabus.Name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredSyllabuses = Array.isArray(syllabuses)
+        ? syllabuses.filter(syllabus =>
+            syllabus?.Name?.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        : [];
 
     return (
         <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">
