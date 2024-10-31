@@ -8,6 +8,8 @@ import { CreateStaffProps, Section, CreateStaffPayload, Staff } from '../../type
 import CustomTabs from '../../components/CustomTabs';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { createStaff, getSections, updateStaff } from '../../api/superAdmin';
+import SnackbarComponent from '../../components/SnackbarComponent';
+
 
 
 const INITIAL_STAFF_STATE: CreateStaffPayload = {
@@ -153,6 +155,10 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
         setSnackbar(prev => ({ ...prev, open: false }));
     };
 
+    const handleCloseSnackbar = () => {
+        setSnackbar(prev => ({ ...prev, open: false }));
+    };
+
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
         
@@ -193,6 +199,8 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                     position: { vertical: 'top', horizontal: 'center' },
                 });
             } else {
+                console.log("staffData",staffData,schoolPrefix);
+                
                 await createStaff(staffData, schoolPrefix);
                 setSnackbar({
                     open: true,
