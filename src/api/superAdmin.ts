@@ -157,6 +157,21 @@ export const getMediums = async () => {
     }
 }
 
+export const updateMediums = async (id:number,name: string) => {
+    try {
+        const response = await Api.put(superAdminEndpoints.mediums, {ID:id ,Name: name });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching syllabus:', error.response);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+}
+
 export const createReligion = async (name: string) => {
     try {
         const response = await Api.post(superAdminEndpoints.religion, { name: name });
@@ -435,6 +450,41 @@ export const deleteStaff = async (staffId: number, schoolPrefix: string) => {
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error('Error deleting staff:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+export const updateGroup = async (id: number, name: string) => {
+    try {
+        console.log(id,name);
+        
+        const response = await Api.put(superAdminEndpoints.groups, { 
+            id: id,
+            name: name 
+        });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating group:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+export const deleteGroup = async (id: number) => {
+    try {
+        const response = await Api.delete(superAdminEndpoints.groups, {
+            data: { id }
+        });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error deleting group:', error.response);
             throw error;
         }
         console.error('Unexpected error:', error);

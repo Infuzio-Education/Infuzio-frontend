@@ -54,7 +54,7 @@ const ListSchools: React.FC = () => {
     };
 
     const handleSchoolClick = (school: School) => {
-        setSchoolInfo({ id: school.id, name: school.name });
+        setSchoolInfo({ id: school.id, name: school.name, schoolPrefix: school.school_code });
         navigate(`/superAdmin/schools/${school.id}`, { state: { school } });
     };
 

@@ -116,6 +116,7 @@ export interface Group {
 }
 
 export interface CreateGroupProps {
+    initialData:Group | null
     onSave: (name: string) => void;
     onCancel: () => void;
 }
@@ -269,7 +270,7 @@ export interface CreateStaffPayload {
     street2?: string;
     city: string;
     state: string;
-    pin_code: string;
+    pincode: string;
     country: string;
     profile_pic?: File;
     responsibility?: string;
