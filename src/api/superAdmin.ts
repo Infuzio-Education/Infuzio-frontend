@@ -459,7 +459,7 @@ export const deleteStaff = async (staffId: number, schoolPrefix: string) => {
 
 export const updateGroup = async (id: number, name: string) => {
     try {
-        console.log(id,name);
+        // console.log(id,name);
         
         const response = await Api.put(superAdminEndpoints.groups, { 
             id: id,

@@ -62,7 +62,7 @@ const ListGroups: React.FC = () => {
     const handleSave = async (name: string) => {
         try {
             if (editingGroup) {
-              console.log("editingGroup:",editingGroup);
+              // console.log("editingGroup:",editingGroup);
               
                 const response = await updateGroup(editingGroup.ID, name);
                 if (response.status && response.resp_code === "SUCCESS") {
