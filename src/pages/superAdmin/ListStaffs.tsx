@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Checkbox, Modal, Box, IconButton, Avatar } from "@mui/material";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { Checkbox, Modal, Box, IconButton } from "@mui/material";
+import { PlusCircle, Trash2, Mail, Phone, UserCircle2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
 import CreateStaffs from './CreateStaffs';
 import { Staff } from '../../types/Types';
@@ -137,6 +137,70 @@ const ListStaffs: React.FC = () => {
                 <div className="rounded-lg p-8 text-center">
                     <p className="text-lg font-semibold">No staffs match your search criteria.</p>
                 </div>
+            ) : viewMode === 'grid' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {filteredStaffs.map((staff) => (
+                        <div
+                            key={staff.ID}
+                            className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform transition duration-300 hover:scale-105 hover:shadow-xl"
+                            onClick={() => handleOpenModal(staff)}
+                        >
+                            <div className="p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="bg-[#308369] rounded-full p-2">
+                                            <UserCircle2 size={24} className="text-white" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-semibold text-gray-900">{staff.name}</h3>
+                                            <span className="text-sm text-gray-500">
+                                                {staff.id_card_number}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <Checkbox
+                                        checked={selectedStaffs.includes(staff.ID)}
+                                        onChange={() => handleSelectStaff(staff.ID)}
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <div className="flex items-center text-gray-600">
+                                        <Mail size={16} className="mr-2" />
+                                        <span className="text-sm truncate">{staff.email}</span>
+                                    </div>
+                                    <div className="flex items-center text-gray-600">
+                                        <Phone size={16} className="mr-2" />
+                                        <span className="text-sm">{staff.mobile}</span>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 pt-4 border-t border-gray-200">
+                                    <div className="flex items-center justify-between">
+                                        <span className={`px-3 py-1 rounded-full text-xs ${
+                                            staff.is_teaching_staff 
+                                                ? 'bg-green-100 text-green-800' 
+                                                : 'bg-blue-100 text-blue-800'
+                                        }`}>
+                                            {staff.is_teaching_staff ? 'Teaching Staff' : 'Non-Teaching Staff'}
+                                        </span>
+                                        <IconButton
+                                            aria-label="delete"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDelete(staff.ID);
+                                            }}
+                                            size="small"
+                                        >
+                                            <Trash2 size={16} className="text-red-500" />
+                                        </IconButton>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
             ) : (
                 <div className="bg-white shadow-md rounded-lg overflow-hidden">
                     <table className="w-full">
@@ -149,13 +213,10 @@ const ListStaffs: React.FC = () => {
                                     />
                                 </th>
                                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Sl.No</th>
-                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Image</th>
                                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Name</th>
                                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Role</th>
-                                {/* <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Subjects</th> */}
                                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Email</th>
-                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Mobile</th>
-                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Actions</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -172,29 +233,13 @@ const ListStaffs: React.FC = () => {
                                         <div className="text-sm font-medium text-gray-900">{index + 1}</div>
                                     </td>
                                     <td className="text-center" onClick={() => handleOpenModal(staff)}>
-                                        <Avatar
-                                            src={staff.profile_pic_link}
-                                            sx={{ width: 40, height: 40, margin: 'auto' }}
-                                        />
-                                    </td>
-                                    <td className="text-center" onClick={() => handleOpenModal(staff)}>
                                         <div className="text-sm font-medium text-gray-900">{staff.name}</div>
                                     </td>
                                     <td className="text-center" onClick={() => handleOpenModal(staff)}>
-                                        <div className="text-sm font-medium text-gray-900">
-                                            {staff.is_teaching_staff ? 'Teaching Staff' : 'Non-Teaching Staff'}
-                                        </div>
+                                        <div className="text-sm font-medium text-gray-900">{staff.is_teaching_staff ? "Teaching" : "Non-Teaching"}</div>
                                     </td>
-                                    {/* <td className="text-center" onClick={() => handleOpenModal(staff)}>
-                                        <div className="text-sm font-medium text-gray-900">
-                                            {Array.isArray(staff.subjects) ? staff.subjects.join(', ') : ''}
-                                        </div>
-                                    </td> */}
                                     <td className="text-center" onClick={() => handleOpenModal(staff)}>
                                         <div className="text-sm font-medium text-gray-900">{staff.email}</div>
-                                    </td>
-                                    <td className="text-center" onClick={() => handleOpenModal(staff)}>
-                                        <div className="text-sm font-medium text-gray-900">{staff.mobile}</div>
                                     </td>
                                     <td className="text-center">
                                         <IconButton

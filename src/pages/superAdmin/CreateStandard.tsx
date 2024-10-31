@@ -63,11 +63,13 @@ const CreateStandard: React.FC<CreateStandardProps> = ({
             onChange={(e) => setSectionId(Number(e.target.value))}
             required
           >
-            {sections?.map((section: Section) => (
+            {(sections.length > 0) ? (sections?.map((section: Section) => (
               <MenuItem key={section.ID} value={section.ID}>
                 {section.Name}
               </MenuItem>
-            ))}
+            )) ):(
+              <MenuItem>No sections found</MenuItem>
+            )}
           </Select>
         </FormControl>
         <TextField

@@ -16,6 +16,7 @@ const superAdminEndpoints = {
     listStaff: 'staff/list',
     updateStaff: 'staff/update',
     deleteStaff: 'staff/delete',
+    classes: '/school/class'
 
 }
 

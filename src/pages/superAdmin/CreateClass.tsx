@@ -1,163 +1,292 @@
-import React from 'react';
-import { TextField, Button, FormControl, InputLabel, Select, MenuItem, Grid } from '@mui/material';
-import { CreateClassProps, Class, Medium, Standard, Group, Syllabus, Staff } from '../../types/Types';
-import { Formik, Form, Field } from 'formik';
+import React, { useState, useEffect, useRef } from 'react';
+import { TextField, Button, FormControl, InputLabel, Select, MenuItem, Grid, FormHelperText } from '@mui/material';
+import { CreateClassProps, Group, Standard } from '../../types/Types';
+import { Formik, Form, FormikProps } from 'formik';
 import CustomTabs from '../../components/CustomTabs';
+import { PlusCircle } from 'lucide-react';
+import { 
+    getMediums, 
+    getStandards, 
+    getSyllabus, 
+    getGroups, 
+    listStaff 
+} from '../../api/superAdmin';
+import { useSchoolContext } from '../../contexts/SchoolContext';
+import * as Yup from 'yup';
 
 const CreateClass: React.FC<CreateClassProps> = ({ initialData, onSave, onCancel }) => {
-    // Mock data for dropdowns
-    const mediums: Medium[] = [
-        { ID: 1, Name: 'English' },
-        { ID: 2, Name: 'Hindi' },
-        { ID: 3, Name: 'Tamil' },
-    ];
+    const { schoolInfo } = useSchoolContext();
+    const [mediums, setMediums] = useState([]);
+    const [standards, setStandards] = useState([]);
+    const [syllabuses, setSyllabuses] = useState([]);
+    const [groups, setGroups] = useState([]);
+    const [staffs, setStaffs] = useState([]);
+    const [_loading, setLoading] = useState(true);
+    const [selectedStandard, setSelectedStandard] = useState<string | null>(null);
 
-    const standards: Standard[] = [
-        { ID: 1, Name: 'Standard 1', HasGroup: false, sequence: 1 },
-        { ID: 2, Name: 'Standard 2', HasGroup: false, sequence: 2 },
-        { ID: 3, Name: 'Standard 3', HasGroup: false, sequence: 3 },
-    ];
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [
+                    mediumsRes,
+                    standardsRes,
+                    syllabusRes,
+                    groupsRes,
+                    staffsRes
+                ] = await Promise.all([
+                    getMediums(),
+                    getStandards(),
+                    getSyllabus(),
+                    getGroups(),
+                    listStaff(schoolInfo.schoolPrefix || '')
+                ]);
 
-    const groups: Group[] = [
-        { ID: 1, Name: 'Group A' },
-        { ID: 2, Name: 'Group B' },
-        { ID: 3, Name: 'Group C' },
-    ];
+                setMediums(mediumsRes.data || []);
+                setStandards(standardsRes.data || []);
+                setSyllabuses(syllabusRes.data || []);
+                setGroups(groupsRes.data || []);
+                setStaffs(staffsRes.data || []);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const syllabuses: Syllabus[] = [
-        { ID: 1, Name: 'CBSE' },
-        { ID: 2, Name: 'ICSE' },
-        { ID: 3, Name: 'State Board' },
-    ];
+        fetchData();
+    }, [schoolInfo.schoolPrefix]);
 
-    const staffs: Staff[] = [
-        { id: 1, name: 'John Doe', email: 'john@example.com', isTeachingStaff: true, responsibility: '', subjects: [], mobile: '', gender: '', dateOfBirth: '', address: { line1: '', city: '', state: '', pinCode: '', country: '' }, section: '', imageUrl: '' },
-        { id: 2, name: 'Jane Smith', email: 'jane@example.com', isTeachingStaff: true, responsibility: '', subjects: [], mobile: '', gender: '', dateOfBirth: '', address: { line1: '', city: '', state: '', pinCode: '', country: '' }, section: '', imageUrl: '' },
-    ];
+    useEffect(() => {
+        if (initialData) {
+            // Check if the standard has groups
+            const selectedStd = standards.find((std: Standard) => 
+                std.ID === initialData.StandardId
+            ) as Standard | undefined;
+            
+            setSelectedStandard(selectedStd?.HasGroup ? String(initialData.StandardId) : null);
+            
+            // Set initial form values
+            const initialValues = {
+                name: initialData.Name || '',
+                mediumId: initialData.MediumId || '',
+                standardId: initialData.StandardId || '',
+                classStaffId: initialData.ClassStaffId || '',
+                group_id: initialData.GroupID || '',
+                syllabusId: initialData.SyllabusId || '',
+            };
+            
+            // Update Formik form with initial values
+            if (formikRef.current) {
+                formikRef.current.setValues(initialValues);
+            }
+        }
+    }, [initialData, standards]);
 
-    const sections = ['A', 'B', 'C', 'D'];
+    const formikRef = useRef<FormikProps<any>>(null);
+
+    const validationSchema = Yup.object().shape({
+        name: Yup.string().required('Class Name is required'),
+        mediumId: Yup.string().required('Medium is required'),
+        standardId: Yup.string().required('Standard is required'),
+        syllabusId: Yup.string().required('Syllabus is required'),
+        classStaffId: Yup.string(),
+        group_id: Yup.string(),
+    });
 
     return (
         <div className="flex flex-col h-full">
             <div className="flex-grow overflow-auto p-4">
                 <h2 className="text-xl font-bold mb-4">{initialData ? 'Edit Class' : 'Create Class'}</h2>
                 <Formik
-                    initialValues={initialData || {
-                        id: 0,
+                    innerRef={formikRef}
+                    initialValues={initialData ? {
+                        name: initialData.Name || '',
+                        mediumId: initialData.MediumId || '',
+                        standardId: initialData.StandardId || '',
+                        classStaffId: initialData.ClassStaffId || '',
+                        group_id: initialData.GroupID || '',
+                        syllabusId: initialData.SyllabusId || '',
+                    } : {
                         name: '',
-                        section: '',
-                        mediumId: 0,
-                        standardId: 0,
-                        classStaffId: 0,
-                        group_id: 0,
-                        syllabusId: 0,
+                        mediumId: '',
+                        standardId: '',
+                        classStaffId: '',
+                        group_id: '',
+                        syllabusId: '',
                     }}
-                    onSubmit={(values) => {
-                        onSave(values as Class);
+                    validationSchema={validationSchema}
+                    onSubmit={(values: any) => {
+                        const submitData = initialData ? {
+                            id: initialData.ID,
+                            ...values
+                        } : values;
+                        onSave(submitData);
                     }}
                 >
-                    {({ }) => (
+                    {({ values, handleChange, errors, touched }) => (
                         <Form className="space-y-4">
                             <Grid container spacing={2}>
                                 <Grid item xs={12} md={6}>
-                                    <Field
-                                        as={TextField}
+                                    <TextField
                                         name="name"
                                         label="Class Name"
                                         variant="outlined"
                                         fullWidth
-                                        required
+                                        value={values.name}
+                                        onChange={handleChange}
+                                        error={touched.name && Boolean(errors.name)}
+                                        helperText={touched.name && typeof errors.name === 'string' ? errors.name : ''}
                                     />
                                 </Grid>
                                 <Grid item xs={12} md={6}>
-                                    <FormControl fullWidth variant="outlined">
-                                        <InputLabel>Section</InputLabel>
-                                        <Field
-                                            as={Select}
-                                            name="section"
-                                            label="Section"
+                                    <FormControl fullWidth error={touched.mediumId && Boolean(errors.mediumId)}>
+                                        <InputLabel>Medium</InputLabel>
+                                        <Select
+                                            name="mediumId"
+                                            value={values.mediumId}
+                                            onChange={handleChange}
+                                            label="Medium"
                                         >
-                                            {sections.map((section) => (
-                                                <MenuItem key={section} value={section}>{section}</MenuItem>
-                                            ))}
-                                        </Field>
+                                            {mediums.length > 0 ? (
+                                                mediums.map((medium: any) => (
+                                                    <MenuItem key={medium.ID} value={medium.ID}>
+                                                        {medium.Name}
+                                                    </MenuItem>
+                                                ))
+                                            ) : (
+                                                <MenuItem disabled>No data found</MenuItem>
+                                            )}
+                                        </Select>
+                                        <FormHelperText>{touched.mediumId && typeof errors.mediumId === 'string' ? errors.mediumId : ''}</FormHelperText>
                                     </FormControl>
                                 </Grid>
                             </Grid>
 
-                            <CustomTabs labels={['More Information']}>
-                                <Grid container spacing={2}>
+                            <Grid container spacing={2}>
+                                
+                                <Grid item xs={12} md={6}>
+                                    <FormControl fullWidth error={touched.standardId && Boolean(errors.standardId)}>
+                                        <InputLabel>Standard</InputLabel>
+                                        <Select
+                                            name="standardId"
+                                            value={values.standardId}
+                                            onChange={(e) => {
+                                                handleChange(e);
+                                                const selected = standards.find((std: Standard) => std.ID === Number(e.target.value)) as Standard | undefined;
+                                                setSelectedStandard(selected?.HasGroup ? String(e.target.value) : null);
+                                            }}
+                                            label="Standard"
+                                        >
+                                            {standards.length > 0 ? (
+                                                standards.map((standard: any) => (
+                                                    <MenuItem key={standard.ID} value={standard.ID}>
+                                                        {standard.Name}
+                                                    </MenuItem>
+                                                ))
+                                            ) : (
+                                                <MenuItem disabled>No data found</MenuItem>
+                                            )}
+                                        </Select>
+                                        <FormHelperText>{touched.standardId && typeof errors.standardId === 'string' ? errors.standardId : ''}</FormHelperText>
+                                    </FormControl>
+                                </Grid>
+                                
+                                <Grid item xs={12} md={6}>
+                                    <FormControl fullWidth error={touched.syllabusId && Boolean(errors.syllabusId)}>
+                                        <InputLabel>Syllabus</InputLabel>
+                                        <Select
+                                            name="syllabusId"
+                                            value={values.syllabusId}
+                                            onChange={handleChange}
+                                            label="Syllabus"
+                                        >
+                                            {syllabuses.length > 0 ? (
+                                                syllabuses.map((syllabus: any) => (
+                                                    <MenuItem key={syllabus.ID} value={syllabus.ID}>
+                                                        {syllabus.Name}
+                                                    </MenuItem>
+                                                ))
+                                            ) : (
+                                                <MenuItem disabled>No data found</MenuItem>
+                                            )}
+                                        </Select>
+                                        <FormHelperText>{touched.syllabusId && typeof errors.syllabusId === 'string' ? errors.syllabusId : ''}</FormHelperText>
+                                    </FormControl>
+                                </Grid>
+
+                                {selectedStandard && (
                                     <Grid item xs={12} md={6}>
-                                        <FormControl fullWidth variant="outlined">
-                                            <InputLabel>Medium</InputLabel>
-                                            <Field
-                                                as={Select}
-                                                name="mediumId"
-                                                label="Medium"
-                                            >
-                                                {mediums.map((medium) => (
-                                                    <MenuItem key={medium.ID} value={medium.ID}>{medium.Name}</MenuItem>
-                                                ))}
-                                            </Field>
-                                        </FormControl>
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <FormControl fullWidth variant="outlined">
-                                            <InputLabel>Standard</InputLabel>
-                                            <Field
-                                                as={Select}
-                                                name="standardId"
-                                                label="Standard"
-                                            >
-                                                {standards.map((standard) => (
-                                                    <MenuItem key={standard.ID} value={standard.ID}>{standard.Name}</MenuItem>
-                                                ))}
-                                            </Field>
-                                        </FormControl>
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <FormControl fullWidth variant="outlined">
+                                        <FormControl fullWidth>
                                             <InputLabel>Group</InputLabel>
-                                            <Field
-                                                as={Select}
+                                            <Select
                                                 name="group_id"
+                                                value={values.group_id}
+                                                onChange={handleChange}
                                                 label="Group"
                                             >
-                                                {groups.map((group) => (
-                                                    <MenuItem key={group.ID} value={group.ID}>{group.Name}</MenuItem>
-                                                ))}
-                                            </Field>
+                                                {groups.length > 0 ? (
+                                                    groups.map((group: Group) => (
+                                                        <MenuItem key={group.ID} value={group.ID}>
+                                                            {group.Name}
+                                                        </MenuItem>
+                                                    ))
+                                                ) : (
+                                                    <MenuItem disabled>No data found</MenuItem>
+                                                )}
+                                            </Select>
                                         </FormControl>
                                     </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <FormControl fullWidth variant="outlined">
-                                            <InputLabel>Syllabus</InputLabel>
-                                            <Field
-                                                as={Select}
-                                                name="syllabusId"
-                                                label="Syllabus"
-                                            >
-                                                {syllabuses.map((syllabus) => (
-                                                    <MenuItem key={syllabus.ID} value={syllabus.ID}>{syllabus.Name}</MenuItem>
-                                                ))}
-                                            </Field>
-                                        </FormControl>
-                                    </Grid>
-                                    <Grid item xs={12}>
-                                        <FormControl fullWidth variant="outlined">
-                                            <InputLabel>Class Staff</InputLabel>
-                                            <Field
-                                                as={Select}
-                                                name="classStaffId"
-                                                label="Class Staff"
-                                            >
-                                                {staffs.map((staff) => (
-                                                    <MenuItem key={staff.id} value={staff.id}>{staff.name}</MenuItem>
-                                                ))}
-                                            </Field>
-                                        </FormControl>
-                                    </Grid>
+                                )}
+
+                                <Grid item xs={12}>
+                                    <FormControl fullWidth>
+                                        <InputLabel>Class Staff</InputLabel>
+                                        <Select
+                                            name="classStaffId"
+                                            value={values.classStaffId}
+                                            onChange={handleChange}
+                                            label="Class Staff"
+                                        >
+                                            {staffs.filter((staff: any) => staff.is_teaching_staff).length > 0 ? (
+                                                staffs.filter((staff: any) => staff.is_teaching_staff).map((staff: any) => (
+                                                    <MenuItem key={staff.ID} value={staff.ID}>
+                                                        {staff.name}
+                                                    </MenuItem>
+                                                ))
+                                            ) : (
+                                                <MenuItem disabled>No data found</MenuItem>
+                                            )}
+                                        </Select>
+                                    </FormControl>
                                 </Grid>
+                            </Grid>
+
+                            
+                            <CustomTabs labels={['Students', 'Subjects']}>
+                                <>
+                                    <div className="flex justify-end mb-4">
+                                        <Button
+                                            startIcon={<PlusCircle size={20} />}
+                                            variant="contained"
+                                            color="primary"
+                                        >
+                                            Add Student
+                                        </Button>
+                                    </div>
+                                    {/* Student list will go here */}
+                                </>
+                                <>
+                                    <div className="flex justify-end mb-4">
+                                        <Button
+                                            startIcon={<PlusCircle size={20} />}
+                                            variant="contained"
+                                            color="primary"
+                                        >
+                                            Add Subject
+                                        </Button>
+                                    </div>
+                                    {/* Subject list will go here */}
+                                </>
                             </CustomTabs>
 
                             <div className="flex justify-end space-x-2 mt-4">
