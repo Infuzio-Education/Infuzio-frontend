@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     TextField, Button, Switch, FormControlLabel, Select, MenuItem,
-    InputLabel, FormControl, Grid, Avatar, Alert, CircularProgress
+    InputLabel, FormControl, Grid, CircularProgress,
+    Alert
 } from '@mui/material';
-import { CreateStaffProps, Section, CreateStaffPayload } from '../../types/Types';
+import { CreateStaffProps, Section, CreateStaffPayload, Staff } from '../../types/Types';
 import CustomTabs from '../../components/CustomTabs';
-import { Upload } from 'lucide-react';
-import { createStaff, getSections, updateStaff } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
+import { createStaff, getSections, updateStaff } from '../../api/superAdmin';
 
 
 const INITIAL_STAFF_STATE: CreateStaffPayload = {
@@ -34,7 +34,6 @@ const INITIAL_STAFF_STATE: CreateStaffPayload = {
     subjects: [],
     section: '',
     ID:0,
-    profile_pic_link:""
 };
 
 
@@ -54,8 +53,6 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
     const [sectionError, setSectionError] = useState<string | null>(null);
     const [loadingSections, setLoadingSections] = useState(false);
     const [staff, setStaff] = useState<CreateStaffPayload>(INITIAL_STAFF_STATE);
-    const [profilePic, setProfilePic] = useState<File | null>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
     const [snackbar, setSnackbar] = useState({
         open: false,
@@ -72,9 +69,6 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                     dob: initialData.dob ? new Date(initialData.dob).toISOString().split('T')[0] : '',
                     subjects: Array.isArray(initialData.subjects) ? initialData.subjects : [],
                 });
-                if (initialData.profile_pic_link) {
-                    setImagePreview(initialData.profile_pic_link);
-                }
             } catch (err) {
                 console.error('Error setting initial data:', err);
                 setError('Error loading initial staff data');
@@ -155,28 +149,6 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
         }));
     };
 
-    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files && event.target.files[0]) {
-            const file = event.target.files[0];
-            // Validate file size (e.g., max 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                setError('Image size should not exceed 5MB');
-                return;
-            }
-            // Validate file type
-            if (!file.type.startsWith('image/')) {
-                setError('Please upload an image file');
-                return;
-            }
-            setProfilePic(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
     const handleCloseSnackbar = () => {
         setSnackbar(prev => ({ ...prev, open: false }));
     };
@@ -210,7 +182,6 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
         try {
             const staffData: CreateStaffPayload = {
                 ...staff,
-                profile_pic: profilePic || undefined
             };
 
             if (initialData?.ID) {
@@ -222,8 +193,6 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                     position: { vertical: 'top', horizontal: 'center' },
                 });
             } else {
-                console.log("staffData",staffData,schoolPrefix);
-                
                 await createStaff(staffData, schoolPrefix);
                 setSnackbar({
                     open: true,
@@ -233,7 +202,7 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                 });
             }
             
-            onSave(staffData);
+            onSave(staffData as Staff);
         } catch (err: any) {
             console.error('Error saving staff:', err);
             setSnackbar({
@@ -261,29 +230,6 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="mb-4 flex flex-col items-center">
-                        <Avatar
-                            src={imagePreview || undefined}
-                            sx={{ width: 100, height: 100, mb: 2 }}
-                        />
-                        <input
-                            accept="image/*"
-                            style={{ display: 'none' }}
-                            id="raised-button-file"
-                            type="file"
-                            onChange={handleImageUpload}
-                        />
-                        <label htmlFor="raised-button-file">
-                            <Button 
-                                variant="outlined" 
-                                component="span" 
-                                startIcon={<Upload />}
-                            >
-                                {imagePreview ? 'Change Image' : 'Upload Staff Image'}
-                            </Button>
-                        </label>
-                    </div>
-
                     <Grid container spacing={2}>
                         <Grid item xs={12} md={6}>
                             <TextField
@@ -577,11 +523,11 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                                         label="Section"
                                         error={!!sectionError}
                                     >
-                                        {sections.map((section: Section) => (
+                                        {sections.length>0 ? (sections.map((section: Section) => (
                                             <MenuItem key={section.ID} value={section.ID}>
                                                 {section.Name}
                                             </MenuItem>
-                                        ))}
+                                        ))):(<MenuItem>No sections found</MenuItem>)}
                                     </Select>
                                     {sectionError && (
                                         <span className="text-red-500 text-sm mt-1">

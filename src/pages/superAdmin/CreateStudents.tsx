@@ -10,8 +10,8 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
 
     // Mock data for classes
     const classes: Class[] = [
-        { id: 1, name: "Class 1A", section: "A", mediumId: 1, standardId: 1, classStaffId: 1, group_id: 1, syllabusId: 1 },
-        { id: 2, name: "Class 2B", section: "B", mediumId: 2, standardId: 2, classStaffId: 2, group_id: 2, syllabusId: 2 },
+        { ID: 1, Name: "Class 1A", MediumId: 1, StandardId: 1, ClassStaffId: 1, GroupID: 1, SyllabusId: 1 },
+        { ID: 2, Name: "Class 2B", MediumId: 2, StandardId: 2, ClassStaffId: 2, GroupID: 2, SyllabusId: 2 },
     ];
 
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, setFieldValue: (field: string, value: any) => void) => {
@@ -108,7 +108,7 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
                                             label="Class"
                                         >
                                             {classes.map((cls) => (
-                                                <MenuItem key={cls.id} value={cls.id}>{cls.name}</MenuItem>
+                                                <MenuItem key={cls.ID} value={cls.ID}>{cls.Name}</MenuItem>
                                             ))}
                                         </Field>
                                     </FormControl>

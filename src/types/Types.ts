@@ -176,8 +176,8 @@ export interface CreateStaffProps {
     schoolPrefix : string
 }
 
-export interface Class {
-    id: number;
+export interface ClassSubmitData {
+    id?: number;
     name: string;
     section: string;
     mediumId: number;
@@ -185,12 +185,22 @@ export interface Class {
     classStaffId: number;
     group_id: number;
     syllabusId: number;
-    imageUrl?: string | null;
+}
+
+export interface Class {
+    ID: number;
+    Name: string;
+    ClassStaffId: number;
+    MediumId: number;
+    SyllabusId: number;
+    StandardId: number;
+    GroupID: number;
+    deleted_at?: string;
 }
 
 export interface CreateClassProps {
     initialData: Class | null;
-    onSave: (classData: Class) => void;
+    onSave: (classData: ClassSubmitData) => void;
     onCancel: () => void;
 }
 
@@ -272,12 +282,10 @@ export interface CreateStaffPayload {
     state: string;
     pincode: string;
     country: string;
-    profile_pic?: File;
     responsibility?: string;
     subjects?: string[];
     section?: string;
-    ID:number, 
-    profile_pic_link:string
+    ID: number;
 }
 
 export interface Staff extends Omit<CreateStaffPayload, 'profile_pic'> {

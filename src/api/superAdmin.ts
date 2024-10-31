@@ -491,3 +491,60 @@ export const deleteGroup = async (id: number) => {
         throw error;
     }
 };
+
+export const getClasses = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.classes}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching classes:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+export const createClass = async (classData: any, schoolPrefix: string) => {
+    try {
+        const response = await Api.post(`${superAdminEndpoints.classes}?school_prefix=${schoolPrefix}`, classData);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error creating class:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+export const updateClass = async (classData: any, schoolPrefix: string) => {
+    try {
+        const response = await Api.put(`${superAdminEndpoints.classes}?school_prefix=${schoolPrefix}`, classData);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating class:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+
+export const deleteClass = async (classId:number,schoolPrefix: string) => {
+    try {
+        const response = await Api.delete(`${superAdminEndpoints.classes}/${classId}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating class:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
