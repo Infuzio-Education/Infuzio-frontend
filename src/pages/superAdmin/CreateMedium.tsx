@@ -16,7 +16,6 @@ const CreateMedium: React.FC<CreateMediumProps> = ({
     }
   }, [initialData]);
 
-
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!/^(?=.*[a-zA-Z])[a-zA-Z0-9\s]+$/.test(name)) {
@@ -26,7 +25,7 @@ const CreateMedium: React.FC<CreateMediumProps> = ({
     try {
       onSave(name);
     } catch (error: any) {
-      console.error('Error creating section:', error);
+      console.error('Error saving medium:', error);
     }
   };
 

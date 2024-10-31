@@ -7,6 +7,8 @@ import { CreateStaffProps, Section, CreateStaffPayload } from '../../types/Types
 import CustomTabs from '../../components/CustomTabs';
 import { Upload } from 'lucide-react';
 import { createStaff, getSections, updateStaff } from '../../api/superAdmin';
+import SnackbarComponent from '../../components/SnackbarComponent';
+
 
 const INITIAL_STAFF_STATE: CreateStaffPayload = {
     id_card_number: '',
@@ -26,7 +28,7 @@ const INITIAL_STAFF_STATE: CreateStaffPayload = {
     street2: '',
     city: '',
     state: '',
-    pin_code: '',
+    pincode: '',
     country: '',
     responsibility: '',
     subjects: [],
@@ -44,7 +46,7 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
     initialData, 
     onSave, 
     onCancel, 
-    schoolPrefix = "MKKDY" 
+    schoolPrefix 
 }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -55,6 +57,12 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
     const [profilePic, setProfilePic] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success' as 'success' | 'error',
+        position: { vertical: 'top' as const, horizontal: 'center' as const }
+    });
 
     useEffect(() => {
         if (initialData) {
@@ -116,8 +124,8 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
         // if (staff.mobile && !/^\d{10}$/.test(staff.mobile)) {
         //     errors.mobile = 'Mobile number must be 10 digits';
         // }
-        if (staff.pin_code && !/^\d{6}$/.test(staff.pin_code)) {
-            errors.pin_code = 'Pin code must be 6 digits';
+        if (staff.pincode && !/^\d{6}$/.test(staff.pincode)) {
+            errors.pincode = 'Pin code must be 6 digits';
         }
 
         setValidationErrors(errors);
@@ -169,11 +177,30 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
         }
     };
 
+    const handleCloseSnackbar = () => {
+        setSnackbar(prev => ({ ...prev, open: false }));
+    };
+
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
         
         if (!validateForm()) {
-            setError('Please fix the validation errors before submitting');
+            setSnackbar({
+                open: true,
+                message: 'Please fix the validation errors before submitting',
+                severity: 'error',
+                position: { vertical: 'top', horizontal: 'center' },
+            });
+            return;
+        }
+
+        if (!schoolPrefix) {
+            setSnackbar({
+                open: true,
+                message: 'School prefix is required',
+                severity: 'error',
+                position: { vertical: 'top', horizontal: 'center' },
+            });
             return;
         }
 
@@ -188,14 +215,33 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
 
             if (initialData?.ID) {
                 await updateStaff(initialData.ID, staffData, schoolPrefix);
+                setSnackbar({
+                    open: true,
+                    message: 'Staff updated successfully!',
+                    severity: 'success',
+                    position: { vertical: 'top', horizontal: 'center' },
+                });
             } else {
+                console.log("staffData",staffData,schoolPrefix);
+                
                 await createStaff(staffData, schoolPrefix);
+                setSnackbar({
+                    open: true,
+                    message: 'Staff created successfully!',
+                    severity: 'success',
+                    position: { vertical: 'top', horizontal: 'center' },
+                });
             }
             
             onSave(staffData);
         } catch (err: any) {
             console.error('Error saving staff:', err);
-            setError(err.response?.data?.message || 'An error occurred while saving staff data');
+            setSnackbar({
+                open: true,
+                message: err.response?.data?.message || 'An error occurred while saving staff data',
+                severity: 'error',
+                position: { vertical: 'top', horizontal: 'center' },
+            });
         } finally {
             setLoading(false);
         }
@@ -467,8 +513,8 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                                         label="Pin Code"
                                         variant="outlined"
                                         fullWidth
-                                        name="pin_code"
-                                        value={staff.pin_code}
+                                        name="pincode"
+                                        value={staff.pincode}
                                         onChange={handleChange}
                                         error={!!validationErrors.pin_code}
                                         helperText={validationErrors.pin_code}
@@ -498,22 +544,24 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                                 onChange={handleChange}
                             />
 
-                            <FormControl fullWidth>
-                                <InputLabel>Subjects</InputLabel>
-                                <Select
-                                    multiple
-                                    name="subjects"
-                                    value={Array.isArray(staff.subjects) ? staff.subjects : []}
-                                    onChange={handleSelectChange}
-                                    label="Subjects"
-                                >
-                                    {SUBJECTS.map(subject => (
-                                        <MenuItem key={subject} value={subject}>
-                                            {subject}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
+                            {staff.is_teaching_staff && (
+                                <FormControl fullWidth>
+                                    <InputLabel>Subjects</InputLabel>
+                                    <Select
+                                        multiple
+                                        name="subjects"
+                                        value={Array.isArray(staff.subjects) ? staff.subjects : []}
+                                        onChange={handleSelectChange}
+                                        label="Subjects"
+                                    >
+                                        {SUBJECTS.map(subject => (
+                                            <MenuItem key={subject} value={subject}>
+                                                {subject}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            )}
 
                             {loadingSections ? (
                                 <div className="flex justify-center p-4">
@@ -577,6 +625,14 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                     {loading ? 'Saving...' : (initialData ? 'Update Staff' : 'Create Staff')}
                 </Button>
             </div>
+
+            <SnackbarComponent
+                open={snackbar.open}
+                message={snackbar.message}
+                severity={snackbar.severity}
+                position={snackbar.position}
+                onClose={handleCloseSnackbar}
+            />
         </div>
     );
 };

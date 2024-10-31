@@ -3,7 +3,7 @@ import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
 import CreateMedium from './CreateMedium';
-import { getMediums, createMediums } from '../../api/superAdmin';
+import { getMediums, createMediums, updateMediums } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { Medium } from '../../types/Types';
 
@@ -61,27 +61,46 @@ const ListMediums: React.FC = () => {
 
     const handleSave = async (name: string) => {
         try {
-            const response = await createMediums(name);
-            if (response.status && response.resp_code === "CREATED") {
-                const newMedium: Medium = {
-                    ID: Date.now(),
-                    Name: name,
-                };
-                setMediums((prevMediums) => [...prevMediums, newMedium]);
-                setSnackbar({
-                    open: true,
-                    message: "Medium created successfully!",
-                    severity: "success",
-                    position: { vertical: "top", horizontal: "center" },
-                });
+            if (editingMedium) {
+                const response = await updateMediums(editingMedium.ID, name);
+                if (response.status && response.resp_code === "SUCCESS") {
+                    setMediums(prevMediums => 
+                        prevMediums.map(medium => 
+                            medium.ID === editingMedium.ID ? { ...medium, Name: name } : medium
+                        )
+                    );
+                    setSnackbar({
+                        open: true,
+                        message: "Medium updated successfully!",
+                        severity: "success",
+                        position: { vertical: "top", horizontal: "center" },
+                    });
+                } else {
+                    throw new Error(response.data || "Failed to update medium");
+                }
             } else {
-                throw new Error(response.data || "Failed to create medium");
+                const response = await createMediums(name);
+                if (response.status && response.resp_code === "CREATED") {
+                    const newMedium: Medium = {
+                        ID: Date.now(),
+                        Name: name,
+                    };
+                    setMediums((prevMediums) => [...prevMediums, newMedium]);
+                    setSnackbar({
+                        open: true,
+                        message: "Medium created successfully!",
+                        severity: "success",
+                        position: { vertical: "top", horizontal: "center" },
+                    });
+                } else {
+                    throw new Error(response.data || "Failed to create medium");
+                }
             }
         } catch (error: any) {
-            console.error("Error creating medium:", error);
+            console.error("Error saving medium:", error);
             setSnackbar({
                 open: true,
-                message: error.response?.data?.error || "Failed to create medium. Please try again.",
+                message: error.response?.data?.error || "Failed to save medium. Please try again.",
                 severity: "error",
                 position: { vertical: "top", horizontal: "center" },
             });
