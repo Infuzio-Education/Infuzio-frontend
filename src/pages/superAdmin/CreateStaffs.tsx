@@ -8,7 +8,6 @@ import { CreateStaffProps, Section, CreateStaffPayload, Staff } from '../../type
 import CustomTabs from '../../components/CustomTabs';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { createStaff, getSections, updateStaff } from '../../api/superAdmin';
-import SnackbarComponent from '../../components/SnackbarComponent';
 
 
 
@@ -35,7 +34,7 @@ const INITIAL_STAFF_STATE: CreateStaffPayload = {
     responsibility: '',
     subjects: [],
     section: '',
-    ID:0,
+    ID: 0,
 };
 
 
@@ -43,11 +42,11 @@ const INITIAL_STAFF_STATE: CreateStaffPayload = {
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 const SUBJECTS = ['Mathematics', 'Science', 'English', 'Social Studies', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography'];
 
-const CreateStaffs: React.FC<CreateStaffProps> = ({ 
-    initialData, 
-    onSave, 
-    onCancel, 
-    schoolPrefix 
+const CreateStaffs: React.FC<CreateStaffProps> = ({
+    initialData,
+    onSave,
+    onCancel,
+    schoolPrefix
 }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -83,7 +82,7 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
         setSectionError(null);
         try {
             const response = await getSections();
-            
+
             if (response.status && response.resp_code === "SUCCESS") {
                 if (response.data && Array.isArray(response.data) && response.data.length > 0) {
                     setSections(response.data);
@@ -155,13 +154,11 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
         setSnackbar(prev => ({ ...prev, open: false }));
     };
 
-    const handleCloseSnackbar = () => {
-        setSnackbar(prev => ({ ...prev, open: false }));
-    };
+
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
-        
+
         if (!validateForm()) {
             setSnackbar({
                 open: true,
@@ -199,8 +196,8 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                     position: { vertical: 'top', horizontal: 'center' },
                 });
             } else {
-                console.log("staffData",staffData,schoolPrefix);
-                
+                console.log("staffData", staffData, schoolPrefix);
+
                 await createStaff(staffData, schoolPrefix);
                 setSnackbar({
                     open: true,
@@ -209,7 +206,7 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                     position: { vertical: 'top', horizontal: 'center' },
                 });
             }
-            
+
             onSave(staffData as Staff);
         } catch (err: any) {
             console.error('Error saving staff:', err);
@@ -230,7 +227,7 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                 <h2 className="text-xl font-bold mb-4">
                     {initialData ? 'Edit Staff' : 'Create Staff'}
                 </h2>
-                
+
                 {error && (
                     <Alert severity="error" className="mb-4">
                         {error}
@@ -360,9 +357,9 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                                     control={
                                         <Switch
                                             checked={staff.pwd}
-                                            onChange={(e) => setStaff(prev => ({ 
-                                                ...prev, 
-                                                pwd: e.target.checked 
+                                            onChange={(e) => setStaff(prev => ({
+                                                ...prev,
+                                                pwd: e.target.checked
                                             }))}
                                             name="pwd"
                                         />
@@ -376,9 +373,9 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                                     control={
                                         <Switch
                                             checked={staff.is_teaching_staff}
-                                            onChange={(e) => setStaff(prev => ({ 
-                                                ...prev, 
-                                                is_teaching_staff: e.target.checked 
+                                            onChange={(e) => setStaff(prev => ({
+                                                ...prev,
+                                                is_teaching_staff: e.target.checked
                                             }))}
                                             name="is_teaching_staff"
                                         />
@@ -531,11 +528,11 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                                         label="Section"
                                         error={!!sectionError}
                                     >
-                                        {sections.length>0 ? (sections.map((section: Section) => (
+                                        {sections.length > 0 ? (sections.map((section: Section) => (
                                             <MenuItem key={section.ID} value={section.ID}>
                                                 {section.Name}
                                             </MenuItem>
-                                        ))):(<MenuItem>No sections found</MenuItem>)}
+                                        ))) : (<MenuItem>No sections found</MenuItem>)}
                                     </Select>
                                     {sectionError && (
                                         <span className="text-red-500 text-sm mt-1">
@@ -561,17 +558,17 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
             </div>
 
             <div className="mt-4 flex justify-end space-x-2 p-4 border-t">
-                <Button 
-                    onClick={onCancel} 
-                    variant="outlined" 
+                <Button
+                    onClick={onCancel}
+                    variant="outlined"
                     color="error"
                     disabled={loading}
                 >
                     Cancel
                 </Button>
-                <Button 
+                <Button
                     onClick={handleSubmit}
-                    variant="contained" 
+                    variant="contained"
                     color="primary"
                     disabled={loading}
                     startIcon={loading && <CircularProgress size={20} color="inherit" />}

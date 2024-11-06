@@ -4,7 +4,7 @@ import { PlusCircle, Trash2 } from "lucide-react";
 import CreateSection from './CreateSection';
 import { Section } from '../../types/Types';
 import ListControls from '../../components/ListControls';
-import { createSections, getSections } from '../../api/superAdmin';
+import { createSections, getSections, updateSection } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 
 const ListSections: React.FC = () => {
@@ -75,29 +75,63 @@ const ListSections: React.FC = () => {
 
     const handleSave = async (sectionData: { sectionName: string, sectionCode: string }) => {
         try {
-            const response = await createSections(sectionData);
-            if (response.status && response.resp_code === 'SUCCESS') {
-                const newSection: Section = {
-                    ID: Date.now(),
-                    Name: sectionData.sectionName,
-                    SectionCode: sectionData.sectionCode
+            if (editingSection) {
+                const formattedData = {
+                    sectionName: sectionData.sectionName,
+                    sectionCode: sectionData.sectionCode
                 };
-                setSections((prevSections) => [...prevSections, newSection]);
-                setSnackbar({
-                    open: true,
-                    message: 'Section created successfully!',
-                    severity: 'success',
-                    position: { vertical: 'top', horizontal: 'center' }
-                });
-                fetchSections();
+
+                const response = await updateSection(editingSection.ID, formattedData);
+                if (response.status && response.resp_code === 'SUCCESS') {
+                    setSections(prevSections => prevSections.map(section =>
+                        section.ID === editingSection.ID
+                            ? {
+                                ...section,
+                                Name: sectionData.sectionName,
+                                SectionCode: sectionData.sectionCode
+                            }
+                            : section
+                    ));
+                    setSnackbar({
+                        open: true,
+                        message: 'Section updated successfully!',
+                        severity: 'success',
+                        position: { vertical: 'top', horizontal: 'center' }
+                    });
+                    fetchSections();
+                } else {
+                    throw new Error(response.message || 'Failed to update section');
+                }
             } else {
-                throw new Error(response.message || 'Failed to create section');
+                const formattedData = {
+                    sectionName: sectionData.sectionName,
+                    sectionCode: sectionData.sectionCode
+                };
+
+                const response = await createSections(formattedData);
+                if (response.status && response.resp_code === 'SUCCESS') {
+                    const newSection: Section = {
+                        ID: Date.now(),
+                        Name: sectionData.sectionName,
+                        SectionCode: sectionData.sectionCode
+                    };
+                    setSections((prevSections) => [...prevSections, newSection]);
+                    setSnackbar({
+                        open: true,
+                        message: 'Section created successfully!',
+                        severity: 'success',
+                        position: { vertical: 'top', horizontal: 'center' }
+                    });
+                    fetchSections();
+                } else {
+                    throw new Error(response.message || 'Failed to create section');
+                }
             }
         } catch (error: any) {
-            console.error('Error creating section:', error);
+            console.error('Error creating/updating section:', error);
             setSnackbar({
                 open: true,
-                message: error.message || 'Failed to create section. Please try again.',
+                message: error.message || 'Failed to create/update section. Please try again.',
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'center' }
             });
