@@ -454,3 +454,25 @@ export const updateCaste = async (id: number, name: string, religion_id: number)
         throw error;
     }
 };
+
+export const updateSection = async (id: number, data: { sectionName: string; sectionCode: string }) => {
+    try {
+        console.log("id", id);
+        console.log("data", data);
+        const response = await Api.put(superAdminEndpoints.sections, {
+            id,
+            sectionName: data.sectionName,
+            sectionCode: data.sectionCode
+        });
+
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating section:', error.response?.data || error.message);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+};
