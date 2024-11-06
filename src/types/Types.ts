@@ -98,16 +98,16 @@ export interface Standard {
     ID: number;
     Name: string;
     HasGroup: boolean;
-    SectionId:number;
+    SectionId: number;
     SequenceNumber: number;
-    section:string;
+    section: string;
 }
 
 export interface CreateStandardProps {
     initialData: Standard | null;
-    onSave: (name: string, hasGroup: boolean, sequence: number,sequenceNumber:number) => void;
+    onSave: (name: string, hasGroup: boolean, sequence: number, sequenceNumber: number) => void;
     onCancel: () => void;
-    sections:Section[];
+    sections: Section[];
 }
 
 export interface Group {
@@ -116,7 +116,7 @@ export interface Group {
 }
 
 export interface CreateGroupProps {
-    initialData:Group | null
+    initialData: Group | null
     onSave: (name: string) => void;
     onCancel: () => void;
 }
@@ -173,7 +173,7 @@ export interface CreateStaffProps {
     initialData: Staff | null;
     onSave: (staff: Staff) => void;
     onCancel: () => void;
-    schoolPrefix : string
+    schoolPrefix: string
 }
 
 export interface ClassSubmitData {
@@ -285,7 +285,8 @@ export interface CreateStaffPayload {
     responsibility?: string;
     subjects?: string[];
     section?: string;
-    ID: number;
+    ID: number,
+    profile_pic_link: string
 }
 
 export interface Staff extends Omit<CreateStaffPayload, 'profile_pic'> {

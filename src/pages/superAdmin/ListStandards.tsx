@@ -50,7 +50,6 @@ const ListStandards: React.FC = () => {
       const response = await getStandards();
 
       if (response.status && response.resp_code === "SUCCESS") {
-        // Sort standards by sequence number
         const sortedStandards = response.data.sort((a: Standard, b: Standard) =>
           a.SequenceNumber - b.SequenceNumber
         );

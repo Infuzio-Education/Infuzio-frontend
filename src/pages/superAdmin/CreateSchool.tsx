@@ -32,10 +32,13 @@ const CreateSchool: React.FC = () => {
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error', position: { vertical: 'top', horizontal: 'right' } });
     const navigate = useNavigate();
 
+
+
     useEffect(() => {
         const fetchSyllabus = async () => {
             try {
                 const response = await getSyllabus();
+                console.log('Syllubus', response.data);
                 if (Array.isArray(response) && response.length > 0) {
                     const formattedSyllabusList = response.map(syllabus => ({
                         ...syllabus,
@@ -43,6 +46,7 @@ const CreateSchool: React.FC = () => {
                         value: syllabus.ID
                     }));
                     setSyllabusList(formattedSyllabusList);
+
                 } else {
                     console.error('Invalid syllabus data:', response);
                     setSyllabusList([]);

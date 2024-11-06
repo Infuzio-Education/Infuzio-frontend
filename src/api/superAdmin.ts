@@ -51,12 +51,11 @@ export const superLogin = async (body: { username: string, password: string }) =
 export const getSyllabus = async () => {
     try {
         const response = await Api.get(superAdminEndpoints.syllabus);
-        if (response.data && response.data.status === true) {
-            console.log('response', response.data);
-            return response.data;
-        } else {
-            throw new Error('Unexpected response format');
+        console.log('response', response);
+        if (response.data && response.data.status === true && Array.isArray(response.data.data)) {
+            return response.data.data;
         }
+        return [];
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error('Error fetching syllabus:', error.response);
@@ -157,9 +156,9 @@ export const getMediums = async () => {
     }
 }
 
-export const updateMediums = async (id:number,name: string) => {
+export const updateMediums = async (id: number, name: string) => {
     try {
-        const response = await Api.put(superAdminEndpoints.mediums, {ID:id ,Name: name });
+        const response = await Api.put(superAdminEndpoints.mediums, { ID: id, Name: name });
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -203,7 +202,7 @@ export const getReligions = async () => {
 }
 
 
-export const createStandard = async (values:{name: string, hasGroup: boolean,sectionId:number, sequenceNumber: number}) => {
+export const createStandard = async (values: { name: string, hasGroup: boolean, sectionId: number, sequenceNumber: number }) => {
     try {
         const response = await Api.post(superAdminEndpoints.stadards, values);
         return response.data;
@@ -362,7 +361,7 @@ export const createStaff = async (values: CreateStaffPayload, schoolPrefix: stri
     try {
         const formData = new FormData();
         console.log('hey');
-        
+
         Object.entries(values).forEach(([key, value]) => {
             if (key === 'subjects' && Array.isArray(value)) {
                 formData.append(key, JSON.stringify(value));
@@ -382,7 +381,7 @@ export const createStaff = async (values: CreateStaffPayload, schoolPrefix: stri
                 }
             }
         );
-        return response.data; // Ensure this returns the correct data type
+        return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error('Error creating staff:', error.response);
@@ -396,7 +395,7 @@ export const createStaff = async (values: CreateStaffPayload, schoolPrefix: stri
 export const listStaff = async (schoolPrefix: string) => {
     try {
         const response = await Api.get(`${superAdminEndpoints.listStaff}?school_prefix=${schoolPrefix}`);
-        return response.data; // Ensure this returns the correct data type
+        return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error('Error listing staff:', error.response);
@@ -410,7 +409,7 @@ export const listStaff = async (schoolPrefix: string) => {
 export const updateStaff = async (staffId: number, values: Partial<CreateStaffPayload>, schoolPrefix: string) => {
     try {
         const formData = new FormData();
-        
+
         Object.entries(values).forEach(([key, value]) => {
             if (key === 'subjects' && Array.isArray(value)) {
                 formData.append(key, JSON.stringify(value));
@@ -430,7 +429,7 @@ export const updateStaff = async (staffId: number, values: Partial<CreateStaffPa
                 }
             }
         );
-        return response.data; // Ensure this returns the correct data type
+        return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error('Error updating staff:', error.response);
@@ -460,10 +459,10 @@ export const deleteStaff = async (staffId: number, schoolPrefix: string) => {
 export const updateGroup = async (id: number, name: string) => {
     try {
         // console.log(id,name);
-        
-        const response = await Api.put(superAdminEndpoints.groups, { 
+
+        const response = await Api.put(superAdminEndpoints.groups, {
             id: id,
-            name: name 
+            name: name
         });
         return response.data;
     } catch (error) {
@@ -472,6 +471,20 @@ export const updateGroup = async (id: number, name: string) => {
             throw error;
         }
         console.error('Unexpected error:', error);
+        throw error;
+    }
+}
+
+export const updateCaste = async (id: number, name: string, religion_id: number) => {
+    try {
+        const response = await Api.put(superAdminEndpoints.castes, {
+            id,
+            name,
+            religion_id
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error updating caste:', error);
         throw error;
     }
 };
@@ -535,7 +548,7 @@ export const updateClass = async (classData: any, schoolPrefix: string) => {
 };
 
 
-export const deleteClass = async (classId:number,schoolPrefix: string) => {
+export const deleteClass = async (classId: number, schoolPrefix: string) => {
     try {
         const response = await Api.delete(`${superAdminEndpoints.classes}/${classId}?school_prefix=${schoolPrefix}`);
         return response.data;
@@ -546,5 +559,27 @@ export const deleteClass = async (classId:number,schoolPrefix: string) => {
         }
         console.error('Unexpected error:', error);
         throw error;
+    }
+}
+
+export const updateSection = async (id: number, data: { sectionName: string; sectionCode: string }) => {
+    try {
+        console.log("id", id);
+        console.log("data", data);
+        const response = await Api.put(superAdminEndpoints.sections, {
+            id,
+            sectionName: data.sectionName,
+            sectionCode: data.sectionCode
+        });
+
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating section:', error.response?.data || error.message);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
     }
 };
