@@ -4,8 +4,9 @@ import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
 import CreateSyllabus from './CreateSyllubus';
 import { Syllabus } from '../../types/Types';
-import { getSyllabus, createSyllabus } from '../../api/superAdmin';
+import { getSyllabus, createSyllabus, deleteSyllabus } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
+import { GlobalSyllabus } from '../../types/Types';
 
 const ListSyllabus: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -33,7 +34,18 @@ const ListSyllabus: React.FC = () => {
         setError(null);
         try {
             const response = await getSyllabus();
-            setSyllabuses(response);
+            if (response?.global && Array.isArray(response.global)) {
+                const formattedSyllabuses = response.global.map((syllabus: GlobalSyllabus) => ({
+                    ID: syllabus.id,
+                    Name: syllabus.name,
+                    isCustomSyllabus: syllabus.isCustomSyllabus,
+                    creatorSchoolCode: syllabus.creatorSchoolCode
+                }));
+                setSyllabuses(formattedSyllabuses);
+            } else {
+                setError('Invalid syllabus data received');
+                setSyllabuses([]);
+            }
         } catch (err) {
             setError('Failed to load syllabuses. Please try again.');
             setSyllabuses([]);
@@ -99,6 +111,31 @@ const ListSyllabus: React.FC = () => {
         )
         : [];
 
+    const handleDelete = async (id: number) => {
+        try {
+            const response = await deleteSyllabus(id);
+            if (response.status === true) {
+                setSyllabuses(syllabuses.filter(syllabus => syllabus.ID !== id));
+                setSnackbar({
+                    open: true,
+                    message: 'Syllabus deleted successfully!',
+                    severity: 'success',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            } else {
+                throw new Error(response.message || 'Failed to delete syllabus');
+            }
+        } catch (error: any) {
+            console.error('Error deleting syllabus:', error);
+            setSnackbar({
+                open: true,
+                message: error.message || 'Failed to delete syllabus',
+                severity: 'error',
+                position: { vertical: 'top', horizontal: 'center' }
+            });
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">
             <ListControls
@@ -161,7 +198,7 @@ const ListSyllabus: React.FC = () => {
                                     <td className="text-center">
                                         <IconButton
                                             aria-label="delete"
-                                        // onClick={() => handleDelete(syllabus.ID)}
+                                            onClick={() => handleDelete(syllabus.ID)}
                                         >
                                             <Trash2 size={20} className="text-red-500" />
                                         </IconButton>

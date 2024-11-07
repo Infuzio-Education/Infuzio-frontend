@@ -8,6 +8,14 @@ import { X } from 'lucide-react';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { useNavigate } from 'react-router-dom';
 
+interface GlobalSyllabus {
+    id: number;
+    name: string;
+    isCustomSyllabus: boolean;
+    creatorSchoolCode: string | null;
+}
+
+
 const initialValues: SchoolFormData = {
     name: '',
     schoolCode: '',
@@ -38,15 +46,15 @@ const CreateSchool: React.FC = () => {
         const fetchSyllabus = async () => {
             try {
                 const response = await getSyllabus();
-                console.log('Syllubus', response.data);
-                if (Array.isArray(response) && response.length > 0) {
-                    const formattedSyllabusList = response.map(syllabus => ({
-                        ...syllabus,
-                        label: syllabus.Name,
-                        value: syllabus.ID
-                    }));
-                    setSyllabusList(formattedSyllabusList);
 
+                if (response?.global && Array.isArray(response.global)) {
+                    const formattedSyllabusList = response.global.map((syllabus: GlobalSyllabus) => ({
+                        ID: syllabus.id,
+                        Name: syllabus.name,
+                        value: syllabus.id
+                    }));
+                    console.log('Formatted Syllabus List:', formattedSyllabusList);
+                    setSyllabusList(formattedSyllabusList);
                 } else {
                     console.error('Invalid syllabus data:', response);
                     setSyllabusList([]);

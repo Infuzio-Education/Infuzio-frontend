@@ -21,10 +21,10 @@ const ListSchools: React.FC = () => {
             try {
                 setIsLoading(true);
                 const response = await getSchools();
-                setSchools(response.data || []); // Ensure schools is always an array
+                setSchools(response.data || []);
             } catch (error) {
                 console.error('Failed to fetch schools:', error);
-                setSchools([]); // Set schools to an empty array if there's an error
+                setSchools([]);
             } finally {
                 setIsLoading(false);
             }
@@ -105,7 +105,9 @@ const ListSchools: React.FC = () => {
                             <div className="p-2 bg-gray-300 flex-grow flex flex-row items-center transition duration-300 group-hover:bg-gray-400">
                                 <div className="flex-grow min-w-0 mr-2">
                                     <h2 className="text-lg font-semibold break-words">{school.name}</h2>
-                                    <p className="text-sm text-gray-600">CBSE</p>
+                                    <p className="text-sm text-gray-600">
+                                        {Array.isArray(school.syllabus) ? school.syllabus.join(', ') : school.syllabus}
+                                    </p>
                                 </div>
                                 <ArrowRight className="text-gray-600 flex-shrink-0 transition duration-300 group-hover:translate-x-1" size={20} />
                             </div>
