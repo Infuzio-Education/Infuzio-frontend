@@ -4,7 +4,7 @@ import { PlusCircle, Trash2 } from "lucide-react";
 import CreateSection from './CreateSection';
 import { Section } from '../../types/Types';
 import ListControls from '../../components/ListControls';
-import { createSections, getSections, updateSection } from '../../api/superAdmin';
+import { createSections, getSections, updateSection, deleteSection } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 
 const ListSections: React.FC = () => {
@@ -33,7 +33,6 @@ const ListSections: React.FC = () => {
         try {
             setLoading(true);
             const response = await getSections();
-            console.log(response);
 
             if (response.status && response.resp_code === 'SUCCESS') {
                 const sectionsData = Array.isArray(response.data)
@@ -76,12 +75,7 @@ const ListSections: React.FC = () => {
     const handleSave = async (sectionData: { sectionName: string, sectionCode: string }) => {
         try {
             if (editingSection) {
-                const formattedData = {
-                    sectionName: sectionData.sectionName,
-                    sectionCode: sectionData.sectionCode
-                };
-
-                const response = await updateSection(editingSection.ID, formattedData);
+                const response = await updateSection(editingSection.ID, sectionData);
                 if (response.status && response.resp_code === 'SUCCESS') {
                     setSections(prevSections => prevSections.map(section =>
                         section.ID === editingSection.ID
@@ -103,12 +97,7 @@ const ListSections: React.FC = () => {
                     throw new Error(response.message || 'Failed to update section');
                 }
             } else {
-                const formattedData = {
-                    sectionName: sectionData.sectionName,
-                    sectionCode: sectionData.sectionCode
-                };
-
-                const response = await createSections(formattedData);
+                const response = await createSections(sectionData);
                 if (response.status && response.resp_code === 'SUCCESS') {
                     const newSection: Section = {
                         ID: Date.now(),
@@ -139,8 +128,29 @@ const ListSections: React.FC = () => {
         handleCloseModal();
     };
 
-    const handleDelete = (id: number) => {
-        setSections(sections.filter(section => section.ID !== id));
+    const handleDelete = async (id: number) => {
+        try {
+            const response = await deleteSection(id);
+            if (response.status === true) {
+                setSections(sections.filter(section => section.ID !== id));
+                setSnackbar({
+                    open: true,
+                    message: 'Section deleted successfully!',
+                    severity: 'success',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            } else {
+                throw new Error(response.message || 'Failed to delete section');
+            }
+        } catch (error: any) {
+            console.error('Error deleting section:', error);
+            setSnackbar({
+                open: true,
+                message: error.message || 'Failed to delete section',
+                severity: 'error',
+                position: { vertical: 'top', horizontal: 'center' }
+            });
+        }
     };
 
     const handleSelectAll = () => {

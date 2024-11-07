@@ -2,7 +2,7 @@ import Api from './axiosConfig';
 import superAdminEndpoints from '../endpoints/superAdmin';
 import axios from 'axios';
 import { CreateStaffPayload } from '../types/Types';
-
+import { SyllabusData } from '../types/Types';
 
 interface SuperAdminInfo {
     token: string;
@@ -48,14 +48,13 @@ export const superLogin = async (body: { username: string, password: string }) =
     }
 }
 
-export const getSyllabus = async () => {
+export const getSyllabus = async (): Promise<SyllabusData> => {
     try {
         const response = await Api.get(superAdminEndpoints.syllabus);
-        console.log('response', response);
-        if (response.data && response.data.status === true && Array.isArray(response.data.data)) {
+        if (response.data && response.data.status === true) {
             return response.data.data;
         }
-        return [];
+        return { global: [], custom: null };
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error('Error fetching syllabus:', error.response);
@@ -280,6 +279,7 @@ export const getSections = async () => {
 
 export const createSections = async (data: { sectionName: string; sectionCode: string }) => {
     try {
+        console.log('data', data);
         const response = await Api.post(superAdminEndpoints.sections, {
             sectionName: data.sectionName,
             sectionCode: data.sectionCode
@@ -564,18 +564,60 @@ export const deleteClass = async (classId: number, schoolPrefix: string) => {
 
 export const updateSection = async (id: number, data: { sectionName: string; sectionCode: string }) => {
     try {
-        console.log("id", id);
-        console.log("data", data);
         const response = await Api.put(superAdminEndpoints.sections, {
             id,
             sectionName: data.sectionName,
             sectionCode: data.sectionCode
         });
-
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error('Error updating section:', error.response?.data || error.message);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+};
+
+export const deleteSection = async (id: number) => {
+    try {
+        const response = await Api.delete(`${superAdminEndpoints.sections}/${id}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error deleting section:', error.response?.data || error.message);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+};
+
+export const deleteCaste = async (id: number) => {
+    try {
+        const response = await Api.delete(`${superAdminEndpoints.castes}/${id}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error deleting caste:', error.response?.data || error.message);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+};
+
+export const deleteSyllabus = async (id: number) => {
+    try {
+        const response = await Api.delete(`${superAdminEndpoints.syllabus}/${id}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error deleting syllabus:', error.response?.data || error.message);
             throw error;
         } else {
             console.error('Unexpected error:', error);

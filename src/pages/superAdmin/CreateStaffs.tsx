@@ -10,7 +10,6 @@ import SnackbarComponent from '../../components/SnackbarComponent';
 import { createStaff, getSections, updateStaff } from '../../api/superAdmin';
 
 
-
 const INITIAL_STAFF_STATE: CreateStaffPayload = {
     id_card_number: '',
     name: '',
@@ -35,6 +34,7 @@ const INITIAL_STAFF_STATE: CreateStaffPayload = {
     subjects: [],
     section: '',
     ID: 0,
+    profile_pic_link: '',
 };
 
 

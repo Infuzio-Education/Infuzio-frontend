@@ -5,7 +5,7 @@ import ListControls from '../../components/ListControls';
 import CreateReligion from './CreateReligion';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { Religion } from '../../types/Types';
-import { createReligion, getReligions, updateReligion } from '../../api/superAdmin';
+import { createReligion, getReligions, updateReligion, deleteReligion } from '../../api/superAdmin';
 
 const ListReligions: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -110,14 +110,20 @@ const ListReligions: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            setReligions(religions.filter(religion => religion.ID !== id));
-            setSnackbar({
-                open: true,
-                message: 'Religion deleted successfully!',
-                severity: 'success',
-                position: { vertical: 'top', horizontal: 'center' }
-            });
+            const response = await deleteReligion(id);
+            if (response.status === true) {
+                setReligions(religions.filter(religion => religion.ID !== id));
+                setSnackbar({
+                    open: true,
+                    message: 'Religion deleted successfully!',
+                    severity: 'success',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            } else {
+                throw new Error(response.message || 'Failed to delete religion');
+            }
         } catch (error: any) {
+            console.error('Error deleting religion:', error);
             setSnackbar({
                 open: true,
                 message: error.message || 'Failed to delete religion',

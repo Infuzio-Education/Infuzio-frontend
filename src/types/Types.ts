@@ -133,6 +133,7 @@ export interface School {
     id: number;
     name: string;
     school_code: string;
+    syllabus: string;
     logo?: string;
 }
 
@@ -292,4 +293,17 @@ export interface CreateStaffPayload {
 export interface Staff extends Omit<CreateStaffPayload, 'profile_pic'> {
     ID: number;
     profile_pic_link: string;
+}
+
+
+export interface GlobalSyllabus {
+    id: number;
+    name: string;
+    isCustomSyllabus: boolean;
+    creatorSchoolCode: string | null;
+}
+
+export interface SyllabusData {
+    global: GlobalSyllabus[];
+    custom: null;
 }

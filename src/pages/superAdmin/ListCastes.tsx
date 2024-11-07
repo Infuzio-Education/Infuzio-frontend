@@ -4,7 +4,7 @@ import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { Caste } from '../../types/Types';
-import { createCaste, getCastes, updateCaste } from '../../api/superAdmin';
+import { createCaste, getCastes, updateCaste, deleteCaste } from '../../api/superAdmin';
 import CreateCaste from './CreateCaste';
 
 const ListCastes: React.FC = () => {
@@ -117,14 +117,20 @@ const ListCastes: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            setCastes(castes.filter(caste => caste.ID !== id));
-            setSnackbar({
-                open: true,
-                message: 'Caste deleted successfully!',
-                severity: 'success',
-                position: { vertical: 'top', horizontal: 'center' }
-            });
+            const response = await deleteCaste(id);
+            if (response.status === true) {
+                setCastes(castes.filter(caste => caste.ID !== id));
+                setSnackbar({
+                    open: true,
+                    message: 'Caste deleted successfully!',
+                    severity: 'success',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            } else {
+                throw new Error(response.message || 'Failed to delete caste');
+            }
         } catch (error: any) {
+            console.error('Error deleting caste:', error);
             setSnackbar({
                 open: true,
                 message: error.message || 'Failed to delete caste',
