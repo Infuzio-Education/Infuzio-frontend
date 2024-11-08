@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../../redux/slices/superAdminSlice/superAdminSlice';
 import Breadcrumbs from '../Breadcrumbs';
 
 const Navbar: React.FC = () => {
     const location = useLocation();
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { superAdminInfo } = useSelector((state: any) => state.superAdminInfo);
+
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isSchoolDropdownOpen, setIsSchoolDropdownOpen] = useState(false);
+    const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const [isSchoolSelected, setIsSchoolSelected] = useState(false);
     const [schoolId, setSchoolId] = useState<string | null>(null);
 
@@ -26,26 +33,28 @@ const Navbar: React.FC = () => {
         }
     };
 
+    const toggleUserDropdown = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsUserDropdownOpen(!isUserDropdownOpen);
+    };
+
+    const handleLogout = () => {
+        dispatch(logout());
+        navigate('/superAdmin');
+    };
+
     useEffect(() => {
-        const closeDropdown = () => {
-            if (isDropdownOpen) {
-                setIsDropdownOpen(false);
-            }
-            if (isSchoolDropdownOpen) {
-                setIsSchoolDropdownOpen(false);
-            }
+        const closeDropdowns = () => {
+            setIsDropdownOpen(false);
+            setIsSchoolDropdownOpen(false);
+            setIsUserDropdownOpen(false);
         };
 
-        document.addEventListener('click', closeDropdown);
+        document.addEventListener('click', closeDropdowns);
         return () => {
-            document.removeEventListener('click', closeDropdown);
+            document.removeEventListener('click', closeDropdowns);
         };
-    }, [isDropdownOpen, isSchoolDropdownOpen]);
-
-    useEffect(() => {
-        setIsDropdownOpen(false);
-        setIsSchoolDropdownOpen(false);
-    }, [location]);
+    }, []);
 
     useEffect(() => {
         const pathParts = location.pathname.split('/');
@@ -185,6 +194,62 @@ const Navbar: React.FC = () => {
                             </ul>
                         </div>
                     </div>
+
+                    {superAdminInfo && (
+                        <div className="relative">
+                            <button
+                                onClick={toggleUserDropdown}
+                                className="flex items-center space-x-2 text-white hover:text-gray-200 focus:outline-none"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    {/* User Avatar Circle */}
+                                    <span className="font-medium">{superAdminInfo.username}</span>
+                                    <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+                                        <span className="text-[#308369] font-semibold text-lg">
+                                            {superAdminInfo.username.charAt(0).toUpperCase()}
+                                        </span>
+                                    </div>
+                                    <svg
+                                        className={`w-4 h-4 transition-transform ${isUserDropdownOpen ? 'rotate-180' : ''}`}
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M19 9l-7 7-7-7"
+                                        />
+                                    </svg>
+                                </div>
+                            </button>
+
+                            {isUserDropdownOpen && (
+                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50">
+                                    <button
+                                        onClick={handleLogout}
+                                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-150 shadow-[0_0_10px_rgba(0,0,0,0.1)]"
+                                    >
+                                        <svg
+                                            className="w-4 h-4 mr-2"
+                                            fill="none"
+                                            stroke="red"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                                            />
+                                        </svg>
+                                        Logout
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </nav>
 
