@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TextField, Button, FormControl, InputLabel, Select, MenuItem, Grid, FormHelperText } from '@mui/material';
-import { CreateClassProps, Group, Standard } from '../../types/Types';
+import { CreateClassProps, Group, Standard, GlobalSyllabus } from '../../types/Types';
 import { Formik, Form, FormikProps } from 'formik';
 import CustomTabs from '../../components/CustomTabs';
 import { PlusCircle } from 'lucide-react';
-import { 
-    getMediums, 
-    getStandards, 
-    getSyllabus, 
-    getGroups, 
-    listStaff 
+import {
+    getMediums,
+    getStandards,
+    getSyllabus,
+    getGroups,
+    listStaff
 } from '../../api/superAdmin';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import * as Yup from 'yup';
@@ -18,7 +18,7 @@ const CreateClass: React.FC<CreateClassProps> = ({ initialData, onSave, onCancel
     const { schoolInfo } = useSchoolContext();
     const [mediums, setMediums] = useState([]);
     const [standards, setStandards] = useState([]);
-    const [syllabuses, setSyllabuses] = useState([]);
+    const [syllabuses, setSyllabuses] = useState<GlobalSyllabus[]>([]);
     const [groups, setGroups] = useState([]);
     const [staffs, setStaffs] = useState([]);
     const [_loading, setLoading] = useState(true);
@@ -43,7 +43,7 @@ const CreateClass: React.FC<CreateClassProps> = ({ initialData, onSave, onCancel
 
                 setMediums(mediumsRes.data || []);
                 setStandards(standardsRes.data || []);
-                setSyllabuses(syllabusRes.data || []);
+                setSyllabuses(syllabusRes.global || []);
                 setGroups(groupsRes.data || []);
                 setStaffs(staffsRes.data || []);
             } catch (error) {
@@ -58,14 +58,12 @@ const CreateClass: React.FC<CreateClassProps> = ({ initialData, onSave, onCancel
 
     useEffect(() => {
         if (initialData) {
-            // Check if the standard has groups
-            const selectedStd = standards.find((std: Standard) => 
+            const selectedStd = standards.find((std: Standard) =>
                 std.ID === initialData.StandardId
             ) as Standard | undefined;
-            
+
             setSelectedStandard(selectedStd?.HasGroup ? String(initialData.StandardId) : null);
-            
-            // Set initial form values
+
             const initialValues = {
                 name: initialData.Name || '',
                 mediumId: initialData.MediumId || '',
@@ -74,8 +72,7 @@ const CreateClass: React.FC<CreateClassProps> = ({ initialData, onSave, onCancel
                 group_id: initialData.GroupID || '',
                 syllabusId: initialData.SyllabusId || '',
             };
-            
-            // Update Formik form with initial values
+
             if (formikRef.current) {
                 formikRef.current.setValues(initialValues);
             }
@@ -163,7 +160,7 @@ const CreateClass: React.FC<CreateClassProps> = ({ initialData, onSave, onCancel
                             </Grid>
 
                             <Grid container spacing={2}>
-                                
+
                                 <Grid item xs={12} md={6}>
                                     <FormControl fullWidth error={touched.standardId && Boolean(errors.standardId)}>
                                         <InputLabel>Standard</InputLabel>
@@ -190,7 +187,7 @@ const CreateClass: React.FC<CreateClassProps> = ({ initialData, onSave, onCancel
                                         <FormHelperText>{touched.standardId && typeof errors.standardId === 'string' ? errors.standardId : ''}</FormHelperText>
                                     </FormControl>
                                 </Grid>
-                                
+
                                 <Grid item xs={12} md={6}>
                                     <FormControl fullWidth error={touched.syllabusId && Boolean(errors.syllabusId)}>
                                         <InputLabel>Syllabus</InputLabel>
@@ -261,7 +258,7 @@ const CreateClass: React.FC<CreateClassProps> = ({ initialData, onSave, onCancel
                                 </Grid>
                             </Grid>
 
-                            
+
                             <CustomTabs labels={['Students', 'Subjects']}>
                                 <>
                                     <div className="flex justify-end mb-4">

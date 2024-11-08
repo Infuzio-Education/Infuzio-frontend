@@ -4,7 +4,7 @@ import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from "../../components/ListControls";
 import CreateStandard from "./CreateStandard";
 import SnackbarComponent from "../../components/SnackbarComponent";
-import { getStandards, createStandard, getSections } from "../../api/superAdmin";
+import { getStandards, createStandard, getSections, deleteStandard } from "../../api/superAdmin";
 import { Standard, Section } from "../../types/Types";
 
 const ListStandards: React.FC = () => {
@@ -127,14 +127,40 @@ const ListStandards: React.FC = () => {
     handleCloseModal();
   };
 
-  const handleDelete = (id: number) => {
-    setStandards(standards.filter((standard) => standard.ID !== id));
-    setSnackbar({
-      open: true,
-      message: "Standard deleted successfully!",
-      severity: "success",
-      position: { vertical: "top", horizontal: "center" },
-    });
+  const handleDelete = async (id: number) => {
+    try {
+      const response = await deleteStandard(id);
+      if (response.status === true) {
+        setStandards(standards.filter(standard => standard.ID !== id));
+        setSelectedStandards(selectedStandards.filter(standardId => standardId !== id));
+        setSnackbar({
+          open: true,
+          message: 'Standard deleted successfully!',
+          severity: 'success',
+          position: { vertical: 'top', horizontal: 'center' }
+        });
+      } else {
+        throw new Error(response.message || 'Failed to delete standard');
+      }
+    } catch (error: any) {
+      console.error('Error deleting standard:', error);
+
+      if (error.response?.status === 409 && error.response?.data?.resp_code === 'RECORD_IN_USE') {
+        setSnackbar({
+          open: true,
+          message: 'Cannot delete standard as it is being used by other records',
+          severity: 'error',
+          position: { vertical: 'top', horizontal: 'center' }
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: error.message || 'Failed to delete standard',
+          severity: 'error',
+          position: { vertical: 'top', horizontal: 'center' }
+        });
+      }
+    }
   };
 
   const handleSelectAll = () => {

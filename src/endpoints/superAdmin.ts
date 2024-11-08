@@ -8,7 +8,7 @@ const superAdminEndpoints = {
     createSchool: 'school/create',
     mediums: 'global/medium',
     religion: 'global/religion',
-    stadards: 'global/standard',
+    standards: 'global/standard',
     groups: 'global/groups',
     sections: 'global/sections',
     castes: 'global/caste',

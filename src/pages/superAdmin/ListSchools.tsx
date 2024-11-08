@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Checkbox from '@mui/material/Checkbox';
 import ListControls from '../../components/ListControls';
 import { useSchoolContext } from '../../contexts/SchoolContext';
-import { getSchools } from '../../api/superAdmin';
+import { getSchools, deleteSchool } from '../../api/superAdmin';
 import { School } from '../../types/Types';
 
 const ListSchools: React.FC = () => {
@@ -58,6 +58,42 @@ const ListSchools: React.FC = () => {
         navigate(`/superAdmin/schools/${school.id}`, { state: { school } });
     };
 
+    // const handleDelete = async (id: number) => {
+    //     try {
+    //         const response = await deleteSchool(id);
+    //         if (response.status === true) {
+    //             setSchools(schools.filter(school => school.id !== id));
+    //             setSelectedSchools(selectedSchools.filter(schoolId => schoolId !== id));
+    //             setSnackbar({
+    //                 open: true,
+    //                 message: 'School deleted successfully!',
+    //                 severity: 'success',
+    //                 position: { vertical: 'top', horizontal: 'center' }
+    //             });
+    //         } else {
+    //             throw new Error(response.message || 'Failed to delete school');
+    //         }
+    //     } catch (error: any) {
+    //         console.error('Error deleting school:', error);
+
+    //         if (error.response?.status === 409 && error.response?.data?.resp_code === 'RECORD_IN_USE') {
+    //             setSnackbar({
+    //                 open: true,
+    //                 message: 'Cannot delete school as it has active records',
+    //                 severity: 'error',
+    //                 position: { vertical: 'top', horizontal: 'center' }
+    //             });
+    //         } else {
+    //             setSnackbar({
+    //                 open: true,
+    //                 message: error.response?.data?.error || 'Failed to delete school',
+    //                 severity: 'error',
+    //                 position: { vertical: 'top', horizontal: 'center' }
+    //             });
+    //         }
+    //     }
+    // };
+
     if (isLoading) {
         return <div className="min-h-screen bg-gray-200 p-8 flex items-center justify-center">
             <p className="text-xl font-semibold">Loading schools...</p>
@@ -105,9 +141,7 @@ const ListSchools: React.FC = () => {
                             <div className="p-2 bg-gray-300 flex-grow flex flex-row items-center transition duration-300 group-hover:bg-gray-400">
                                 <div className="flex-grow min-w-0 mr-2">
                                     <h2 className="text-lg font-semibold break-words">{school.name}</h2>
-                                    <p className="text-sm text-gray-600">
-                                        {Array.isArray(school.syllabus) ? school.syllabus.join(', ') : school.syllabus}
-                                    </p>
+                                    <p className="text-sm text-gray-600">{school.syllabus}</p>
                                 </div>
                                 <ArrowRight className="text-gray-600 flex-shrink-0 transition duration-300 group-hover:translate-x-1" size={20} />
                             </div>

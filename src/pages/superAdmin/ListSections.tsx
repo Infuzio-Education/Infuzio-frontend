@@ -133,6 +133,7 @@ const ListSections: React.FC = () => {
             const response = await deleteSection(id);
             if (response.status === true) {
                 setSections(sections.filter(section => section.ID !== id));
+                setSelectedSections(selectedSections.filter(sectionId => sectionId !== id));
                 setSnackbar({
                     open: true,
                     message: 'Section deleted successfully!',
@@ -144,12 +145,22 @@ const ListSections: React.FC = () => {
             }
         } catch (error: any) {
             console.error('Error deleting section:', error);
-            setSnackbar({
-                open: true,
-                message: error.message || 'Failed to delete section',
-                severity: 'error',
-                position: { vertical: 'top', horizontal: 'center' }
-            });
+
+            if (error.response?.status === 409 && error.response?.data?.resp_code === 'RECORD_IN_USE') {
+                setSnackbar({
+                    open: true,
+                    message: 'Cannot delete section as it is being used by other records',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            } else {
+                setSnackbar({
+                    open: true,
+                    message: error.response?.data?.error || 'Failed to delete section',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            }
         }
     };
 

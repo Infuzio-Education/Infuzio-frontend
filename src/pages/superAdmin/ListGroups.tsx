@@ -62,12 +62,10 @@ const ListGroups: React.FC = () => {
     const handleSave = async (name: string) => {
         try {
             if (editingGroup) {
-              // console.log("editingGroup:",editingGroup);
-              
                 const response = await updateGroup(editingGroup.ID, name);
                 if (response.status && response.resp_code === "SUCCESS") {
-                    setGroups(prevGroups => 
-                        prevGroups.map(group => 
+                    setGroups(prevGroups =>
+                        prevGroups.map(group =>
                             group.ID === editingGroup.ID ? { ...group, Name: name } : group
                         )
                     );
@@ -83,11 +81,7 @@ const ListGroups: React.FC = () => {
             } else {
                 const response = await createGroup(name);
                 if (response.status && response.resp_code === "CREATED") {
-                    const newGroup: Group = {
-                        ID: Date.now(),
-                        Name: name,
-                    };
-                    setGroups((prevGroups) => [...prevGroups, newGroup]);
+                    await fetchGroups();
                     setSnackbar({
                         open: true,
                         message: "Group created successfully!",
@@ -113,7 +107,7 @@ const ListGroups: React.FC = () => {
     const handleDelete = async (id: number) => {
         try {
             const response = await deleteGroup(id);
-            if (response.status && response.resp_code === "SUCCESS") {
+            if (response.status === true) {
                 setGroups(groups.filter(group => group.ID !== id));
                 setSelectedGroups(selectedGroups.filter(groupId => groupId !== id));
                 setSnackbar({
@@ -123,16 +117,26 @@ const ListGroups: React.FC = () => {
                     position: { vertical: "top", horizontal: "center" },
                 });
             } else {
-                throw new Error(response.data || "Failed to delete group");
+                throw new Error(response.message || "Failed to delete group");
             }
         } catch (error: any) {
             console.error("Error deleting group:", error);
-            setSnackbar({
-                open: true,
-                message: error.response?.data?.error || "Failed to delete group. Please try again.",
-                severity: "error",
-                position: { vertical: "top", horizontal: "center" },
-            });
+
+            if (error.response?.status === 409 && error.response?.data?.resp_code === 'RECORD_IN_USE') {
+                setSnackbar({
+                    open: true,
+                    message: 'Cannot delete group as it is being used by other records',
+                    severity: 'error',
+                    position: { vertical: "top", horizontal: "center" },
+                });
+            } else {
+                setSnackbar({
+                    open: true,
+                    message: error.response?.data?.error || "Failed to delete group. Please try again.",
+                    severity: "error",
+                    position: { vertical: "top", horizontal: "center" },
+                });
+            }
         }
     };
 
