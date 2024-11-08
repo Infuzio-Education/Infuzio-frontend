@@ -105,6 +105,7 @@ const ListClasses: React.FC = () => {
                 }
             } else {
                 const response = await createClass(classData, schoolInfo.schoolPrefix);
+                console.log(response)
 
                 if (response.status && response.resp_code === "CREATED") {
                     await fetchClasses();

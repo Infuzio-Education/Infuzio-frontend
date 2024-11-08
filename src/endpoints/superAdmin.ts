@@ -1,5 +1,3 @@
-
-
 const superAdminEndpoints = {
 
     login: 'infuzAdmin/login',
@@ -16,7 +14,11 @@ const superAdminEndpoints = {
     listStaff: 'staff/list',
     updateStaff: 'staff/update',
     deleteStaff: 'staff/delete',
-    classes: '/school/class'
+    classes: '/school/class',
+    createParent: 'school/parent',
+    listParent: 'school/parent',
+    createStudent: 'school/student',
+    listStudent: 'school/student',
 
 }
 

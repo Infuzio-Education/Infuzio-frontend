@@ -2,19 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2, Mail, Phone, UserCircle2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
-import CreateStudents from './CreateStudents';
-import { Student } from '../../types/Types';
+import CreateParent from './CreateParent';
 import { useSchoolContext } from '../../contexts/SchoolContext';
-import { listStudents } from '../../api/superAdmin';
+import { listParents } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 
-const ListStudents: React.FC = () => {
+const ListParents: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
-    const [editingStudent, setEditingStudent] = useState<Student | null>(null);
-    const [students, setStudents] = useState<Student[]>([]);
+    const [editingParent, setEditingParent] = useState<any>(null);
+    const [parents, setParents] = useState<any[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
+    const [selectedParents, setSelectedParents] = useState<number[]>([]);
     const [selectAll, setSelectAll] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -27,24 +26,24 @@ const ListStudents: React.FC = () => {
 
     const { schoolInfo } = useSchoolContext();
 
-    const fetchStudents = async () => {
+    const fetchParents = async () => {
         setLoading(true);
         setError(null);
         try {
             if (!schoolInfo.schoolPrefix) {
                 throw new Error("School prefix not found");
             }
-            const response = await listStudents(schoolInfo.schoolPrefix);
+            const response = await listParents(schoolInfo.schoolPrefix);
             if (response.status && response.resp_code === "SUCCESS") {
-                setStudents(response.data.students);
+                setParents(response.data);
             } else {
-                throw new Error("Failed to fetch students");
+                throw new Error("Failed to fetch parents");
             }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'An error occurred while fetching students');
+            setError(err.response?.data?.message || 'An error occurred while fetching parents');
             setSnackbar({
                 open: true,
-                message: err.response?.data?.message || 'Failed to fetch students',
+                message: err.response?.data?.message || 'Failed to fetch parents',
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'center' },
             });
@@ -54,29 +53,29 @@ const ListStudents: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchStudents();
+        fetchParents();
     }, [schoolInfo.schoolPrefix]);
 
     const handleCloseSnackbar = () => {
         setSnackbar(prev => ({ ...prev, open: false }));
     };
 
-    const handleOpenModal = (student: Student | null) => {
-        setEditingStudent(student);
+    const handleOpenModal = (parent: any | null) => {
+        setEditingParent(parent);
         setOpenModal(true);
     };
 
     const handleCloseModal = () => {
-        setEditingStudent(null);
+        setEditingParent(null);
         setOpenModal(false);
     };
 
     const handleSave = async () => {
         try {
-            await fetchStudents();
+            await fetchParents();
             setSnackbar({
                 open: true,
-                message: editingStudent ? "Student updated successfully!" : "Student created successfully!",
+                message: editingParent ? "Parent updated successfully!" : "Parent created successfully!",
                 severity: "success",
                 position: { vertical: "top", horizontal: "center" },
             });
@@ -84,7 +83,7 @@ const ListStudents: React.FC = () => {
         } catch (error: any) {
             setSnackbar({
                 open: true,
-                message: error.message || "Failed to save student",
+                message: error.message || "Failed to save parent",
                 severity: "error",
                 position: { vertical: "top", horizontal: "center" },
             });
@@ -94,17 +93,17 @@ const ListStudents: React.FC = () => {
     const handleDelete = async (id: number) => {
         try {
             // Implement delete API call here
-            setStudents(students.filter(student => student.id !== id));
+            setParents(parents.filter(parent => parent.id !== id));
             setSnackbar({
                 open: true,
-                message: "Student deleted successfully!",
+                message: "Parent deleted successfully!",
                 severity: "success",
                 position: { vertical: "top", horizontal: "center" },
             });
         } catch (error: any) {
             setSnackbar({
                 open: true,
-                message: error.message || "Failed to delete student",
+                message: error.message || "Failed to delete parent",
                 severity: "error",
                 position: { vertical: "top", horizontal: "center" },
             });
@@ -113,23 +112,23 @@ const ListStudents: React.FC = () => {
 
     const handleSelectAll = () => {
         if (selectAll) {
-            setSelectedStudents([]);
+            setSelectedParents([]);
         } else {
-            setSelectedStudents(students.map(student => student.id));
+            setSelectedParents(parents.map(parent => parent.id));
         }
         setSelectAll(!selectAll);
     };
 
-    const handleSelectStudent = (id: number) => {
-        if (selectedStudents.includes(id)) {
-            setSelectedStudents(selectedStudents.filter(selectedId => selectedId !== id));
+    const handleSelectParent = (id: number) => {
+        if (selectedParents.includes(id)) {
+            setSelectedParents(selectedParents.filter(selectedId => selectedId !== id));
         } else {
-            setSelectedStudents([...selectedStudents, id]);
+            setSelectedParents([...selectedParents, id]);
         }
     };
 
-    const filteredStudents = students.filter(student =>
-        student.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredParents = parents.filter(parent =>
+        parent.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -139,33 +138,33 @@ const ListStudents: React.FC = () => {
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
-                itemCount={students.length}
+                itemCount={parents.length}
             />
 
             {loading ? (
                 <div className="rounded-lg p-8 text-center">
-                    <p className="text-xl font-semibold">Loading students...</p>
+                    <p className="text-xl font-semibold">Loading parents...</p>
                 </div>
             ) : error ? (
                 <div className="rounded-lg p-8 text-center">
                     <p className="text-xl font-semibold text-red-500">{error}</p>
                 </div>
-            ) : students.length === 0 ? (
+            ) : parents.length === 0 ? (
                 <div className="rounded-lg p-8 text-center">
-                    <p className="text-xl font-semibold mb-4">No students found.</p>
-                    <p className="text-gray-600">Click the "+" button to create a new student.</p>
+                    <p className="text-xl font-semibold mb-4">No parents found.</p>
+                    <p className="text-gray-600">Click the "+" button to create a new parent.</p>
                 </div>
-            ) : filteredStudents.length === 0 ? (
+            ) : filteredParents.length === 0 ? (
                 <div className="rounded-lg p-8 text-center">
-                    <p className="text-lg font-semibold">No students match your search criteria.</p>
+                    <p className="text-lg font-semibold">No parents match your search criteria.</p>
                 </div>
             ) : viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {filteredStudents.map((student) => (
+                    {filteredParents.map((parent) => (
                         <div
-                            key={student.id}
+                            key={parent.id}
                             className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform transition duration-300 hover:scale-105 hover:shadow-xl"
-                            onClick={() => handleOpenModal(student)}
+                            onClick={() => handleOpenModal(parent)}
                         >
                             <div className="p-6">
                                 <div className="flex items-center justify-between mb-4">
@@ -174,15 +173,12 @@ const ListStudents: React.FC = () => {
                                             <UserCircle2 size={24} className="text-white" />
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-semibold text-gray-900">{student.name}</h3>
-                                            <span className="text-sm text-gray-500">
-                                                ID: {student.idCardNumber}
-                                            </span>
+                                            <h3 className="text-lg font-semibold text-gray-900">{parent.name}</h3>
                                         </div>
                                     </div>
                                     <Checkbox
-                                        checked={selectedStudents.includes(student.id)}
-                                        onChange={() => handleSelectStudent(student.id)}
+                                        checked={selectedParents.includes(parent.id)}
+                                        onChange={() => handleSelectParent(parent.id)}
                                         onClick={(e) => e.stopPropagation()}
                                     />
                                 </div>
@@ -190,24 +186,21 @@ const ListStudents: React.FC = () => {
                                 <div className="space-y-2">
                                     <div className="flex items-center text-gray-600">
                                         <Mail size={16} className="mr-2" />
-                                        <span className="text-sm truncate">{student.email}</span>
+                                        <span className="text-sm truncate">{parent.email}</span>
                                     </div>
                                     <div className="flex items-center text-gray-600">
                                         <Phone size={16} className="mr-2" />
-                                        <span className="text-sm">{student.phone}</span>
+                                        <span className="text-sm">{parent.phone}</span>
                                     </div>
                                 </div>
 
                                 <div className="mt-4 pt-4 border-t border-gray-200">
-                                    <div className="flex items-center justify-between">
-                                        <span className="px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                                            Class {student.classID}
-                                        </span>
+                                    <div className="flex items-center justify-end">
                                         <IconButton
                                             aria-label="delete"
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleDelete(student.id);
+                                                handleDelete(parent.id);
                                             }}
                                             size="small"
                                         >
@@ -232,41 +225,37 @@ const ListStudents: React.FC = () => {
                                 </th>
                                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Sl.No</th>
                                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Name</th>
-                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">ID Number</th>
-                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Class</th>
-                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Contact</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Email</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Phone</th>
                                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredStudents.map((student, index) => (
-                                <tr key={student.id} className="cursor-pointer">
+                            {filteredParents.map((parent, index) => (
+                                <tr key={parent.id} className="cursor-pointer">
                                     <td className="text-center">
                                         <Checkbox
-                                            checked={selectedStudents.includes(student.id)}
-                                            onChange={() => handleSelectStudent(student.id)}
+                                            checked={selectedParents.includes(parent.id)}
+                                            onChange={() => handleSelectParent(parent.id)}
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                     </td>
-                                    <td className="text-center" onClick={() => handleOpenModal(student)}>
+                                    <td className="text-center" onClick={() => handleOpenModal(parent)}>
                                         <div className="text-sm font-medium text-gray-900">{index + 1}</div>
                                     </td>
-                                    <td className="text-center" onClick={() => handleOpenModal(student)}>
-                                        <div className="text-sm font-medium text-gray-900">{student.name}</div>
+                                    <td className="text-center" onClick={() => handleOpenModal(parent)}>
+                                        <div className="text-sm font-medium text-gray-900">{parent.name}</div>
                                     </td>
-                                    <td className="text-center" onClick={() => handleOpenModal(student)}>
-                                        <div className="text-sm font-medium text-gray-900">{student.idCardNumber}</div>
+                                    <td className="text-center" onClick={() => handleOpenModal(parent)}>
+                                        <div className="text-sm font-medium text-gray-900">{parent.email}</div>
                                     </td>
-                                    <td className="text-center" onClick={() => handleOpenModal(student)}>
-                                        <div className="text-sm font-medium text-gray-900">Class {student.classID}</div>
-                                    </td>
-                                    <td className="text-center" onClick={() => handleOpenModal(student)}>
-                                        <div className="text-sm font-medium text-gray-900">{student.phone}</div>
+                                    <td className="text-center" onClick={() => handleOpenModal(parent)}>
+                                        <div className="text-sm font-medium text-gray-900">{parent.phone}</div>
                                     </td>
                                     <td className="text-center">
                                         <IconButton
                                             aria-label="delete"
-                                            onClick={() => handleDelete(student.id)}
+                                            onClick={() => handleDelete(parent.id)}
                                         >
                                             <Trash2 size={20} className="text-red-500" />
                                         </IconButton>
@@ -285,7 +274,7 @@ const ListStudents: React.FC = () => {
                 >
                     <PlusCircle size={34} />
                     <span className="absolute left-[-140px] top-1/2 transform -translate-y-1/2 bg-white text-black text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow">
-                        Create New Student
+                        Create New Parent
                     </span>
                 </button>
             </div>
@@ -301,21 +290,13 @@ const ListStudents: React.FC = () => {
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: '90%',
-                    maxWidth: 1000,
-                    height: '90%',
-                    maxHeight: 900,
+                    width: 400,
                     bgcolor: 'background.paper',
                     boxShadow: 24,
                     p: 4,
                     borderRadius: 2,
-                    overflow: 'auto',
                 }}>
-                    <CreateStudents
-                        initialData={editingStudent}
-                        onSave={handleSave}
-                        onCancel={handleCloseModal}
-                    />
+                    <CreateParent onClose={handleSave} />
                 </Box>
             </Modal>
 
@@ -330,4 +311,4 @@ const ListStudents: React.FC = () => {
     );
 };
 
-export default ListStudents;
+export default ListParents;
