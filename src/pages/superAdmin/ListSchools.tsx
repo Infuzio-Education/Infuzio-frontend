@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Checkbox from '@mui/material/Checkbox';
 import ListControls from '../../components/ListControls';
 import { useSchoolContext } from '../../contexts/SchoolContext';
-import { getSchools, deleteSchool } from '../../api/superAdmin';
+import { getSchools } from '../../api/superAdmin';
 import { School } from '../../types/Types';
 
 const ListSchools: React.FC = () => {

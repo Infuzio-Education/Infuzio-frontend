@@ -681,3 +681,60 @@ export const updateSyllabus = async (id: number, name: string) => {
         throw error;
     }
 };
+
+// Parent APIs
+export const createParent = async (parentData: any, schoolPrefix: string) => {
+    try {
+        console.log("parentData",parentData);
+        const response = await Api.post(`${superAdminEndpoints.createParent}?school_prefix=${schoolPrefix}`, parentData);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error creating parent:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const listParents = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.listParent}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error listing parents:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+// Student APIs
+export const createStudent = async (studentData: any, schoolPrefix: string) => {
+    try {
+        const response = await Api.post(`${superAdminEndpoints.createStudent}?school_prefix=${schoolPrefix}`, studentData);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error creating student:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const listStudents = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.listStudent}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error listing students:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+

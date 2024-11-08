@@ -36,8 +36,8 @@ const ListSyllabus: React.FC = () => {
             const response = await getSyllabus();
             if (response?.global && Array.isArray(response.global)) {
                 const formattedSyllabuses = response.global.map((syllabus: GlobalSyllabus) => ({
-                    ID: syllabus.id,
-                    Name: syllabus.name,
+                    id: syllabus.id,
+                    name: syllabus.name,
                     isCustomSyllabus: syllabus.isCustomSyllabus,
                     creatorSchoolCode: syllabus.creatorSchoolCode
                 }));
@@ -72,12 +72,12 @@ const ListSyllabus: React.FC = () => {
         try {
             if (editingIndex !== null) {
                 // Update existing syllabus
-                const response = await updateSyllabus(syllabuses[editingIndex].ID, syllabus.Name);
+                const response = await updateSyllabus(syllabuses[editingIndex].id, syllabus.name);
                 if (response.status === true) {
                     setSyllabuses(prevSyllabuses =>
                         prevSyllabuses.map(s =>
-                            s.ID === syllabuses[editingIndex].ID
-                                ? { ...s, Name: syllabus.Name }
+                            s.id === syllabuses[editingIndex].id
+                                ? { ...s, Name: syllabus.name }
                                 : s
                         )
                     );
@@ -92,7 +92,7 @@ const ListSyllabus: React.FC = () => {
                 }
             } else {
                 // Create new syllabus
-                const response = await createSyllabus(syllabus.Name);
+                const response = await createSyllabus(syllabus.name);
                 if (response.status === 200 || response.status === 201) {
                     await fetchSyllabuses(); // Refresh the list
                     setSnackbar({
@@ -117,7 +117,7 @@ const ListSyllabus: React.FC = () => {
     };
 
     const handleSelectAll = () => {
-        setSelectedSyllabuses(selectAll ? [] : syllabuses.map(s => s.ID));
+        setSelectedSyllabuses(selectAll ? [] : syllabuses.map(s => s.id));
         setSelectAll(!selectAll);
     };
 
@@ -129,7 +129,7 @@ const ListSyllabus: React.FC = () => {
 
     const filteredSyllabuses = Array.isArray(syllabuses)
         ? syllabuses.filter(syllabus =>
-            syllabus?.Name?.toLowerCase().includes(searchTerm.toLowerCase())
+            syllabus?.name?.toLowerCase().includes(searchTerm.toLowerCase())
         )
         : [];
 
@@ -137,7 +137,7 @@ const ListSyllabus: React.FC = () => {
         try {
             const response = await deleteSyllabus(id);
             if (response.status === true) {
-                setSyllabuses(syllabuses.filter(syllabus => syllabus.ID !== id));
+                setSyllabuses(syllabuses.filter(syllabus => syllabus.id !== id));
                 setSelectedSyllabuses(selectedSyllabuses.filter(syllabusId => syllabusId !== id));
                 setSnackbar({
                     open: true,
@@ -214,11 +214,11 @@ const ListSyllabus: React.FC = () => {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {filteredSyllabuses.map((syllabus, index) => (
-                                <tr key={syllabus.ID} className="cursor-pointer">
+                                <tr key={syllabus.id} className="cursor-pointer">
                                     <td className="text-center">
                                         <Checkbox
-                                            checked={selectedSyllabuses.includes(syllabus.ID)}
-                                            onChange={() => handleSelectSyllabus(syllabus.ID)}
+                                            checked={selectedSyllabuses.includes(syllabus.id)}
+                                            onChange={() => handleSelectSyllabus(syllabus.id)}
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                     </td>
@@ -226,12 +226,12 @@ const ListSyllabus: React.FC = () => {
                                         <div className="text-sm font-medium text-gray-900">{index + 1}</div>
                                     </td>
                                     <td className="text-center" onClick={() => handleOpenModal(index)}>
-                                        <div className="text-sm font-medium text-gray-900">{syllabus.Name}</div>
+                                        <div className="text-sm font-medium text-gray-900">{syllabus.name}</div>
                                     </td>
                                     <td className="text-center">
                                         <IconButton
                                             aria-label="delete"
-                                            onClick={() => handleDelete(syllabus.ID)}
+                                            onClick={() => handleDelete(syllabus.id)}
                                         >
                                             <Trash2 size={20} className="text-red-500" />
                                         </IconButton>

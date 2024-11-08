@@ -1,227 +1,393 @@
-import React, { useState } from 'react';
-import { TextField, Button, FormControl, InputLabel, Select, MenuItem, Grid, Avatar } from '@mui/material';
-import { CreateStudentProps, Student, Class } from '../../types/Types';
+import React, { useState, useEffect } from 'react';
+import { TextField, Button, FormControl, InputLabel, Select, MenuItem, Grid, Autocomplete, Modal, Box } from '@mui/material';
+import { CreateStudentProps } from '../../types/Types';
 import { Formik, Form, Field } from 'formik';
-import { Upload } from 'lucide-react';
 import CustomTabs from '../../components/CustomTabs';
+import { useSchoolContext } from '../../contexts/SchoolContext';
+import { getClasses, listParents } from '../../api/superAdmin';
+import SnackbarComponent from '../../components/SnackbarComponent';
+import { PlusCircle } from 'lucide-react';
+import CreateParent from './CreateParent';
+
+interface ParentInfo {
+    parentId: number;
+    relationshipWithStudent: string;
+}
+
+const RELATIONS = ['Father', 'Mother', 'Guardian'];
+const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
+const CATEGORIES = ['General', 'OBC', 'SC', 'ST', 'Other'];
 
 const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onCancel }) => {
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const { schoolInfo } = useSchoolContext();
+    const [classes, setClasses] = useState<any[]>([]);
+    const [parents, setParents] = useState<any[]>([]);
+    const [_loading, setLoading] = useState(true);
+    const [_error, setError] = useState<string | null>(null);
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success' as 'success' | 'error',
+        position: { vertical: 'top' as const, horizontal: 'center' as const }
+    });
+    const [openParentModal, setOpenParentModal] = useState(false);
 
-    // Mock data for classes
-    const classes: Class[] = [
-        { ID: 1, Name: "Class 1A", MediumId: 1, StandardId: 1, ClassStaffId: 1, GroupID: 1, SyllabusId: 1 },
-        { ID: 2, Name: "Class 2B", MediumId: 2, StandardId: 2, ClassStaffId: 2, GroupID: 2, SyllabusId: 2 },
-    ];
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                if (!schoolInfo.schoolPrefix) {
+                    throw new Error("School prefix not found");
+                }
+                const [classesResponse, parentsResponse] = await Promise.allSettled([
+                    getClasses(schoolInfo.schoolPrefix),
+                    listParents(schoolInfo.schoolPrefix)
+                ]);
+                console.log("classesResponse",classesResponse);
+                
 
-    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>, setFieldValue: (field: string, value: any) => void) => {
-        if (event.target.files && event.target.files[0]) {
-            const file = event.target.files[0];
-            setFieldValue('image', file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
+                if (classesResponse.status === "fulfilled" && classesResponse.value.status && classesResponse.value.resp_code === "SUCCESS") {
+                    setClasses(classesResponse.value.data);
+                }
+                if (parentsResponse.status === "fulfilled" && parentsResponse.value.status && parentsResponse.value.resp_code === "SUCCESS") {
+                    setParents(parentsResponse.value.data);
+                }
+            } catch (err: any) {
+                setError(err.message || 'Failed to fetch data');
+                setSnackbar({
+                    open: true,
+                    message: err.message || 'Failed to fetch data',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'center' },
+                });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [schoolInfo.schoolPrefix]);
+
+    const initialValues = {
+        id: '',
+        rollNumber: '',
+        classId: '',
+        dateOfBirth: '',
+        name: '',
+        idCardNumber: '',
+        gender: '',
+        dob: '',
+        phone: '',
+        email: '',
+        parentsInfo: [] as ParentInfo[],
+        street1: '',
+        street2: '',
+        city: '',
+        state: '',
+        pincode: '',
+        country: '',
+        bloodGroup: '',
+        remarks: '',
+        religion: '',
+        caste: '',
+        reservationCategory: '',
+        isPWD: false,
+        nationality: '',
+        classID: ''
     };
 
     return (
         <div className="flex flex-col h-full">
-            <div className="flex-grow overflow-auto">
+            <div className="flex-grow overflow-auto p-4">
                 <h2 className="text-xl font-bold mb-4">{initialData ? 'Edit Student' : 'Create Student'}</h2>
                 <Formik
-                    initialValues={initialData || {
-                        id: 0,
-                        name: '',
-                        rollNumber: '',
-                        classId: 0,
-                        dateOfBirth: '',
-                        gender: '',
-                        address: {
-                            line1: '',
-                            city: '',
-                            state: '',
-                            pinCode: '',
-                            country: '',
-                        },
-                        guardianName: '',
-                        guardianPhone: '',
-                        guardianEmail: '',
-                        image: null,
-                    }}
-                    onSubmit={(values) => {
-                        onSave(values as Student);
+                    initialValues={initialData || initialValues}
+                    onSubmit={async (values:any) => {
+                        try {
+                            onSave({ ...values, id: initialData?.id || 0 });
+                            setSnackbar({
+                                open: true,
+                                message: initialData ? 'Student updated successfully!' : 'Student created successfully!',
+                                severity: 'success',
+                                position: { vertical: 'top', horizontal: 'center' },
+                            });
+                        } catch (error: any) {
+                            setSnackbar({
+                                open: true,
+                                message: error.message || 'Failed to save student',
+                                severity: 'error',
+                                position: { vertical: 'top', horizontal: 'center' },
+                            });
+                        }
                     }}
                 >
-                    {({ setFieldValue }) => (
+                    {({ values, setFieldValue }) => (
                         <Form className="space-y-4">
-                            <div className="mb-4 flex flex-col items-center">
-                                <Avatar
-                                    src={imagePreview || initialData?.imageUrl}
-                                    sx={{ width: 100, height: 100, mb: 2 }}
-                                />
-                                <input
-                                    accept="image/*"
-                                    style={{ display: 'none' }}
-                                    id="raised-button-file"
-                                    type="file"
-                                    onChange={(event) => handleImageUpload(event, setFieldValue)}
-                                />
-                                <label htmlFor="raised-button-file">
-                                    <Button variant="outlined" component="span" startIcon={<Upload />}>
-                                        {imagePreview ? 'Change Image' : 'Upload Student Image'}
-                                    </Button>
-                                </label>
-                            </div>
-
-                            <Grid container spacing={2}>
-                                <Grid item xs={12} md={6}>
-                                    <Field
-                                        as={TextField}
-                                        name="name"
-                                        label="Student Name"
-                                        variant="outlined"
-                                        fullWidth
-                                        required
-                                    />
-                                </Grid>
-                                <Grid item xs={12} md={6}>
-                                    <Field
-                                        as={TextField}
-                                        name="rollNumber"
-                                        label="Roll Number"
-                                        variant="outlined"
-                                        fullWidth
-                                        required
-                                    />
-                                </Grid>
-                            </Grid>
-
-                            <Grid container spacing={2}>
-                                <Grid item xs={12} md={6}>
-                                    <FormControl fullWidth variant="outlined">
-                                        <InputLabel>Class</InputLabel>
+                            <CustomTabs labels={['Basic Info', 'Parents', 'Additional Info']}>
+                                {/* Basic Info Tab */}
+                                <Grid container spacing={2}>
+                                    <Grid item xs={12} md={6}>
                                         <Field
-                                            as={Select}
-                                            name="classId"
-                                            label="Class"
+                                            as={TextField}
+                                            name="name"
+                                            label="Student Name"
+                                            fullWidth
+                                            required
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <Field
+                                            as={TextField}
+                                            name="idCardNumber"
+                                            label="ID Card Number"
+                                            fullWidth
+                                            required
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <FormControl fullWidth>
+                                            <InputLabel>Gender</InputLabel>
+                                            <Field
+                                                as={Select}
+                                                name="gender"
+                                                label="Gender"
+                                            >
+                                                <MenuItem value="male">Male</MenuItem>
+                                                <MenuItem value="female">Female</MenuItem>
+                                                <MenuItem value="other">Other</MenuItem>
+                                            </Field>
+                                        </FormControl>
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <Field
+                                            as={TextField}
+                                            name="dob"
+                                            label="Date of Birth"
+                                            type="date"
+                                            fullWidth
+                                            InputLabelProps={{ shrink: true }}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <Field
+                                            as={TextField}
+                                            name="phone"
+                                            label="Phone"
+                                            fullWidth
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <Field
+                                            as={TextField}
+                                            name="email"
+                                            label="Email"
+                                            type="email"
+                                            fullWidth
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <FormControl fullWidth>
+                                            <InputLabel>Class</InputLabel>
+                                            <Field
+                                                as={Select}
+                                                name="classID"
+                                                label="Class"
+                                            >
+                                                {classes.map((cls: any) => (
+                                                    <MenuItem key={cls.ID} value={cls.ID}>
+                                                        {cls.Name}
+                                                    </MenuItem>
+                                                ))}
+                                            </Field>
+                                        </FormControl>
+                                    </Grid>
+                                </Grid>
+
+                                {/* Parents Tab */}
+                                <div>
+                                    <div className="flex justify-between items-center mb-4">
+                                        <Autocomplete
+                                            className="flex-grow mr-4"
+                                            multiple
+                                            options={parents}
+                                            getOptionLabel={(option) => `${option.name} (${option.phone})`}
+                                            onChange={(_, newValue) => {
+                                                const newParentsInfo = newValue.map(parent => ({
+                                                    parentId: parent.id,
+                                                    relationshipWithStudent: ''
+                                                }));
+                                                setFieldValue('parentsInfo', newParentsInfo);
+                                            }}
+                                            renderInput={(params) => (
+                                                <TextField
+                                                    {...params}
+                                                    label="Search Parents"
+                                                    variant="outlined"
+                                                />
+                                            )}
+                                        />
+                                        <Button
+                                            startIcon={<PlusCircle size={20} />}
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={() => setOpenParentModal(true)}
                                         >
-                                            {classes.map((cls) => (
-                                                <MenuItem key={cls.ID} value={cls.ID}>{cls.Name}</MenuItem>
-                                            ))}
-                                        </Field>
-                                    </FormControl>
-                                </Grid>
-                                <Grid item xs={12} md={6}>
-                                    <Field
-                                        as={TextField}
-                                        name="dateOfBirth"
-                                        label="Date of Birth"
-                                        type="date"
-                                        variant="outlined"
-                                        fullWidth
-                                        InputLabelProps={{
-                                            shrink: true,
-                                        }}
-                                    />
-                                </Grid>
-                            </Grid>
+                                            Add Parent
+                                        </Button>
+                                    </div>
+                                    <div className="mt-4">
+                                        {values.parentsInfo.map((parentInfo: ParentInfo, index: number) => (
+                                            <div key={index} className="flex gap-4 mt-2">
+                                                <div className="flex-grow">
+                                                    <TextField
+                                                        fullWidth
+                                                        disabled
+                                                        value={parents.find(p => p.id === parentInfo.parentId)?.name || ''}
+                                                        label="Parent Name"
+                                                    />
+                                                </div>
+                                                <FormControl fullWidth>
+                                                    <InputLabel>Relationship</InputLabel>
+                                                    <Select
+                                                        value={parentInfo.relationshipWithStudent}
+                                                        onChange={(e) => {
+                                                            const newParentsInfo = [...values.parentsInfo];
+                                                            newParentsInfo[index].relationshipWithStudent = e.target.value;
+                                                            setFieldValue('parentsInfo', newParentsInfo);
+                                                        }}
+                                                        label="Relationship"
+                                                    >
+                                                        {RELATIONS.map(relation => (
+                                                            <MenuItem key={relation} value={relation}>
+                                                                {relation}
+                                                            </MenuItem>
+                                                        ))}
+                                                    </Select>
+                                                </FormControl>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
 
-                            <FormControl fullWidth variant="outlined">
-                                <InputLabel>Gender</InputLabel>
-                                <Field
-                                    as={Select}
-                                    name="gender"
-                                    label="Gender"
-                                >
-                                    <MenuItem value="Male">Male</MenuItem>
-                                    <MenuItem value="Female">Female</MenuItem>
-                                    <MenuItem value="Other">Other</MenuItem>
-                                </Field>
-                            </FormControl>
+                                {/* Additional Info Tab */}
+                                <Grid container spacing={2}>
+                                    {/* Address Fields */}
+                                    <Grid item xs={12}>
+                                        <Field
+                                            as={TextField}
+                                            name="street1"
+                                            label="Address Line 1"
+                                            fullWidth
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <Field
+                                            as={TextField}
+                                            name="street2"
+                                            label="Address Line 2"
+                                            fullWidth
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <Field
+                                            as={TextField}
+                                            name="city"
+                                            label="City"
+                                            fullWidth
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <Field
+                                            as={TextField}
+                                            name="state"
+                                            label="State"
+                                            fullWidth
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <Field
+                                            as={TextField}
+                                            name="pincode"
+                                            label="Pin Code"
+                                            fullWidth
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <Field
+                                            as={TextField}
+                                            name="country"
+                                            label="Country"
+                                            fullWidth
+                                        />
+                                    </Grid>
 
-                            <CustomTabs labels={['Address', 'Guardian Information']}>
-                                <>
-                                    <Field
-                                        as={TextField}
-                                        name="address.line1"
-                                        label="Address Line 1"
-                                        variant="outlined"
-                                        fullWidth
-                                        margin="normal"
-                                    />
-                                    <Grid container spacing={2}>
-                                        <Grid item xs={12} md={6}>
+                                    {/* Other Fields */}
+                                    <Grid item xs={12} md={6}>
+                                        <FormControl fullWidth>
+                                            <InputLabel>Blood Group</InputLabel>
                                             <Field
-                                                as={TextField}
-                                                name="address.city"
-                                                label="City"
-                                                variant="outlined"
-                                                fullWidth
-                                                margin="normal"
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} md={6}>
-                                            <Field
-                                                as={TextField}
-                                                name="address.state"
-                                                label="State"
-                                                variant="outlined"
-                                                fullWidth
-                                                margin="normal"
-                                            />
-                                        </Grid>
+                                                as={Select}
+                                                name="bloodGroup"
+                                                label="Blood Group"
+                                            >
+                                                {BLOOD_GROUPS.map(group => (
+                                                    <MenuItem key={group} value={group}>
+                                                        {group}
+                                                    </MenuItem>
+                                                ))}
+                                            </Field>
+                                        </FormControl>
                                     </Grid>
-                                    <Grid container spacing={2}>
-                                        <Grid item xs={12} md={6}>
-                                            <Field
-                                                as={TextField}
-                                                name="address.pinCode"
-                                                label="Pin Code"
-                                                variant="outlined"
-                                                fullWidth
-                                                margin="normal"
-                                            />
-                                        </Grid>
-                                        <Grid item xs={12} md={6}>
-                                            <Field
-                                                as={TextField}
-                                                name="address.country"
-                                                label="Country"
-                                                variant="outlined"
-                                                fullWidth
-                                                margin="normal"
-                                            />
-                                        </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <Field
+                                            as={TextField}
+                                            name="religion"
+                                            label="Religion"
+                                            fullWidth
+                                        />
                                     </Grid>
-                                </>
-                                <>
-                                    <Field
-                                        as={TextField}
-                                        name="guardianName"
-                                        label="Guardian Name"
-                                        variant="outlined"
-                                        fullWidth
-                                        margin="normal"
-                                    />
-                                    <Field
-                                        as={TextField}
-                                        name="guardianPhone"
-                                        label="Guardian Phone"
-                                        variant="outlined"
-                                        fullWidth
-                                        margin="normal"
-                                    />
-                                    <Field
-                                        as={TextField}
-                                        name="guardianEmail"
-                                        label="Guardian Email"
-                                        variant="outlined"
-                                        fullWidth
-                                        margin="normal"
-                                    />
-                                </>
+                                    <Grid item xs={12} md={6}>
+                                        <Field
+                                            as={TextField}
+                                            name="caste"
+                                            label="Caste"
+                                            fullWidth
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <FormControl fullWidth>
+                                            <InputLabel>Reservation Category</InputLabel>
+                                            <Field
+                                                as={Select}
+                                                name="reservationCategory"
+                                                label="Reservation Category"
+                                            >
+                                                {CATEGORIES.map(category => (
+                                                    <MenuItem key={category} value={category}>
+                                                        {category}
+                                                    </MenuItem>
+                                                ))}
+                                            </Field>
+                                        </FormControl>
+                                    </Grid>
+                                    <Grid item xs={12} md={6}>
+                                        <Field
+                                            as={TextField}
+                                            name="nationality"
+                                            label="Nationality"
+                                            fullWidth
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <Field
+                                            as={TextField}
+                                            name="remarks"
+                                            label="Remarks"
+                                            multiline
+                                            rows={4}
+                                            fullWidth
+                                        />
+                                    </Grid>
+                                </Grid>
                             </CustomTabs>
 
                             <div className="flex justify-end space-x-2 mt-4">
@@ -236,6 +402,58 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
                     )}
                 </Formik>
             </div>
+
+            <Modal
+                open={openParentModal}
+                onClose={() => setOpenParentModal(false)}
+                aria-labelledby="create-parent-modal"
+            >
+                <Box sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 400,
+                    bgcolor: 'background.paper',
+                    boxShadow: 24,
+                    p: 4,
+                    borderRadius: 2,
+                }}>
+                    <CreateParent 
+                        onClose={() => {
+                            setOpenParentModal(false);
+                            // Refresh parents list after creating a new parent
+                            const fetchParents = async () => {
+                                try {
+                                    if (!schoolInfo.schoolPrefix) {
+                                        throw new Error("School prefix not found");
+                                    }
+                                    const response = await listParents(schoolInfo.schoolPrefix);
+                                    if (response.status && response.resp_code === "SUCCESS") {
+                                        setParents(response.data);
+                                    }
+                                } catch (err: any) {
+                                    setSnackbar({
+                                        open: true,
+                                        message: err.message || 'Failed to fetch parents',
+                                        severity: 'error',
+                                        position: { vertical: 'top', horizontal: 'center' },
+                                    });
+                                }
+                            };
+                            fetchParents();
+                        }} 
+                    />
+                </Box>
+            </Modal>
+
+            <SnackbarComponent
+                open={snackbar.open}
+                message={snackbar.message}
+                severity={snackbar.severity}
+                position={snackbar.position}
+                onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+            />
         </div>
     );
 };

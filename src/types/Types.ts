@@ -72,8 +72,8 @@ export interface DynamicListsProps {
 }
 
 export interface Syllabus {
-    ID: number;
-    Name: string;
+    id: number;
+    name: string;
 }
 
 export interface CreateSyllabusProps {
@@ -206,10 +206,13 @@ export interface CreateClassProps {
 }
 
 export interface Student {
+    phone: number;
+    email: string;
+    idCardNumber: number;
     id: number;
     name: string;
     rollNumber: string;
-    classId: number;
+    classID: number;
     dateOfBirth: string;
     gender: string;
     address: {

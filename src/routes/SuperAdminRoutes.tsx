@@ -17,6 +17,7 @@ import ListGroups from "../pages/superAdmin/ListGroups";
 import ListClasses from "../pages/superAdmin/ListClasses";
 import ListStudents from "../pages/superAdmin/ListStudents";
 import ListCastes from "../pages/superAdmin/ListCastes";
+import ListParents from "../pages/superAdmin/ListParents";
 
 const SuperAdminRoutes = () => {
     return (
@@ -41,6 +42,7 @@ const SuperAdminRoutes = () => {
                         <Route path="staffs" element={<ListStaffs />} />
                         <Route path="schools/:id/classes" element={<ListClasses />} />
                         <Route path="schools/:id/students" element={<ListStudents />} />
+                        <Route path="schools/:id/parents" element={<ListParents />} />
                         <Route path="castes" element={<ListCastes />} />
                     </Route>
                 </Route>

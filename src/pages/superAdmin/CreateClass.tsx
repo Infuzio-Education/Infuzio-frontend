@@ -41,6 +41,8 @@ const CreateClass: React.FC<CreateClassProps> = ({ initialData, onSave, onCancel
                     listStaff(schoolInfo.schoolPrefix || '')
                 ]);
 
+                console.log(syllabusRes)
+
                 setMediums(mediumsRes.data || []);
                 setStandards(standardsRes.data || []);
                 setSyllabuses(syllabusRes.global || []);
@@ -199,8 +201,8 @@ const CreateClass: React.FC<CreateClassProps> = ({ initialData, onSave, onCancel
                                         >
                                             {syllabuses.length > 0 ? (
                                                 syllabuses.map((syllabus: any) => (
-                                                    <MenuItem key={syllabus.ID} value={syllabus.ID}>
-                                                        {syllabus.Name}
+                                                    <MenuItem key={syllabus.id} value={syllabus.id}>
+                                                        {syllabus.name}
                                                     </MenuItem>
                                                 ))
                                             ) : (
