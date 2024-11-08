@@ -4,6 +4,7 @@ import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
 import CreateStudents from './CreateStudents';
 import { Student } from '../../types/Types';
+import GridView from '../../components/GridView';
 
 const ListStudents: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -52,7 +53,7 @@ const ListStudents: React.FC = () => {
     const [selectedStudents, setSelectedStudents] = useState<number[]>([]);
     const [selectAll, setSelectAll] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+    const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
 
     const handleOpenModal = (student: Student | null) => {
         setEditingStudent(student);
@@ -96,6 +97,21 @@ const ListStudents: React.FC = () => {
         }
     };
 
+    const getStudentContent = (student: Student) => ({
+        title: student.name,
+        subtitle: `Roll No: ${student.rollNumber}`,
+        email: student.guardianEmail,
+        phone: student.guardianPhone,
+        status: {
+            label: `Class ${student.classId}`,
+            color: 'bg-blue-100 text-blue-800'
+        },
+        avatar: {
+            letter: student.name.charAt(0).toUpperCase(),
+            image: student.imageUrl
+        }
+    });
+
     return (
         <div className="min-h-screen bg-gray-200 p-8 relative">
             <ListControls
@@ -106,71 +122,82 @@ const ListStudents: React.FC = () => {
                 itemCount={students.length}
             />
             <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                <table className="w-full">
-                    <thead>
-                        <tr className="bg-gray-300">
-                            <th className="text-center w-1/12">
-                                <Checkbox
-                                    checked={selectAll}
-                                    onChange={handleSelectAll}
-                                />
-                            </th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Sl.No</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Image</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Name</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Roll No</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Class</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Guardian</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Contact</th>
-                            <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {students.map((student, index) => (
-                            <tr key={student.id} className="cursor-pointer">
-                                <td className="text-center">
+                {viewMode === 'grid' ? (
+                    <GridView
+                        items={students}
+                        selectedItems={selectedStudents}
+                        onSelect={handleSelectStudent}
+                        onDelete={handleDelete}
+                        onItemClick={handleOpenModal}
+                        getItemContent={getStudentContent}
+                    />
+                ) : (
+                    <table className="w-full">
+                        <thead>
+                            <tr className="bg-gray-300">
+                                <th className="text-center w-1/12">
                                     <Checkbox
-                                        checked={selectedStudents.includes(student.id)}
-                                        onChange={() => handleSelectStudent(student.id)}
-                                        onClick={(e) => e.stopPropagation()}
+                                        checked={selectAll}
+                                        onChange={handleSelectAll}
                                     />
-                                </td>
-                                <td className="text-center" onClick={() => handleOpenModal(student)}>
-                                    <div className="text-sm font-medium text-gray-900">{index + 1}</div>
-                                </td>
-                                <td className="text-center" onClick={() => handleOpenModal(student)}>
-                                    <Avatar
-                                        src={student.imageUrl}
-                                        sx={{ width: 40, height: 40, margin: 'auto' }}
-                                    />
-                                </td>
-                                <td className="text-center" onClick={() => handleOpenModal(student)}>
-                                    <div className="text-sm font-medium text-gray-900">{student.name}</div>
-                                </td>
-                                <td className="text-center" onClick={() => handleOpenModal(student)}>
-                                    <div className="text-sm font-medium text-gray-900">{student.rollNumber}</div>
-                                </td>
-                                <td className="text-center" onClick={() => handleOpenModal(student)}>
-                                    <div className="text-sm font-medium text-gray-900">Class {student.classId}</div>
-                                </td>
-                                <td className="text-center" onClick={() => handleOpenModal(student)}>
-                                    <div className="text-sm font-medium text-gray-900">{student.guardianName}</div>
-                                </td>
-                                <td className="text-center" onClick={() => handleOpenModal(student)}>
-                                    <div className="text-sm font-medium text-gray-900">{student.guardianPhone}</div>
-                                </td>
-                                <td className="text-center">
-                                    <IconButton
-                                        aria-label="delete"
-                                        onClick={() => handleDelete(student.id)}
-                                    >
-                                        <Trash2 size={20} className="text-red-500" />
-                                    </IconButton>
-                                </td>
+                                </th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Sl.No</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Image</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Name</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Roll No</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Class</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Guardian</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Contact</th>
+                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {students.map((student, index) => (
+                                <tr key={student.id} className="cursor-pointer">
+                                    <td className="text-center">
+                                        <Checkbox
+                                            checked={selectedStudents.includes(student.id)}
+                                            onChange={() => handleSelectStudent(student.id)}
+                                            onClick={(e) => e.stopPropagation()}
+                                        />
+                                    </td>
+                                    <td className="text-center" onClick={() => handleOpenModal(student)}>
+                                        <div className="text-sm font-medium text-gray-900">{index + 1}</div>
+                                    </td>
+                                    <td className="text-center" onClick={() => handleOpenModal(student)}>
+                                        <Avatar
+                                            src={student.imageUrl}
+                                            sx={{ width: 40, height: 40, margin: 'auto' }}
+                                        />
+                                    </td>
+                                    <td className="text-center" onClick={() => handleOpenModal(student)}>
+                                        <div className="text-sm font-medium text-gray-900">{student.name}</div>
+                                    </td>
+                                    <td className="text-center" onClick={() => handleOpenModal(student)}>
+                                        <div className="text-sm font-medium text-gray-900">{student.rollNumber}</div>
+                                    </td>
+                                    <td className="text-center" onClick={() => handleOpenModal(student)}>
+                                        <div className="text-sm font-medium text-gray-900">Class {student.classId}</div>
+                                    </td>
+                                    <td className="text-center" onClick={() => handleOpenModal(student)}>
+                                        <div className="text-sm font-medium text-gray-900">{student.guardianName}</div>
+                                    </td>
+                                    <td className="text-center" onClick={() => handleOpenModal(student)}>
+                                        <div className="text-sm font-medium text-gray-900">{student.guardianPhone}</div>
+                                    </td>
+                                    <td className="text-center">
+                                        <IconButton
+                                            aria-label="delete"
+                                            onClick={() => handleDelete(student.id)}
+                                        >
+                                            <Trash2 size={20} className="text-red-500" />
+                                        </IconButton>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
             </div>
             <div className="fixed bottom-10 right-16 flex items-center space-x-2">
                 <button
