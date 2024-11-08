@@ -81,11 +81,7 @@ const ListReligions: React.FC = () => {
                 // Create new religion
                 const response = await createReligion(name);
                 if (response.status === true) {
-                    const newReligion: Religion = {
-                        ID: Date.now(),
-                        Name: name,
-                    };
-                    setReligions((prevReligion) => [...prevReligion, newReligion]);
+                    await fetchReligions(); // Refresh the list instead of manually adding
                     setSnackbar({
                         open: true,
                         message: 'Religion created successfully!',
@@ -113,6 +109,7 @@ const ListReligions: React.FC = () => {
             const response = await deleteReligion(id);
             if (response.status === true) {
                 setReligions(religions.filter(religion => religion.ID !== id));
+                setSelectedReligions(selectedReligions.filter(religionId => religionId !== id));
                 setSnackbar({
                     open: true,
                     message: 'Religion deleted successfully!',
@@ -124,12 +121,22 @@ const ListReligions: React.FC = () => {
             }
         } catch (error: any) {
             console.error('Error deleting religion:', error);
-            setSnackbar({
-                open: true,
-                message: error.message || 'Failed to delete religion',
-                severity: 'error',
-                position: { vertical: 'top', horizontal: 'center' }
-            });
+
+            if (error.response?.status === 409 && error.response?.data?.resp_code === 'RECORD_IN_USE') {
+                setSnackbar({
+                    open: true,
+                    message: 'Cannot delete religion as it is being used by other records',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            } else {
+                setSnackbar({
+                    open: true,
+                    message: error.response?.data?.error || 'Failed to delete religion',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            }
         }
     };
 

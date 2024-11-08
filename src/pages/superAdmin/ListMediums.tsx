@@ -3,7 +3,7 @@ import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
 import CreateMedium from './CreateMedium';
-import { getMediums, createMediums, updateMediums } from '../../api/superAdmin';
+import { getMediums, createMediums, updateMediums, deleteMedium } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { Medium } from '../../types/Types';
 
@@ -64,8 +64,8 @@ const ListMediums: React.FC = () => {
             if (editingMedium) {
                 const response = await updateMediums(editingMedium.ID, name);
                 if (response.status && response.resp_code === "SUCCESS") {
-                    setMediums(prevMediums => 
-                        prevMediums.map(medium => 
+                    setMediums(prevMediums =>
+                        prevMediums.map(medium =>
                             medium.ID === editingMedium.ID ? { ...medium, Name: name } : medium
                         )
                     );
@@ -81,11 +81,7 @@ const ListMediums: React.FC = () => {
             } else {
                 const response = await createMediums(name);
                 if (response.status && response.resp_code === "CREATED") {
-                    const newMedium: Medium = {
-                        ID: Date.now(),
-                        Name: name,
-                    };
-                    setMediums((prevMediums) => [...prevMediums, newMedium]);
+                    await fetchMediums();
                     setSnackbar({
                         open: true,
                         message: "Medium created successfully!",
@@ -109,21 +105,39 @@ const ListMediums: React.FC = () => {
     };
 
     const handleDelete = async (id: number) => {
+        console.log('id', id);
         try {
-            setMediums(mediums.filter(medium => medium.ID !== id));
-            setSnackbar({
-                open: true,
-                message: 'Medium deleted successfully!',
-                severity: 'success',
-                position: { vertical: 'top', horizontal: 'center' }
-            });
+            const response = await deleteMedium(id);
+            if (response.status === true) {
+                setMediums(mediums.filter(medium => medium.ID !== id));
+                setSelectedMediums(selectedMediums.filter(mediumId => mediumId !== id));
+                setSnackbar({
+                    open: true,
+                    message: 'Medium deleted successfully!',
+                    severity: 'success',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            } else {
+                throw new Error(response.message || 'Failed to delete medium');
+            }
         } catch (error: any) {
-            setSnackbar({
-                open: true,
-                message: error.message || 'Failed to delete medium',
-                severity: 'error',
-                position: { vertical: 'top', horizontal: 'center' }
-            });
+            console.error('Error deleting medium:', error);
+
+            if (error.response?.status === 409 && error.response?.data?.resp_code === 'RECORD_IN_USE') {
+                setSnackbar({
+                    open: true,
+                    message: 'Cannot delete medium as it is being used by other records',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            } else {
+                setSnackbar({
+                    open: true,
+                    message: error.response?.data?.error || 'Failed to delete medium',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            }
         }
     };
 

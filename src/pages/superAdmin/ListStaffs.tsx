@@ -4,7 +4,7 @@ import { PlusCircle, Trash2, Mail, Phone, UserCircle2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
 import CreateStaffs from './CreateStaffs';
 import { Staff } from '../../types/Types';
-import { listStaff } from '../../api/superAdmin';
+import { listStaff, deleteStaff } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 
@@ -85,8 +85,40 @@ const ListStaffs: React.FC = () => {
         }
     };
 
-    const handleDelete = (id: number) => {
-        setStaffs(staffs.filter(staff => staff.ID !== id));
+    const handleDelete = async (id: number) => {
+        try {
+            const response = await deleteStaff(id, schoolInfo.schoolPrefix || '');
+            if (response.status === true) {
+                setStaffs(staffs.filter(staff => staff.ID !== id));
+                setSelectedStaffs(selectedStaffs.filter(staffId => staffId !== id));
+                setSnackbar({
+                    open: true,
+                    message: 'Staff deleted successfully!',
+                    severity: 'success',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            } else {
+                throw new Error(response.message || 'Failed to delete staff');
+            }
+        } catch (error: any) {
+            console.error('Error deleting staff:', error);
+
+            if (error.response?.status === 409 && error.response?.data?.resp_code === 'RECORD_IN_USE') {
+                setSnackbar({
+                    open: true,
+                    message: 'Cannot delete staff as they are assigned to classes',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            } else {
+                setSnackbar({
+                    open: true,
+                    message: error.response?.data?.error || 'Failed to delete staff',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            }
+        }
     };
 
     const handleSelectAll = () => {
@@ -178,11 +210,10 @@ const ListStaffs: React.FC = () => {
 
                                 <div className="mt-4 pt-4 border-t border-gray-200">
                                     <div className="flex items-center justify-between">
-                                        <span className={`px-3 py-1 rounded-full text-xs ${
-                                            staff.is_teaching_staff 
-                                                ? 'bg-green-100 text-green-800' 
+                                        <span className={`px-3 py-1 rounded-full text-xs ${staff.is_teaching_staff
+                                                ? 'bg-green-100 text-green-800'
                                                 : 'bg-blue-100 text-blue-800'
-                                        }`}>
+                                            }`}>
                                             {staff.is_teaching_staff ? 'Teaching Staff' : 'Non-Teaching Staff'}
                                         </span>
                                         <IconButton

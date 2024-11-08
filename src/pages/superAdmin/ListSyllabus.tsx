@@ -4,7 +4,7 @@ import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
 import CreateSyllabus from './CreateSyllubus';
 import { Syllabus } from '../../types/Types';
-import { getSyllabus, createSyllabus, deleteSyllabus } from '../../api/superAdmin';
+import { getSyllabus, createSyllabus, deleteSyllabus, updateSyllabus } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { GlobalSyllabus } from '../../types/Types';
 
@@ -70,23 +70,45 @@ const ListSyllabus: React.FC = () => {
 
     const handleSave = async (syllabus: Syllabus) => {
         try {
-            const response = await createSyllabus(syllabus.Name);
-            if (response.status === 200 || response.status === 201) {
-                const newSyllabus: Syllabus = { ID: response.data.id, Name: syllabus.Name };
-                setSyllabuses([...syllabuses, newSyllabus]);
-                setSnackbar({
-                    open: true,
-                    message: 'Syllabus created successfully!',
-                    severity: 'success',
-                    position: { vertical: 'top', horizontal: 'center' }
-                });
+            if (editingIndex !== null) {
+                // Update existing syllabus
+                const response = await updateSyllabus(syllabuses[editingIndex].ID, syllabus.Name);
+                if (response.status === true) {
+                    setSyllabuses(prevSyllabuses =>
+                        prevSyllabuses.map(s =>
+                            s.ID === syllabuses[editingIndex].ID
+                                ? { ...s, Name: syllabus.Name }
+                                : s
+                        )
+                    );
+                    setSnackbar({
+                        open: true,
+                        message: 'Syllabus updated successfully!',
+                        severity: 'success',
+                        position: { vertical: 'top', horizontal: 'center' }
+                    });
+                } else {
+                    throw new Error(response.message || 'Failed to update syllabus');
+                }
             } else {
-                throw new Error(response.data.error || 'Failed to create syllabus');
+                // Create new syllabus
+                const response = await createSyllabus(syllabus.Name);
+                if (response.status === 200 || response.status === 201) {
+                    await fetchSyllabuses(); // Refresh the list
+                    setSnackbar({
+                        open: true,
+                        message: 'Syllabus created successfully!',
+                        severity: 'success',
+                        position: { vertical: 'top', horizontal: 'center' }
+                    });
+                } else {
+                    throw new Error(response.data.error || 'Failed to create syllabus');
+                }
             }
         } catch (error: any) {
             setSnackbar({
                 open: true,
-                message: error.message || 'Failed to create syllabus',
+                message: error.message || 'Failed to save syllabus',
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'center' }
             });
@@ -116,6 +138,7 @@ const ListSyllabus: React.FC = () => {
             const response = await deleteSyllabus(id);
             if (response.status === true) {
                 setSyllabuses(syllabuses.filter(syllabus => syllabus.ID !== id));
+                setSelectedSyllabuses(selectedSyllabuses.filter(syllabusId => syllabusId !== id));
                 setSnackbar({
                     open: true,
                     message: 'Syllabus deleted successfully!',
@@ -127,12 +150,22 @@ const ListSyllabus: React.FC = () => {
             }
         } catch (error: any) {
             console.error('Error deleting syllabus:', error);
-            setSnackbar({
-                open: true,
-                message: error.message || 'Failed to delete syllabus',
-                severity: 'error',
-                position: { vertical: 'top', horizontal: 'center' }
-            });
+
+            if (error.response?.status === 409 && error.response?.data?.resp_code === 'RECORD_IN_USE') {
+                setSnackbar({
+                    open: true,
+                    message: 'Cannot delete syllabus as it is being used by other records',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            } else {
+                setSnackbar({
+                    open: true,
+                    message: error.response?.data?.error || 'Failed to delete syllabus',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            }
         }
     };
 

@@ -77,7 +77,7 @@ const ListClasses: React.FC = () => {
                 throw new Error("School prefix not found");
             }
 
-            classData = classData.group_id ? {...classData} : {...classData, group_id: 0};
+            classData = classData.group_id ? { ...classData } : { ...classData, group_id: 0 };
 
             if (editingClass) {
                 const updateData = {
@@ -91,7 +91,7 @@ const ListClasses: React.FC = () => {
                 };
 
                 const response = await updateClass(updateData, schoolInfo.schoolPrefix);
-                
+
                 if (response.status && response.resp_code === "SUCCESS") {
                     await fetchClasses();
                     setSnackbar({
@@ -105,7 +105,7 @@ const ListClasses: React.FC = () => {
                 }
             } else {
                 const response = await createClass(classData, schoolInfo.schoolPrefix);
-                
+
                 if (response.status && response.resp_code === "CREATED") {
                     await fetchClasses();
                     setSnackbar({
@@ -132,27 +132,37 @@ const ListClasses: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            // Implement delete API call here
-            const response = await deleteClass(id,schoolInfo.schoolPrefix || '');
-
-            if(response.status && response.resp_code === "SUCCESS"){
+            const response = await deleteClass(id, schoolInfo.schoolPrefix || '');
+            if (response.status === true) {
                 setClasses(classes.filter(c => c.ID !== id));
+                setSelectedClasses(selectedClasses.filter(classId => classId !== id));
                 setSnackbar({
-                open: true,
-                message: "Class deleted successfully!",
-                severity: "success",
-                    position: { vertical: "top", horizontal: "center" },
+                    open: true,
+                    message: 'Class deleted successfully!',
+                    severity: 'success',
+                    position: { vertical: 'top', horizontal: 'center' }
                 });
             } else {
-                throw new Error(response.data || "Failed to delete class");
+                throw new Error(response.message || 'Failed to delete class');
             }
         } catch (error: any) {
-            setSnackbar({
-                open: true,
-                message: error.message || "Failed to delete class",
-                severity: "error",
-                position: { vertical: "top", horizontal: "center" },
-            });
+            console.error('Error deleting class:', error);
+
+            if (error.response?.status === 409 && error.response?.data?.resp_code === 'RECORD_IN_USE') {
+                setSnackbar({
+                    open: true,
+                    message: 'Cannot delete class as it has students enrolled',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            } else {
+                setSnackbar({
+                    open: true,
+                    message: error.response?.data?.error || 'Failed to delete class',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            }
         }
     };
 

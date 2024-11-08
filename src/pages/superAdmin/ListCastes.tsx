@@ -120,6 +120,7 @@ const ListCastes: React.FC = () => {
             const response = await deleteCaste(id);
             if (response.status === true) {
                 setCastes(castes.filter(caste => caste.ID !== id));
+                setSelectedCastes(selectedCastes.filter(casteId => casteId !== id));
                 setSnackbar({
                     open: true,
                     message: 'Caste deleted successfully!',
@@ -131,12 +132,22 @@ const ListCastes: React.FC = () => {
             }
         } catch (error: any) {
             console.error('Error deleting caste:', error);
-            setSnackbar({
-                open: true,
-                message: error.message || 'Failed to delete caste',
-                severity: 'error',
-                position: { vertical: 'top', horizontal: 'center' }
-            });
+
+            if (error.response?.status === 409 && error.response?.data?.resp_code === 'RECORD_IN_USE') {
+                setSnackbar({
+                    open: true,
+                    message: 'Cannot delete caste as it is being used by other records',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            } else {
+                setSnackbar({
+                    open: true,
+                    message: error.response?.data?.error || 'Failed to delete caste',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            }
         }
     };
 
