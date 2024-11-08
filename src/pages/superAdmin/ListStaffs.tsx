@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Checkbox, Modal, Box, IconButton } from "@mui/material";
-import { PlusCircle, Trash2, Mail, Phone, UserCircle2 } from "lucide-react";
+import { PlusCircle, Trash2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
 import CreateStaffs from './CreateStaffs';
 import { Staff } from '../../types/Types';
 import { listStaff, deleteStaff } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { useSchoolContext } from '../../contexts/SchoolContext';
+import GridView from '../../components/GridView';
 
 const ListStaffs: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -17,7 +18,7 @@ const ListStaffs: React.FC = () => {
     const [selectedStaffs, setSelectedStaffs] = useState<number[]>([]);
     const [selectAll, setSelectAll] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
@@ -142,6 +143,20 @@ const ListStaffs: React.FC = () => {
         staff.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const getStaffContent = (staff: Staff) => ({
+        title: staff.name,
+        subtitle: staff.id_card_number,
+        email: staff.email,
+        phone: staff.mobile,
+        status: {
+            label: staff.is_teaching_staff ? 'Teaching Staff' : 'Non-Teaching Staff',
+            color: staff.is_teaching_staff ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+        },
+        avatar: {
+            letter: staff.name.charAt(0).toUpperCase()
+        }
+    });
+
     return (
         <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">
             <ListControls
@@ -170,68 +185,14 @@ const ListStaffs: React.FC = () => {
                     <p className="text-lg font-semibold">No staffs match your search criteria.</p>
                 </div>
             ) : viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {filteredStaffs.map((staff) => (
-                        <div
-                            key={staff.ID}
-                            className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform transition duration-300 hover:scale-105 hover:shadow-xl"
-                            onClick={() => handleOpenModal(staff)}
-                        >
-                            <div className="p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="bg-[#308369] rounded-full p-2">
-                                            <UserCircle2 size={24} className="text-white" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-lg font-semibold text-gray-900">{staff.name}</h3>
-                                            <span className="text-sm text-gray-500">
-                                                {staff.id_card_number}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <Checkbox
-                                        checked={selectedStaffs.includes(staff.ID)}
-                                        onChange={() => handleSelectStaff(staff.ID)}
-                                        onClick={(e) => e.stopPropagation()}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <div className="flex items-center text-gray-600">
-                                        <Mail size={16} className="mr-2" />
-                                        <span className="text-sm truncate">{staff.email}</span>
-                                    </div>
-                                    <div className="flex items-center text-gray-600">
-                                        <Phone size={16} className="mr-2" />
-                                        <span className="text-sm">{staff.mobile}</span>
-                                    </div>
-                                </div>
-
-                                <div className="mt-4 pt-4 border-t border-gray-200">
-                                    <div className="flex items-center justify-between">
-                                        <span className={`px-3 py-1 rounded-full text-xs ${staff.is_teaching_staff
-                                                ? 'bg-green-100 text-green-800'
-                                                : 'bg-blue-100 text-blue-800'
-                                            }`}>
-                                            {staff.is_teaching_staff ? 'Teaching Staff' : 'Non-Teaching Staff'}
-                                        </span>
-                                        <IconButton
-                                            aria-label="delete"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDelete(staff.ID);
-                                            }}
-                                            size="small"
-                                        >
-                                            <Trash2 size={16} className="text-red-500" />
-                                        </IconButton>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                <GridView
+                    items={filteredStaffs}
+                    selectedItems={selectedStaffs}
+                    onSelect={handleSelectStaff}
+                    onDelete={handleDelete}
+                    onItemClick={handleOpenModal}
+                    getItemContent={getStaffContent}
+                />
             ) : (
                 <div className="bg-white shadow-md rounded-lg overflow-hidden">
                     <table className="w-full">
