@@ -4,10 +4,11 @@ import { CreateStudentProps } from '../../types/Types';
 import { Formik, Form, Field } from 'formik';
 import CustomTabs from '../../components/CustomTabs';
 import { useSchoolContext } from '../../contexts/SchoolContext';
-import { getClasses, listParents } from '../../api/superAdmin';
+import { createStudent, getClasses, listParents } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { PlusCircle } from 'lucide-react';
 import CreateParent from './CreateParent';
+import * as Yup from 'yup';
 
 interface ParentInfo {
     parentId: number;
@@ -17,6 +18,39 @@ interface ParentInfo {
 const RELATIONS = ['Father', 'Mother', 'Guardian'];
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
 const CATEGORIES = ['General', 'OBC', 'SC', 'ST', 'Other'];
+
+const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+};
+
+// Define the type for form values
+interface StudentFormValues {
+    name: string;
+    idCardNumber: string;
+    gender: string;
+    dob: string;
+    phone: string;
+    email: string;
+    parentsInfo: ParentInfo[]; // Ensure parentsInfo is included
+    street1: string;
+    street2: string;
+    city: string;
+    state: string;
+    pincode: string;
+    country: string;
+    bloodGroup: string;
+    remarks: string;
+    religion: string;
+    caste: string;
+    reservationCategory: string;
+    isPWD: boolean;
+    nationality: string;
+    classID: string;
+}
 
 const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onCancel }) => {
     const { schoolInfo } = useSchoolContext();
@@ -49,7 +83,7 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
                     setClasses(classesResponse.value.data);
                 }
                 if (parentsResponse.status === "fulfilled" && parentsResponse.value.status && parentsResponse.value.resp_code === "SUCCESS") {
-                    setParents(parentsResponse.value.data);
+                    setParents(parentsResponse.value.data.parents);
                 }
             } catch (err: any) {
                 setError(err.message || 'Failed to fetch data');
@@ -67,32 +101,67 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
         fetchData();
     }, [schoolInfo.schoolPrefix]);
 
-    const initialValues = {
-        id: '',
-        rollNumber: '',
-        classId: '',
-        dateOfBirth: '',
-        name: '',
-        idCardNumber: '',
-        gender: '',
-        dob: '',
-        phone: '',
-        email: '',
-        parentsInfo: [] as ParentInfo[],
-        street1: '',
-        street2: '',
-        city: '',
-        state: '',
-        pincode: '',
-        country: '',
-        bloodGroup: '',
-        remarks: '',
-        religion: '',
-        caste: '',
-        reservationCategory: '',
-        isPWD: false,
-        nationality: '',
-        classID: ''
+    const handleSubmit = async (values: any, { setSubmitting }: any) => {
+        try {
+            if (!schoolInfo.schoolPrefix) {
+                throw new Error("School prefix not found");
+            }
+
+            // Create a FormData object
+            const formData = new FormData();
+            formData.append('name', values.name);
+            formData.append('idCardNumber', values.idCardNumber);
+            formData.append('gender', values.gender);
+            formData.append('dob', formatDate(values.dob));
+            formData.append('phone', values.phone);
+            formData.append('email', values.email);
+            values.parentsInfo.forEach((parent: any) => {
+                formData.append('parentsInfo[]', JSON.stringify({
+                    parentId: parent.parentId,
+                    relationshipWithStudent: parent.relationshipWithStudent
+                }));
+            });
+            formData.append('street1', values.street1);
+            formData.append('street2', values.street2);
+            formData.append('city', values.city);
+            formData.append('state', values.state);
+            formData.append('pincode', values.pincode);
+            formData.append('country', values.country);
+            formData.append('bloodGroup', values.bloodGroup);
+            formData.append('remarks', values.remarks);
+            formData.append('religion', values.religion);
+            formData.append('caste', values.caste);
+            formData.append('reservationCategory', values.reservationCategory);
+            formData.append('isPWD', values.isPWD);
+            formData.append('nationality', values.nationality);
+            formData.append('classID', values.classID);
+
+            if (initialData) {
+                // Handle update if needed
+                // await updateStudent(initialData.id, formData, schoolInfo.schoolPrefix);
+            } else {
+                await createStudent(formData, schoolInfo.schoolPrefix);
+            }
+
+            setSnackbar({
+                open: true,
+                message: initialData ? "Student updated successfully!" : "Student created successfully!",
+                severity: "success",
+                position: { vertical: "top", horizontal: "center" },
+            });
+
+            onSave(values);
+        } catch (error: any) {
+            console.error('Error saving student:', error);
+            setSnackbar({
+                open: true,
+                message: error.response?.data?.message || 'Failed to save student',
+                severity: "error",
+                position: { vertical: "top", horizontal: "center" },
+            });
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     return (
@@ -100,27 +169,42 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
             <div className="flex-grow overflow-auto p-4">
                 <h2 className="text-xl font-bold mb-4">{initialData ? 'Edit Student' : 'Create Student'}</h2>
                 <Formik
-                    initialValues={initialData || initialValues}
-                    onSubmit={async (values:any) => {
-                        try {
-                            onSave({ ...values, id: initialData?.id || 0 });
-                            setSnackbar({
-                                open: true,
-                                message: initialData ? 'Student updated successfully!' : 'Student created successfully!',
-                                severity: 'success',
-                                position: { vertical: 'top', horizontal: 'center' },
-                            });
-                        } catch (error: any) {
-                            setSnackbar({
-                                open: true,
-                                message: error.message || 'Failed to save student',
-                                severity: 'error',
-                                position: { vertical: 'top', horizontal: 'center' },
-                            });
-                        }
-                    }}
+                    initialValues={initialData || {
+                        name: '',
+                        idCardNumber: '',
+                        gender: '',
+                        dob: '',
+                        phone: '',
+                        email: '',
+                        parentsInfo: [], // Ensure this is initialized
+                        street1: '',
+                        street2: '',
+                        city: '',
+                        state: '',
+                        pincode: '',
+                        country: '',
+                        bloodGroup: '',
+                        remarks: '',
+                        religion: '',
+                        caste: '',
+                        reservationCategory: '',
+                        isPWD: false,
+                        nationality: '',
+                        classID: ''
+                    } as StudentFormValues} // Cast to StudentFormValues
+                    onSubmit={handleSubmit}
+                    validationSchema={Yup.object().shape({
+                        name: Yup.string().required('Name is required'),
+                        idCardNumber: Yup.string().required('ID Card Number is required'),
+                        gender: Yup.string().required('Gender is required'),
+                        dob: Yup.string().required('Date of Birth is required'),
+                        phone: Yup.string().required('Phone is required'),
+                        email: Yup.string().email('Invalid email').required('Email is required'),
+                        classID: Yup.string().required('Class is required'),
+                        // Add other validations as needed
+                    })}
                 >
-                    {({ values, setFieldValue }) => (
+                    {({ values, isSubmitting, setFieldValue }:any) => (
                         <Form className="space-y-4">
                             <CustomTabs labels={['Basic Info', 'Parents', 'Additional Info']}>
                                 {/* Basic Info Tab */}
@@ -391,11 +475,21 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
                             </CustomTabs>
 
                             <div className="flex justify-end space-x-2 mt-4">
-                                <Button onClick={onCancel} variant="outlined" color="error">
+                                <Button 
+                                    onClick={onCancel} 
+                                    variant="outlined" 
+                                    color="error"
+                                    disabled={isSubmitting}
+                                >
                                     Cancel
                                 </Button>
-                                <Button type="submit" variant="contained" color="success">
-                                    {initialData ? 'Update Student' : 'Create Student'}
+                                <Button 
+                                    type="submit" 
+                                    variant="contained" 
+                                    color="success"
+                                    disabled={isSubmitting}
+                                >
+                                    {isSubmitting ? 'Saving...' : (initialData ? 'Update Student' : 'Create Student')}
                                 </Button>
                             </div>
                         </Form>
@@ -442,8 +536,7 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
                                 }
                             };
                             fetchParents();
-                        }} 
-                    />
+                        } } initialData={undefined}                    />
                 </Box>
             </Modal>
 

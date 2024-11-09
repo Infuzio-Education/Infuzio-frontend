@@ -5,7 +5,7 @@ import Checkbox from '@mui/material/Checkbox';
 import ListControls from '../../components/ListControls';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import { getSchools } from '../../api/superAdmin';
-import { School } from '../../types/Types';
+    import { School } from '../../types/Types';
 
 const ListSchools: React.FC = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');

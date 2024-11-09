@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { TextField, Button } from '@mui/material';
 import { createParent } from '../../api/superAdmin';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import SnackbarComponent from '../../components/SnackbarComponent';
 
-const CreateParent: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+const CreateParent: React.FC<{ onClose: () => void; initialData: any }> = ({ onClose, initialData }) => {
     const { schoolInfo } = useSchoolContext();
     const [formData, setFormData] = useState({
         name: '',
@@ -17,6 +17,16 @@ const CreateParent: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         severity: 'success' as 'success' | 'error',
         position: { vertical: 'top' as const, horizontal: 'center' as const }
     });
+
+    useEffect(() => {
+        if (initialData) {
+            setFormData({
+                name: initialData.name || '',
+                phone: initialData.phone || '',
+                email: initialData.email || ''
+            });
+        }
+    }, [initialData]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -44,7 +54,7 @@ const CreateParent: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
     return (
         <div className="p-4">
-            <h2 className="text-xl font-bold mb-4">Create Parent</h2>
+            <h2 className="text-xl font-bold mb-4">{initialData ? "Edit Parent" : "Create Parent"}</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <TextField
                     label="Name"
@@ -73,7 +83,7 @@ const CreateParent: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         Cancel
                     </Button>
                     <Button type="submit" variant="contained" color="success">
-                        Create Parent
+                        {initialData ? "Update Parent" : "Create Parent"}
                     </Button>
                 </div>
             </form>

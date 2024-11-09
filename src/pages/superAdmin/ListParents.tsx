@@ -35,7 +35,7 @@ const ListParents: React.FC = () => {
             }
             const response = await listParents(schoolInfo.schoolPrefix);
             if (response.status && response.resp_code === "SUCCESS") {
-                setParents(response.data);
+                setParents(response.data.parents);
             } else {
                 throw new Error("Failed to fetch parents");
             }
@@ -296,7 +296,7 @@ const ListParents: React.FC = () => {
                     p: 4,
                     borderRadius: 2,
                 }}>
-                    <CreateParent onClose={handleSave} />
+                    <CreateParent onClose={handleSave} initialData={editingParent} />
                 </Box>
             </Modal>
 
