@@ -129,7 +129,7 @@ const ListStudents: React.FC = () => {
     };
 
     const filteredStudents = students.filter(student =>
-        student.name.toLowerCase().includes(searchTerm.toLowerCase())
+        student?.name?.toLowerCase()?.includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -240,7 +240,7 @@ const ListStudents: React.FC = () => {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {filteredStudents.map((student, index) => (
-                                <tr key={student.id} className="cursor-pointer">
+                                <tr key={student.id} className="cursor-pointer" onClick={() => handleOpenModal(student)}>
                                     <td className="text-center">
                                         <Checkbox
                                             checked={selectedStudents.includes(student.id)}
