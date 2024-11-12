@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Button, Box, TextField, Select, MenuItem, FormControl, InputLabel, OutlinedInput, Checkbox, ListItemText, SelectChangeEvent } from '@mui/material';
 import { useFormik } from 'formik';
-import { validationSchema } from '../../validations/schoolFormValidationSchema';
+import { formatBackendErrors, validationSchema } from '../../validations/schoolFormValidationSchema';
 import { createSchool, getSyllabus } from '../../api/superAdmin';
 import type { SchoolFormData, Syllabus } from '../../types/Types';
 import { X } from 'lucide-react';
@@ -49,8 +49,8 @@ const CreateSchool: React.FC = () => {
 
                 if (response?.global && Array.isArray(response.global)) {
                     const formattedSyllabusList = response.global.map((syllabus: GlobalSyllabus) => ({
-                        ID: syllabus.id,
-                        Name: syllabus.name,
+                        id: syllabus.id,
+                        name: syllabus.name,
                         value: syllabus.id
                     }));
                     console.log('Formatted Syllabus List:', formattedSyllabusList);
@@ -92,14 +92,16 @@ const CreateSchool: React.FC = () => {
                 schoolLogo: logoFile,
             };
 
+            console.log("Form Data Object", formDataObject);
+
             Object.entries(formDataObject).forEach(([key, value]) => {
                 if (key === 'address' && value) {
                     Object.entries(value).forEach(([addressKey, addressValue]) => {
                         data.append(`address[${addressKey}]`, addressValue as string);
                     });
                 } else if (key === 'syllabusIDs') {
-                    (value as number[]).forEach((id, index) => {
-                        data.append(`syllabusIDs[${index}]`, id.toString());
+                    (value as number[]).forEach((id) => {
+                        data.append('syllabusIDs[]', id.toString());
                     });
                 } else if (key === 'schoolLogo') {
                     if (value instanceof File || typeof value === 'string') {
@@ -109,22 +111,32 @@ const CreateSchool: React.FC = () => {
                     data.append(key, value as string);
                 }
             });
-
+            console.log("Data", data);
             try {
                 const response = await createSchool(data);
-                console.log("Error", response);
 
                 if (response.status === 200 || response.status === 201) {
-                    setSnackbar({ open: true, message: 'School created successfully!', severity: 'success', position: { vertical: 'top', horizontal: 'right' } });
+                    setSnackbar({
+                        open: true,
+                        message: 'School created successfully!',
+                        severity: 'success',
+                        position: { vertical: 'top', horizontal: 'right' }
+                    });
                     setTimeout(() => {
                         navigate('/superAdmin/schools');
                     }, 2000);
-                } else {
-                    setSnackbar({ open: true, message: response.data.error, severity: 'error', position: { vertical: 'top', horizontal: 'right' } });
                 }
             } catch (error: any) {
+                const errorMessage = error.response?.data?.errors
+                    ? formatBackendErrors(error.response.data.errors)
+                    : error.response?.data?.error || 'An error occurred';
 
-                setSnackbar({ open: true, message: error.response.data.error, severity: 'error', position: { vertical: 'top', horizontal: 'right' } });
+                setSnackbar({
+                    open: true,
+                    message: errorMessage,
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'right' }
+                });
             }
         },
     });
@@ -243,16 +255,16 @@ const CreateSchool: React.FC = () => {
                         onChange={handleSyllabusChange}
                         input={<OutlinedInput label="Syllabus" />}
                         renderValue={(selected) => (selected
-                            .map(id => syllabusList.find(s => s.ID === id)?.Name)
+                            .map(id => syllabusList.find(s => s.id === id)?.name)
                             .join(', '))}
                     >
                         {syllabusList.length === 0 ? (
                             <MenuItem disabled>No syllabuses available</MenuItem>
                         ) : (
                             syllabusList.map((syllabus) => (
-                                <MenuItem key={syllabus.ID} value={syllabus.ID}>
-                                    <Checkbox checked={formik.values.syllabusIDs.indexOf(syllabus.ID) > -1} />
-                                    <ListItemText primary={syllabus.Name} />
+                                <MenuItem key={syllabus.id} value={syllabus.id}>
+                                    <Checkbox checked={formik.values.syllabusIDs.indexOf(syllabus.id) > -1} />
+                                    <ListItemText primary={syllabus.name} />
                                 </MenuItem>
                             ))
                         )}

@@ -98,7 +98,11 @@ export const getSchools = async () => {
 
 export const createSchool = async (body: FormData) => {
     try {
-        console.log('FormData Structure:', JSON.stringify(body, null, 2));
+        console.log('FormData Contents:');
+        for (let pair of body.entries()) {
+            console.log(pair[0], pair[1]);
+        }
+
         const response = await Api.post(superAdminEndpoints.createSchool, body, {
             headers: {
                 'Content-Type': 'multipart/form-data',
@@ -685,7 +689,7 @@ export const updateSyllabus = async (id: number, name: string) => {
 // Parent APIs
 export const createParent = async (parentData: any, schoolPrefix: string) => {
     try {
-        console.log("parentData",parentData);
+        console.log("parentData", parentData);
         const response = await Api.post(`${superAdminEndpoints.createParent}?school_prefix=${schoolPrefix}`, parentData);
         return response.data;
     } catch (error) {
@@ -710,7 +714,6 @@ export const listParents = async (schoolPrefix: string) => {
     }
 };
 
-// Student APIs
 export const createStudent = async (studentData: any, schoolPrefix: string) => {
     try {
         const response = await Api.post(`${superAdminEndpoints.createStudent}?school_prefix=${schoolPrefix}`, studentData);
@@ -733,6 +736,72 @@ export const listStudents = async (schoolPrefix: string) => {
             console.error('Error listing students:', error.response);
             throw error;
         }
+        throw error;
+    }
+};
+
+export const createSubject = async (name: string) => {
+    try {
+        const response = await Api.post(superAdminEndpoints.subjects, { name });
+        if (response.data) {
+            return response.data;
+        }
+        throw new Error('No response data');
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error creating subject:', error.response);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+};
+
+
+export const getSubjects = async () => {
+    try {
+        const response = await Api.get(superAdminEndpoints.subjects);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching subjects:', error.response);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+};
+
+export const updateSubject = async (id: number, name: string) => {
+    try {
+        const response = await Api.put(superAdminEndpoints.subjects, {
+            id,
+            name
+        });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating subject:', error.response);
+            throw error;
+        } else {
+            console.error('Unexpected error:', error);
+            throw error;
+        }
+    }
+};
+
+export const deleteSubject = async (id: number) => {
+    try {
+        const response = await Api.delete(`${superAdminEndpoints.subjects}/${id}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error deleting subject:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
         throw error;
     }
 };

@@ -1,16 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Users, GraduationCap, UserPlus, School, BookOpen } from 'lucide-react';
+import { Users, GraduationCap, UserPlus, BookOpen } from 'lucide-react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import { listStaff } from '../../api/superAdmin';
 import { Staff, Student } from '../../types/Types';
-
-interface SchoolStats {
-    totalStudents: number;
-    totalClasses: number;
-    totalParents: number;
-    totalStaffs: number;
-}
+import { SchoolStats } from '../../types/Types';
 
 const SchoolProfiles: React.FC = () => {
     const { id } = useParams();

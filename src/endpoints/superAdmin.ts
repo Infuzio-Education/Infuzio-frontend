@@ -19,6 +19,7 @@ const superAdminEndpoints = {
     listParent: 'school/parent',
     createStudent: 'school/student',
     listStudent: 'school/student',
+    subjects: 'global/subjects',
 
 }
 

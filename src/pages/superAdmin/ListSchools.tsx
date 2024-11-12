@@ -5,7 +5,7 @@ import Checkbox from '@mui/material/Checkbox';
 import ListControls from '../../components/ListControls';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import { getSchools } from '../../api/superAdmin';
-    import { School } from '../../types/Types';
+import { School } from '../../types/Types';
 
 const ListSchools: React.FC = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -21,6 +21,7 @@ const ListSchools: React.FC = () => {
             try {
                 setIsLoading(true);
                 const response = await getSchools();
+                console.log("Response", response);
                 setSchools(response.data || []);
             } catch (error) {
                 console.error('Failed to fetch schools:', error);
@@ -141,7 +142,9 @@ const ListSchools: React.FC = () => {
                             <div className="p-2 bg-gray-300 flex-grow flex flex-row items-center transition duration-300 group-hover:bg-gray-400">
                                 <div className="flex-grow min-w-0 mr-2">
                                     <h2 className="text-lg font-semibold break-words">{school.name}</h2>
-                                    <p className="text-sm text-gray-600">{school.syllabus}</p>
+                                    <p className="text-sm text-gray-600">
+                                        {Array.isArray(school.syllabus) ? school.syllabus.join(', ') : school.syllabus}
+                                    </p>
                                 </div>
                                 <ArrowRight className="text-gray-600 flex-shrink-0 transition duration-300 group-hover:translate-x-1" size={20} />
                             </div>

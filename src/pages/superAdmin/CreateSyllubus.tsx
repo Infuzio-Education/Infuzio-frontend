@@ -8,7 +8,7 @@ const CreateSyllabus: React.FC<CreateSyllabusProps> = ({ initialData, onSave, on
 
     useEffect(() => {
         if (initialData) {
-            setName(initialData.Name);
+            setName(initialData.name);
         } else {
             setName('');
         }
@@ -20,8 +20,8 @@ const CreateSyllabus: React.FC<CreateSyllabusProps> = ({ initialData, onSave, on
 
         try {
             const syllabus: Syllabus = {
-                ID: initialData?.ID || 0,
-                Name: name
+                id: initialData?.id || 0,
+                name: name
             };
             await onSave(syllabus);
         } catch (error) {

@@ -64,6 +64,17 @@ const Navbar: React.FC = () => {
         setSchoolId(isValidSchoolPath ? pathParts[3] : null);
     }, [location.pathname]);
 
+    const closeAllDropdowns = () => {
+        setIsDropdownOpen(false);
+        setIsSchoolDropdownOpen(false);
+        setIsUserDropdownOpen(false);
+    };
+
+    const handleLinkClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        closeAllDropdowns();
+    };
+
     return (
         <>
             <nav className="bg-[#308369] fixed top-0 left-0 w-full z-50">
@@ -87,23 +98,31 @@ const Navbar: React.FC = () => {
                                             <ul className="absolute left-0 mt-2 w-64 bg-white shadow-md z-10 shadow-gray-400" onClick={(e) => e.stopPropagation()}>
                                                 <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Admissions</li>
                                                 <li>
-                                                    <Link to="/superAdmin/configurations/option2" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                    <Link
+                                                        to="/superAdmin/configurations/option2"
+                                                        className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                        onClick={handleLinkClick}
+                                                    >
                                                         Admission register
                                                     </Link>
                                                 </li>
                                                 <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Profiles</li>
                                                 <li>
-                                                    <Link to={`/superAdmin/schools/${schoolId}/students`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                    <Link
+                                                        to={`/superAdmin/schools/${schoolId}/students`}
+                                                        className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                        onClick={handleLinkClick}
+                                                    >
                                                         Students
                                                     </Link>
                                                 </li>
                                                 <li>
-                                                    <Link to={`/superAdmin/schools/${schoolId}/parents`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                    <Link to={`/superAdmin/schools/${schoolId}/parents`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
                                                         Parents
                                                     </Link>
                                                 </li>
                                                 <li>
-                                                    <Link to={`/superAdmin/schools/${schoolId}/staffs`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                    <Link to={`/superAdmin/schools/${schoolId}/staffs`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
                                                         Staffs
                                                     </Link>
                                                 </li>
@@ -142,49 +161,57 @@ const Navbar: React.FC = () => {
                                         <ul className="absolute left-0 mt-2 w-64 bg-white shadow-md z-10 shadow-gray-400" onClick={(e) => e.stopPropagation()}>
                                             <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Standards</li>
                                             <li>
-                                                <Link to="/superAdmin/standards " className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                <Link
+                                                    to="/superAdmin/standards"
+                                                    className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                    onClick={handleLinkClick}
+                                                >
                                                     Standards
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link to="/superAdmin/groups" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                <Link
+                                                    to="/superAdmin/groups"
+                                                    className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                    onClick={handleLinkClick}
+                                                >
                                                     Groups (HSS)
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link to="/superAdmin/mediums" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                <Link to="/superAdmin/mediums" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
                                                     Mediums
                                                 </Link>
                                             </li>
                                             <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Subjects</li>
                                             <li>
-                                                <Link to="/superAdmin/subjects" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                <Link to="/superAdmin/subjects" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
                                                     Subjects
                                                 </Link>
                                             </li>
                                             <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">School configuration</li>
                                             <li>
-                                                <Link to="/superAdmin/configurations/option3" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                <Link to="/superAdmin/configurations/option3" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
                                                     Grades
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link to="/superAdmin/religions" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                <Link to="/superAdmin/religions" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
                                                     Religions
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link to="/superAdmin/castes" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                <Link to="/superAdmin/castes" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
                                                     Castes
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link to="/superAdmin/sections" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                <Link to="/superAdmin/sections" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
                                                     Sections
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link to="/superAdmin/syllabus" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                <Link to="/superAdmin/syllabus" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
                                                     Syllabuses
                                                 </Link>
                                             </li>

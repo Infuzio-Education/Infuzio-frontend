@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { CreateSubjectProps, Subject, Teacher } from '../../types/Types';
 import CustomTabs from '../../components/CustomTabs';
@@ -8,11 +8,9 @@ import DynamicLists from '../../components/DynamicLists';
 
 const CreateSubject: React.FC<CreateSubjectProps> = ({ initialData, onSave, onCancel }) => {
     const [subject, setSubject] = useState<Subject>({
-        id: 0,
-        name: '',
-        code: '',
-        minMarks: 35,
-        maxMarks: 100,
+        id: initialData?.id || 0,
+        name: initialData?.name || '',
+        code: initialData?.code || ''
     });
 
     const [teachers, _setTeachers] = useState<Teacher[]>([
@@ -24,26 +22,19 @@ const CreateSubject: React.FC<CreateSubjectProps> = ({ initialData, onSave, onCa
     const [openDialog, setOpenDialog] = useState(false);
     const [tempSelectedTeachers, setTempSelectedTeachers] = useState<Teacher[]>([]);
 
-    useEffect(() => {
-        if (initialData) {
-            setSubject(initialData);
-        }
-    }, [initialData]);
-
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = event.target;
-        setSubject(prev => ({
-            ...prev,
-            [name]: name === 'minMarks' || name === 'maxMarks' ? Number(value) || '' : value,
-        }));
+        setSubject({
+            ...subject,
+            [event.target.name]: event.target.value
+        });
     };
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         onSave({
             ...subject,
-            minMarks: subject.minMarks || 0,
-            maxMarks: subject.maxMarks || 100,
+            name: subject.name.trim(),
+            code: subject.code.trim()
         });
     };
 
@@ -79,89 +70,68 @@ const CreateSubject: React.FC<CreateSubjectProps> = ({ initialData, onSave, onCa
     ];
 
     return (
-        <div className="flex flex-col h-full">
-            <div className="flex-grow overflow-auto p-4">
+        <div className="flex flex-col min-h-screen">
+            <div className="flex-grow p-4">
                 <h2 className="text-xl font-bold mb-4">{initialData ? 'Edit Subject' : 'Create Subject'}</h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <TextField
-                            label="Subject Name"
-                            variant="outlined"
-                            fullWidth
-                            name="name"
-                            value={subject.name}
-                            onChange={handleChange}
-                            required
-                        />
-                        <TextField
-                            label="Subject Code"
-                            variant="outlined"
-                            fullWidth
-                            name="code"
-                            value={subject.code}
-                            onChange={handleChange}
-                            required
-                            placeholder="e.g: DFG"
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <TextField
-                            label="Minimum Marks"
-                            variant="outlined"
-                            fullWidth
-                            name="minMarks"
-                            type="number"
-                            value={subject.minMarks === 0 ? '' : subject.minMarks}
-                            onChange={handleChange}
-                            required
-                            inputProps={{ min: 0 }}
-                        />
-                        <TextField
-                            label="Maximum Marks"
-                            variant="outlined"
-                            fullWidth
-                            name="maxMarks"
-                            type="number"
-                            value={subject.maxMarks === 0 ? '' : subject.maxMarks}
-                            onChange={handleChange}
-                            required
-                            inputProps={{ min: 0 }}
-                        />
-                    </div>
-
-                    <CustomTabs labels={['Teachers']}>
-                        <div>
-                            <DynamicLists
-                                columns={teacherColumns}
-                                rows={selectedTeachers}
-                                showCloseIcon={true}
-                                onRowRemove={handleRemoveTeacher}
-                            />
-                            <Button
-                                startIcon={<PlusCircle size={16} />}
-                                onClick={handleAddTeacher}
-                                color='success'
+                <form onSubmit={handleSubmit} className="flex flex-col h-full">
+                    <div className="flex-grow">
+                        <div className="grid grid-cols-2 gap-4">
+                            <TextField
+                                label="Subject Name"
+                                variant="outlined"
                                 fullWidth
-                                sx={{
-                                    textTransform: 'none',
-                                    textAlign: 'start',
-                                    justifyContent: 'flex-start',
-                                    marginTop: '8px'
-                                }}
-                            >
-                                Add New Teacher
-                            </Button>
+                                name="name"
+                                value={subject.name}
+                                onChange={handleChange}
+                                required
+                                placeholder="e.g: English"
+                            />
+                            <TextField
+                                label="Subject code"
+                                variant="outlined"
+                                fullWidth
+                                name="code"
+                                value={subject.code}
+                                onChange={handleChange}
+                                required
+                                placeholder="e.g: ENG"
+                            />
                         </div>
-                    </CustomTabs>
+
+                        <CustomTabs labels={['Teachers']}>
+                            <div>
+                                <DynamicLists
+                                    columns={teacherColumns}
+                                    rows={selectedTeachers}
+                                    showCloseIcon={true}
+                                    onRowRemove={handleRemoveTeacher}
+                                />
+                                <Button
+                                    startIcon={<PlusCircle size={16} />}
+                                    onClick={handleAddTeacher}
+                                    color='success'
+                                    fullWidth
+                                    sx={{
+                                        textTransform: 'none',
+                                        textAlign: 'start',
+                                        justifyContent: 'flex-start',
+                                        marginTop: '8px'
+                                    }}
+                                >
+                                    Add New Teacher
+                                </Button>
+                            </div>
+                        </CustomTabs>
+                    </div>
                 </form>
             </div>
 
-            <div className="mt-auto">
-                <div className="flex justify-end space-x-2  ">
+            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t">
+                <div className="max-w-7xl mx-auto flex justify-end space-x-2">
                     <Button onClick={onCancel} variant="outlined" color="success">
                         Cancel
                     </Button>
-                    <Button type="submit" variant="contained" color="success">
+                    <Button onClick={(e) => handleSubmit(e as any)} variant="contained" color="success">
                         {initialData ? 'Save Changes' : 'Create Subject'}
                     </Button>
                 </div>
@@ -176,7 +146,7 @@ const CreateSubject: React.FC<CreateSubjectProps> = ({ initialData, onSave, onCa
                     style: {
                         display: 'flex',
                         flexDirection: 'column',
-                        height: '100%',
+                        height: '80vh',
                         maxHeight: '80vh',
                     }
                 }}

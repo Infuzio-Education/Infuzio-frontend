@@ -34,8 +34,6 @@ export interface Subject {
     id: number;
     name: string;
     code: string;
-    minMarks: number;
-    maxMarks: number;
 }
 
 export interface CreateSubjectProps {
@@ -310,3 +308,12 @@ export interface SyllabusData {
     global: GlobalSyllabus[];
     custom: null;
 }
+
+
+export interface SchoolStats {
+    totalStudents: number;
+    totalClasses: number;
+    totalParents: number;
+    totalStaffs: number;
+}
+
