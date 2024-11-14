@@ -1,6 +1,5 @@
 # uses image based on dev branch (updates automatically when pr request to dev branch is accepted)
-# command : docker-compose -f deployment/docker-compose-upon-dev-merge.yml pull infuzio; docker-compose -f deployment/docker-compose-upon-dev-merge.yml up
-
+# command: docker-compose -f development/docker/docker-compose-upon-dev-merge.yml pull infuzio && docker-compose -f development/docker/docker-compose-upon-dev-merge.yml up
 services:
   postgres:
     image: postgres:16
@@ -11,29 +10,44 @@ services:
       POSTGRES_DB: infuzio
     ports:
       - "5432:5432"
-    networks:
+    networks: 
       - infuzio_network
     volumes:
       - infuzio_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 2s
       timeout: 2s
       retries: 3
 
+  redis:
+    image: redis:latest
+    container_name: redis-container-local
+    ports:
+      - "6379:6379"
+    networks:
+      - infuzio_network
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 3
+  
   minio:
     image: minio/minio:latest
     container_name: minio
     ports:
-      - "9000:9000" # MinIO port
-      - "9001:9001" # MinIO admin console port
-    networks:
+      - "9000:9000"  # MinIO port
+      - "9001:9001"  # MinIO admin console port
+    networks: 
       - infuzio_network
     environment:
-      - MINIO_ROOT_USER=Infuzio@123 # Access Key
-      - MINIO_ROOT_PASSWORD=123Infuzio # Secret Key
+      - MINIO_ROOT_USER=Infuzio@123      # Access Key
+      - MINIO_ROOT_PASSWORD=123Infuzio   # Secret Key
     volumes:
-      - minio_data:/data
+      - minio_data:/data  
     command: server /data --console-address ":9001"
 
   infuzio:
@@ -42,7 +56,7 @@ services:
     container_name: infuzio-container
     ports:
       - "3000:3000"
-    networks:
+    networks: 
       - infuzio_network
     environment:
       PORT: 3000
@@ -51,6 +65,7 @@ services:
       DB_PASSWORD: 1234
       DB_NAME: infuzio
       DB_PORT: 5432
+      DB_SSL_MODE: "disable"
       AWS_REGION: us-east-1
       AWS_BUCKET_NAME: infuzio
       AWS_ACCESS_KEY: Infuzio@123
@@ -60,12 +75,23 @@ services:
       JWT_SECRET_KEY: djfsdhfsdkfhjdshfkdsh
       MINIO: "true"
       MINIO_URL: http://minio:9000
-      DOCKER_ENV: "true"
+      ENVIRONMENT: DOCKER
       # INIT_DB_EMPTY: "true"
+      RETURN_CREDENTIALS: true
+      ALLOW_UNIVERSAL_PASSWORD: true
+      # DONT_USE_MINIO: true
+      REDIS_ADDRESS: redis:6379
+      REDIS_PASSWORD: ""
+      AUTO_MIGRATE_DB_ON_START: "true"
+      CREATE_DB_IF_NOT_EXISTS: "true"
     depends_on:
       postgres:
-        condition: service_healthy # Wait for PostgreSQL to be healthy
-    # restart: on-failure  # Restart the infuzio container on failure
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./../log:/development/log
+    # restart: on-failure
 
 
 volumes:
@@ -73,7 +99,9 @@ volumes:
     name: "infuzio_postgres_data"
   minio_data:
     name: "minio_data"
+  redis_data:
+    name: "redis_data"
 
 networks:
   infuzio_network:
-    driver: bridge
+    driver: bridge 
