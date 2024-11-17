@@ -3,13 +3,20 @@ import React, { createContext, useState, useContext, ReactNode, useEffect } from
 interface SchoolInfo {
     id: number | null;
     name: string | null;
-    schoolPrefix:string | null;
+    schoolPrefix: string | null;
 }
 
 interface SchoolContextType {
     schoolInfo: SchoolInfo;
     setSchoolInfo: (info: SchoolInfo) => void;
+    clearSchoolInfo: () => void;
 }
+
+const defaultSchoolInfo: SchoolInfo = {
+    id: null,
+    name: null,
+    schoolPrefix: null,
+};
 
 const SchoolContext = createContext<SchoolContextType | undefined>(undefined);
 
@@ -28,7 +35,7 @@ interface SchoolProviderProps {
 export const SchoolProvider: React.FC<SchoolProviderProps> = ({ children }) => {
     const [schoolInfo, setSchoolInfoState] = useState<SchoolInfo>(() => {
         const storedSchoolInfo = localStorage.getItem('schoolInfo');
-        return storedSchoolInfo ? JSON.parse(storedSchoolInfo) : { id: null, name: null };
+        return storedSchoolInfo ? JSON.parse(storedSchoolInfo) : defaultSchoolInfo;
     });
 
     const setSchoolInfo = (info: SchoolInfo) => {
@@ -36,10 +43,15 @@ export const SchoolProvider: React.FC<SchoolProviderProps> = ({ children }) => {
         localStorage.setItem('schoolInfo', JSON.stringify(info));
     };
 
+    const clearSchoolInfo = () => {
+        setSchoolInfoState(defaultSchoolInfo);
+        localStorage.removeItem('schoolInfo');
+    };
+
     useEffect(() => {
         const handleStorageChange = (e: StorageEvent) => {
             if (e.key === 'schoolInfo') {
-                const newSchoolInfo = e.newValue ? JSON.parse(e.newValue) : { id: null, name: null };
+                const newSchoolInfo = e.newValue ? JSON.parse(e.newValue) : defaultSchoolInfo;
                 setSchoolInfoState(newSchoolInfo);
             }
         };
@@ -49,7 +61,7 @@ export const SchoolProvider: React.FC<SchoolProviderProps> = ({ children }) => {
     }, []);
 
     return (
-        <SchoolContext.Provider value={{ schoolInfo, setSchoolInfo }}>
+        <SchoolContext.Provider value={{ schoolInfo, setSchoolInfo, clearSchoolInfo }}>
             {children}
         </SchoolContext.Provider>
     );

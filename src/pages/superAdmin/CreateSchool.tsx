@@ -21,16 +21,16 @@ const initialValues: SchoolFormData = {
     schoolCode: '',
     syllabusIDs: [],
     address: {
-        street1: '',
-        street2: '',
-        city: '',
-        state: '',
-        pincode: '',
-        country: '',
+        street1: 'Street 1',
+        street2: 'Street 2',
+        city: 'Kochi',
+        state: 'Kerala',
+        pincode: '682001',
+        country: 'India',
     },
-    googleMapsLink: '',
-    phone: '',
-    email: '',
+    googleMapsLink: 'https://maps.google.com',
+    phone: '+919876543210',
+    email: 'school@example.com',
 };
 
 const CreateSchool: React.FC = () => {

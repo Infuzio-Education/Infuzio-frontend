@@ -1,71 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Users, GraduationCap, UserPlus, BookOpen } from 'lucide-react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useSchoolContext } from '../../contexts/SchoolContext';
-import { listStaff } from '../../api/superAdmin';
-import { Staff, Student } from '../../types/Types';
-import { SchoolStats } from '../../types/Types';
 
 const SchoolProfiles: React.FC = () => {
-    const { id } = useParams();
     const navigate = useNavigate();
     const { schoolInfo } = useSchoolContext();
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [staffs, setStaffs] = useState<Staff[]>([]);
-    const [students, setStudents] = useState<Student[]>([]);
-    const [classes, setClasses] = useState<any[]>([]);
 
-    const [stats, setStats] = useState<SchoolStats>({
-        totalStudents: 0,
-        totalClasses: 0,
-        totalParents: 0,
-        totalStaffs: 0
-    });
-
-    useEffect(() => {
-        const fetchData = async () => {
-            if (!schoolInfo.schoolPrefix) {
-                setError("School prefix not found");
-                return;
-            }
-
-            setLoading(true);
-            setError(null);
-
-            try {
-                // Fetch staffs
-                const staffResponse = await listStaff(schoolInfo.schoolPrefix);
-                if (staffResponse.status && staffResponse.resp_code === "SUCCESS") {
-                    setStaffs(staffResponse.data);
-                }
-
-                // Fetch students (assuming you have a similar API)
-                // const studentResponse = await listStudents(schoolInfo.schoolPrefix);
-                // setStudents(studentResponse.data);
-
-                // Fetch classes (assuming you have a similar API)
-                // const classResponse = await listClasses(schoolInfo.schoolPrefix);
-                // setClasses(classResponse.data);
-
-                // Update stats
-                setStats({
-                    totalStaffs: staffResponse.data.length,
-                    totalStudents: students.length, // This will be dynamic once API is connected
-                    totalClasses: classes.length,   // This will be dynamic once API is connected
-                    totalParents: students.length   // Assuming one parent per student for now
-                });
-
-            } catch (err: any) {
-                setError(err.message || 'Failed to fetch school data');
-                console.error('Error fetching school data:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [schoolInfo.schoolPrefix]);
+    const stats = {
+        totalStudents: 450,
+        totalClasses: 15,
+        totalParents: 420,
+        totalStaffs: 35
+    };
 
     const cards = [
         {
@@ -74,7 +21,7 @@ const SchoolProfiles: React.FC = () => {
             icon: <Users className="text-blue-600" size={24} />,
             bgColor: 'bg-blue-100',
             textColor: 'text-blue-600',
-            onClick: () => navigate(`/superAdmin/schools/${id}/students`)
+            onClick: () => navigate(`/superAdmin/schools/${schoolInfo.schoolPrefix}/students`)
         },
         {
             title: 'Classes',
@@ -82,7 +29,7 @@ const SchoolProfiles: React.FC = () => {
             icon: <BookOpen className="text-green-600" size={24} />,
             bgColor: 'bg-green-100',
             textColor: 'text-green-600',
-            onClick: () => navigate(`/superAdmin/schools/${id}/classes`)
+            onClick: () => navigate(`/superAdmin/schools/${schoolInfo.schoolPrefix}/classes`)
         },
         {
             title: 'Parents',
@@ -90,7 +37,7 @@ const SchoolProfiles: React.FC = () => {
             icon: <UserPlus className="text-purple-600" size={24} />,
             bgColor: 'bg-purple-100',
             textColor: 'text-purple-600',
-            onClick: () => navigate(`/superAdmin/schools/${id}/parents`)
+            onClick: () => navigate(`/superAdmin/schools/${schoolInfo.schoolPrefix}/parents`)
         },
         {
             title: 'Staffs',
@@ -98,34 +45,37 @@ const SchoolProfiles: React.FC = () => {
             icon: <GraduationCap className="text-yellow-600" size={24} />,
             bgColor: 'bg-yellow-100',
             textColor: 'text-yellow-600',
-            onClick: () => navigate(`/superAdmin/schools/${id}/staffs`)
+            onClick: () => navigate(`/superAdmin/schools/${schoolInfo.schoolPrefix}/staffs`)
         }
     ];
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-                    <p className="mt-4 text-gray-700">Loading school statistics...</p>
-                </div>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-                <div className="text-center text-red-600">
-                    <p className="text-xl font-semibold mb-2">Error</p>
-                    <p>{error}</p>
-                </div>
-            </div>
-        );
-    }
+    const recentActivities = [
+        {
+            type: 'Staff',
+            name: 'John Doe',
+            role: 'Teaching Staff',
+            time: '2 hours ago',
+            action: 'Marked attendance'
+        },
+        {
+            type: 'Student',
+            name: 'Alice Smith',
+            class: 'Class X-A',
+            time: '3 hours ago',
+            action: 'Submitted assignment'
+        },
+        {
+            type: 'Parent',
+            name: 'Robert Johnson',
+            student: 'Mike Johnson',
+            time: '5 hours ago',
+            action: 'Attended meeting'
+        }
+    ];
 
     return (
         <div className="min-h-screen bg-gray-100 p-8">
+            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {cards.map((card, index) => (
                     <div
@@ -158,18 +108,22 @@ const SchoolProfiles: React.FC = () => {
             <div className="mt-8 bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
                 <div className="space-y-4">
-                    {staffs.slice(0, 3).map((staff, index) => (
-                        <div key={staff.ID} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    {recentActivities.map((activity, index) => (
+                        <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                             <div className="flex items-center space-x-4">
-                                <div className="bg-yellow-100 p-2 rounded-full">
-                                    <GraduationCap size={20} className="text-yellow-600" />
+                                <div className={`p-2 rounded-full ${activity.type === 'Staff' ? 'bg-yellow-100' :
+                                    activity.type === 'Student' ? 'bg-blue-100' : 'bg-purple-100'
+                                    }`}>
+                                    {activity.type === 'Staff' && <GraduationCap size={20} className="text-yellow-600" />}
+                                    {activity.type === 'Student' && <Users size={20} className="text-blue-600" />}
+                                    {activity.type === 'Parent' && <UserPlus size={20} className="text-purple-600" />}
                                 </div>
                                 <div>
-                                    <p className="font-medium">Staff Member</p>
-                                    <p className="text-sm text-gray-500">{staff.name} - {staff.is_teaching_staff ? 'Teaching Staff' : 'Non-Teaching Staff'}</p>
+                                    <p className="font-medium">{activity.name}</p>
+                                    <p className="text-sm text-gray-500">{activity.action}</p>
                                 </div>
                             </div>
-                            <span className="text-sm text-gray-500">Active</span>
+                            <span className="text-sm text-gray-500">{activity.time}</span>
                         </div>
                     ))}
                 </div>

@@ -30,19 +30,19 @@ const SuperAdminRoutes = () => {
                     <Route element={<Navbar />}>
                         <Route path="schools" element={<ListSchools />} />
                         <Route path="schools/create" element={<CreateSchool />} />
-                        <Route path="schools/:id" element={<SchoolProfiles />} />
+                        <Route path="schools/:prefix" element={<SchoolProfiles />} />
                         <Route path="sections" element={<ListSections />} />
                         <Route path="subjects" element={<ListSubjects />} />
-                        <Route path="schools/:id/staffs" element={<ListStaffs />} />
+                        <Route path="schools/:prefix/staffs" element={<ListStaffs />} />
                         <Route path="standards" element={<ListStandards />} />
                         <Route path="mediums" element={<ListMediums />} />
                         <Route path="syllabus" element={<ListSyllabus />} />
                         <Route path="religions" element={<ListReligions />} />
                         <Route path="groups" element={<ListGroups />} />
                         <Route path="staffs" element={<ListStaffs />} />
-                        <Route path="schools/:id/classes" element={<ListClasses />} />
-                        <Route path="schools/:id/students" element={<ListStudents />} />
-                        <Route path="schools/:id/parents" element={<ListParents />} />
+                        <Route path="schools/:prefix/classes" element={<ListClasses />} />
+                        <Route path="schools/:prefix/students" element={<ListStudents />} />
+                        <Route path="schools/:prefix/parents" element={<ListParents />} />
                         <Route path="castes" element={<ListCastes />} />
                     </Route>
                 </Route>

@@ -12,69 +12,61 @@ const SuperAdminLogin = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const {superAdminInfo} = useSelector((state:any)=> state.superAdminInfo);
-  useEffect(()=>{
-    if(superAdminInfo){
+  const { superAdminInfo } = useSelector((state: any) => state.superAdminInfo);
+  useEffect(() => {
+    if (superAdminInfo) {
       navigate("/superAdmin/schools");
     }
-
-  },[])
-
+  }, []);
 
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState('success'); // 'success' or 'error'
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
   const handleSnackbarClose = () => {
     setOpenSnackbar(false);
   };
 
   const { handleSubmit, handleChange, handleBlur, values, errors, touched } =
-  useFormik({
-    initialValues: {
-      username: "",
-      password: "",
-    },
-    validationSchema: LoginValidationSchema,
-    onSubmit: async (values) => {
-      try {
-        // console.log("Form submitted", values);
-        
-       const response = await superLogin(values)
-      //  console.log("Login response:",response);
-       
-       if(response?.status == 200){
-        dispatch(setSuperAdminInfo({
-          username: response.data.data.username,
-          token: response.data.data.token
-        }));
+    useFormik({
+      initialValues: {
+        username: "superadmin",
+        password: "adminpwsuper",
+      },
+      validationSchema: LoginValidationSchema,
+      onSubmit: async (values) => {
+        try {
+          const response = await superLogin(values);
 
-        // Set success message and show snackbar
-        setSnackbarMessage('Login successful!');
-        setSnackbarSeverity('success');
-        setOpenSnackbar(true);
+          if (response?.status === 200) {
+            dispatch(setSuperAdminInfo({
+              username: values.username,
+              token: response.data.data.token
+            }));
 
-        setTimeout(() => {
-          navigate('/superAdmin/schools');
-        }, 1000);
+            setSnackbarMessage('Login successful!');
+            setSnackbarSeverity('success');
+            setOpenSnackbar(true);
 
-       }else if(response?.status == 401){
-        throw new Error("Invalid username or password!");
-       }else{
-        throw new Error("Unknown Error, Please Try again Later!");
-       }        
-      } catch (error) {
-        if (error instanceof Error) {
-          console.error(error.message);
-          
-          setSnackbarMessage(error.message || 'Login failed!');
-          setSnackbarSeverity('error');
-          setOpenSnackbar(true);
+            setTimeout(() => {
+              navigate('/superAdmin/schools');
+            }, 1000);
+
+          } else if (response?.status === 401) {
+            throw new Error("Invalid username or password!");
+          } else {
+            throw new Error("Unknown Error, Please Try again Later!");
+          }
+        } catch (error) {
+          if (error instanceof Error) {
+            console.error(error.message);
+            setSnackbarMessage(error.message || 'Login failed!');
+            setSnackbarSeverity('error');
+            setOpenSnackbar(true);
+          }
         }
-      }
-    },
-  });
-
+      },
+    });
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
