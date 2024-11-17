@@ -128,11 +128,14 @@ export interface ListControlsProps {
 }
 
 export interface School {
-    id: number;
+    ID: number;
     name: string;
-    school_code: string;
-    syllabus: string;
+    code: string;
+    city: string;
+    isActive: boolean;
+    isDeleted: boolean;
     logo?: string;
+    syllabus: string[];
 }
 
 export interface Religion {

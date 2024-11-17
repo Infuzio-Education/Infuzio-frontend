@@ -16,6 +16,8 @@ const ListSchools: React.FC = () => {
     const { setSchoolInfo } = useSchoolContext();
     const navigate = useNavigate();
 
+    console.log(schools, selectedSchools);
+
     useEffect(() => {
         const fetchSchools = async () => {
             try {
@@ -35,12 +37,12 @@ const ListSchools: React.FC = () => {
 
     const filteredSchools = schools ? schools.filter(school =>
         school.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        school.school_code.toLowerCase().includes(searchTerm.toLowerCase())
+        school.code.toLowerCase().includes(searchTerm.toLowerCase())
     ) : [];
 
     const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.checked) {
-            setSelectedSchools(schools.map(school => school.id));
+            setSelectedSchools(schools.map(school => school.ID));
         } else {
             setSelectedSchools([]);
         }
@@ -55,8 +57,15 @@ const ListSchools: React.FC = () => {
     };
 
     const handleSchoolClick = (school: School) => {
-        setSchoolInfo({ id: school.id, name: school.name, schoolPrefix: school.school_code });
-        navigate(`/superAdmin/schools/${school.id}`, { state: { school } });
+        console.log("Clicked School:", school);
+
+        setSchoolInfo({
+            id: parseInt(school.code),
+            name: school.name,
+            schoolPrefix: school.code
+        });
+
+        navigate(`/superAdmin/schools/${school.code}`);
     };
 
     // const handleDelete = async (id: number) => {
@@ -124,7 +133,7 @@ const ListSchools: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
                     {filteredSchools.map((school) => (
                         <div
-                            key={school.id}
+                            key={school.ID}
                             className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col cursor-pointer transform transition duration-300 hover:scale-105 hover:shadow-xl"
                             onClick={() => handleSchoolClick(school)}
                         >
@@ -172,14 +181,14 @@ const ListSchools: React.FC = () => {
                         <tbody className="bg-white divide-y divide-gray-200">
                             {schools.map((school) => (
                                 <tr
-                                    key={school.id}
+                                    key={school.ID}
                                     className="cursor-pointer"
                                     onClick={() => handleSchoolClick(school)}
                                 >
                                     <td className="p-2 whitespace-nowrap">
                                         <Checkbox
-                                            checked={selectedSchools.includes(school.id)}
-                                            onChange={() => handleSelectSchool(school.id)}
+                                            checked={selectedSchools.includes(school.ID)}
+                                            onChange={() => handleSelectSchool(school.ID)}
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                     </td>

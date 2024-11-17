@@ -3,17 +3,20 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../redux/slices/superAdminSlice/superAdminSlice';
 import Breadcrumbs from '../Breadcrumbs';
+import { useSchoolContext } from '../../contexts/SchoolContext';
 
 const Navbar: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { superAdminInfo } = useSelector((state: any) => state.superAdminInfo);
+    const { schoolInfo } = useSchoolContext();
+    console.log('superAdminInfo', superAdminInfo);
+
 
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isSchoolDropdownOpen, setIsSchoolDropdownOpen] = useState(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
-    const [isSchoolSelected, setIsSchoolSelected] = useState(false);
     const [schoolId, setSchoolId] = useState<string | null>(null);
 
     const toggleDropdown = (e: React.MouseEvent) => {
@@ -58,9 +61,8 @@ const Navbar: React.FC = () => {
 
     useEffect(() => {
         const pathParts = location.pathname.split('/');
-        const isValidSchoolPath = pathParts[1] === 'superAdmin' && pathParts[2] === 'schools' && !isNaN(Number(pathParts[3]));
+        const isValidSchoolPath = pathParts[1] === 'superAdmin' && pathParts[2] === 'schools' && pathParts[3];
 
-        setIsSchoolSelected(isValidSchoolPath);
         setSchoolId(isValidSchoolPath ? pathParts[3] : null);
     }, [location.pathname]);
 
@@ -86,7 +88,7 @@ const Navbar: React.FC = () => {
 
                         <div className="flex items-center">
                             <ul className="flex flex-row mt-0 space-x-8 text-sm">
-                                {isSchoolSelected && schoolId && (
+                                {schoolInfo && schoolInfo.schoolPrefix && (
                                     <li className="relative">
                                         <button
                                             onClick={toggleSchoolDropdown}
@@ -153,7 +155,7 @@ const Navbar: React.FC = () => {
                                 <li className="relative">
                                     <button
                                         onClick={toggleDropdown}
-                                        className="text-gray-900 dark:text-white focus:outline-none"
+                                        className="text-white hover:text-gray-200 focus:outline-none"
                                     >
                                         Configurations
                                     </button>
@@ -222,7 +224,7 @@ const Navbar: React.FC = () => {
                         </div>
                     </div>
 
-                    {superAdminInfo && (
+                    {superAdminInfo && superAdminInfo.username && (
                         <div className="relative">
                             <button
                                 onClick={toggleUserDropdown}
@@ -233,8 +235,9 @@ const Navbar: React.FC = () => {
                                     <span className="font-medium">{superAdminInfo.username}</span>
                                     <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
                                         <span className="text-[#308369] font-semibold text-lg">
-                                            {superAdminInfo.username.charAt(0).toUpperCase()}
+                                            {superAdminInfo.username?.charAt(0).toUpperCase() || ''}
                                         </span>
+
                                     </div>
                                     <svg
                                         className={`w-4 h-4 transition-transform ${isUserDropdownOpen ? 'rotate-180' : ''}`}
