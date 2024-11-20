@@ -806,4 +806,61 @@ export const deleteSubject = async (id: number) => {
     }
 };
 
+export const createWorkingDays = async (data: { group_name: string; days: number[] }) => {
+    try {
+        const response = await Api.post(superAdminEndpoints.workingDays, data);
+        console.log("response", response);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error creating working days:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const getWorkingDays = async () => {
+    try {
+        const response = await Api.get(superAdminEndpoints.workingDays);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching working days:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const updateWorkingDays = async (id: number, data: { group_name: string; days: number[] }) => {
+    try {
+        const response = await Api.patch(superAdminEndpoints.workingDays, {
+            id: id,
+            group_name: data.group_name,
+            days: data.days
+        });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating working days:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const deleteWorkingDays = async (id: number) => {
+    try {
+        const response = await Api.delete(`${superAdminEndpoints.workingDays}/${id}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error deleting working days:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
 
