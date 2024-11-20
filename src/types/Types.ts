@@ -320,3 +320,15 @@ export interface SchoolStats {
     totalStaffs: number;
 }
 
+export interface WorkingDay {
+    id: number;
+    group_name: string;
+    days: number[];
+}
+
+export interface CreateWorkingDayProps {
+    initialData: WorkingDay | null;
+    onSave: (data: { group_name: string; days: number[] }) => void;
+    onCancel: () => void;
+}
+

@@ -198,6 +198,11 @@ const Navbar: React.FC = () => {
                                                 </Link>
                                             </li>
                                             <li>
+                                                <Link to="/superAdmin/workingDays" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
+                                                    Working days
+                                                </Link>
+                                            </li>
+                                            <li>
                                                 <Link to="/superAdmin/religions" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
                                                     Religions
                                                 </Link>

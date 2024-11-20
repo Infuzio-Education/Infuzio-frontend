@@ -20,6 +20,7 @@ const superAdminEndpoints = {
     createStudent: 'school/student',
     listStudent: 'school/student',
     subjects: 'global/subjects',
+    workingDays: 'global/workingDay',
 
 }
 
