@@ -65,7 +65,7 @@ const ListSchools: React.FC = () => {
             schoolPrefix: school.code
         });
 
-        navigate(`/superAdmin/schools/${school.code}`);
+        navigate(`/superAdmin/schools/${school.code}/students`);
     };
 
     // const handleDelete = async (id: number) => {

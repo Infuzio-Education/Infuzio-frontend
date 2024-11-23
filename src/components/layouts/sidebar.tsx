@@ -42,7 +42,7 @@ const Sidebar = () => {
                     <Link
                         to="/staffs/home"
                         className={`flex items-center mx-3 px-4 py-2.5 rounded-full transition-all duration-200 ${isActiveLink('/staffs/home')
-                            ? 'bg-emerald-700 text-white shadow-lg shadow-emerald-200'
+                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200'
                             : 'text-gray-700 hover:bg-gray-100'
                             }`}
                     >

@@ -863,4 +863,73 @@ export const deleteWorkingDays = async (id: number) => {
     }
 };
 
+export const updateStaffRole = async (data: {
+    staffID: number;
+    privilegeType: string;
+    school_prefix: string;
+}) => {
+    try {
+        const response = await Api.post(
+            `${superAdminEndpoints.specialPrivilege}?school_prefix=${data.school_prefix}`,
+            {
+                staffID: data.staffID,
+                privilegeType: data.privilegeType
+            }
+        );
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating staff role:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const removeStaffRole = async (data: {
+    staffID: number;
+    privilegeType: string;
+    school_prefix: string;
+}) => {
+    try {
+        const response = await Api.delete(
+            `${superAdminEndpoints.specialPrivilege}/${data.staffID}/${data.privilegeType}?school_prefix=${data.school_prefix}`
+        );
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error removing staff role:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+// Add this function to fetch privileged staff list
+export const getPrivilegedStaff = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.specialPrivilege}?school_prefix=${schoolPrefix}`);
+        console.log("response", response);
+        if (response.data && response.data.resp_code === "SUCCESS") {
+            return {
+                status: true,
+                data: response.data.data.map((staff: any) => ({
+                    staffId: staff.staffId,
+                    name: staff.name,
+                    idCardNumber: staff.idCardNumber,
+                    mobile: staff.mobile,
+                    privilegeType: staff.privilegeType
+                }))
+            };
+        }
+        throw new Error('Failed to fetch privileged staff');
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching privileged staff:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
 
