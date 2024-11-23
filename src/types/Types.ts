@@ -267,8 +267,8 @@ export interface StaffAddress {
     country: string;
 }
 
-export interface CreateStaffPayload {
-    id_card_number: string;
+// First, let's define a base interface for common staff properties
+interface BaseStaffProps {
     name: string;
     gender: 'male' | 'female' | 'other';
     dob: string;
@@ -290,15 +290,32 @@ export interface CreateStaffPayload {
     responsibility?: string;
     subjects?: string[];
     section?: string;
-    ID: number,
-    profile_pic_link: string
 }
 
-export interface Staff extends Omit<CreateStaffPayload, 'profile_pic'> {
-    ID: number;
+// Interface for creating staff
+export interface CreateStaffPayload extends BaseStaffProps {
+    id_card_number: string;
+    profile_pic?: File;
+}
+
+// Interface for staff data from API
+export interface Staff extends BaseStaffProps {
+    id: number;
+    staffId: number;
+    id_card_number: string | null;
     profile_pic_link: string;
+    current_role?: string;
+    privilegeType: string;
 }
 
+// Interface for privileged staff data
+export interface PrivilegedStaff {
+    staffId: number;
+    name: string;
+    idCardNumber: string;
+    mobile: string;
+    privilegeType: string;
+}
 
 export interface GlobalSyllabus {
     id: number;

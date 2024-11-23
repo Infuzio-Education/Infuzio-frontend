@@ -21,7 +21,7 @@ const SchoolProfiles: React.FC = () => {
             icon: <Users className="text-blue-600" size={24} />,
             bgColor: 'bg-blue-100',
             textColor: 'text-blue-600',
-            onClick: () => navigate(`/superAdmin/schools/${schoolInfo.schoolPrefix}/students`)
+            onClick: () => navigate(`/superAdmin/schools/${schoolInfo.id}/students`)
         },
         {
             title: 'Classes',
@@ -29,7 +29,7 @@ const SchoolProfiles: React.FC = () => {
             icon: <BookOpen className="text-green-600" size={24} />,
             bgColor: 'bg-green-100',
             textColor: 'text-green-600',
-            onClick: () => navigate(`/superAdmin/schools/${schoolInfo.schoolPrefix}/classes`)
+            onClick: () => navigate(`/superAdmin/schools/${schoolInfo.id}/classes`)
         },
         {
             title: 'Parents',
@@ -37,7 +37,7 @@ const SchoolProfiles: React.FC = () => {
             icon: <UserPlus className="text-purple-600" size={24} />,
             bgColor: 'bg-purple-100',
             textColor: 'text-purple-600',
-            onClick: () => navigate(`/superAdmin/schools/${schoolInfo.schoolPrefix}/parents`)
+            onClick: () => navigate(`/superAdmin/schools/${schoolInfo.id}/parents`)
         },
         {
             title: 'Staffs',
@@ -45,7 +45,7 @@ const SchoolProfiles: React.FC = () => {
             icon: <GraduationCap className="text-yellow-600" size={24} />,
             bgColor: 'bg-yellow-100',
             textColor: 'text-yellow-600',
-            onClick: () => navigate(`/superAdmin/schools/${schoolInfo.schoolPrefix}/staffs`)
+            onClick: () => navigate(`/superAdmin/schools/${schoolInfo.id}/staffs`)
         }
     ];
 

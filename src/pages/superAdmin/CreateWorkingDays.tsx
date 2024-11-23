@@ -26,6 +26,7 @@ const days: Day[] = [
     { id: 5, name: 'Friday', shortName: 'Fri' },
     { id: 6, name: 'Saturday', shortName: 'Sat' },
     { id: 7, name: 'Sunday', shortName: 'Sun' },
+    { id: 8, name: 'Second Saturday', shortName: '2nd Sat' },
 ];
 
 const CreateWorkingDays: React.FC<CreateWorkingDaysProps> = ({ initialData, onSave, onCancel }) => {

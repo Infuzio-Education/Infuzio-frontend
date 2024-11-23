@@ -2,6 +2,7 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import StaffLayout from "../components/layouts/sidebar";
 import StaffLogin from "../pages/staffs/StaffLogin";
 import StaffHome from "../pages/staffs/StaffHome";
+import ListStudents from "../pages/superAdmin/ListStudents";
 
 const StaffRoutes = () => {
     return (
@@ -10,6 +11,7 @@ const StaffRoutes = () => {
             <Route path="/" element={<StaffLayout />}>
                 <Route index element={<Navigate to="home" replace />} />
                 <Route path="home" element={<StaffHome />} />
+                <Route path="students" element={<ListStudents />} />
                 {/* Add other routes here */}
             </Route>
         </Routes>

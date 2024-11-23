@@ -19,6 +19,7 @@ import ListStudents from "../pages/superAdmin/ListStudents";
 import ListCastes from "../pages/superAdmin/ListCastes";
 import ListParents from "../pages/superAdmin/ListParents";
 import ListWorkingDays from "../pages/superAdmin/ListWorkingDays";
+import ManageStaffRoles from '../pages/superAdmin/ManageStaffRoles';
 
 const SuperAdminRoutes = () => {
     return (
@@ -46,6 +47,7 @@ const SuperAdminRoutes = () => {
                         <Route path="schools/:prefix/parents" element={<ListParents />} />
                         <Route path="castes" element={<ListCastes />} />
                         <Route path="workingDays" element={<ListWorkingDays />} />
+                        <Route path="schools/:prefix/roles" element={<ManageStaffRoles />} />
 
                     </Route>
                 </Route>

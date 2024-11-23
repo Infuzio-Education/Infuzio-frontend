@@ -21,7 +21,13 @@ interface GridViewProps {
             letter: string;
             image?: string;
         };
+        action?: {
+            label: string;
+            onClick: () => void;
+            color: string;
+        };
     };
+    showDeleteIcon?: boolean;
 }
 
 const GridView: React.FC<GridViewProps> = ({
@@ -30,7 +36,8 @@ const GridView: React.FC<GridViewProps> = ({
     onSelect,
     onDelete,
     onItemClick,
-    getItemContent
+    getItemContent,
+    showDeleteIcon = true
 }) => {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -87,14 +94,14 @@ const GridView: React.FC<GridViewProps> = ({
                                 )}
                             </div>
 
-                            {(content.status || typeof onDelete === 'function') && (
-                                <div className="mt-4 pt-4 border-t border-gray-200">
-                                    <div className="flex items-center justify-between">
-                                        {content.status && (
-                                            <span className={`px-3 py-1 rounded-full text-xs ${content.status.color}`}>
-                                                {content.status.label}
-                                            </span>
-                                        )}
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                                <div className="flex items-center justify-between">
+                                    {content.status && (
+                                        <span className={`px-3 py-1 rounded-full text-xs ${content.status.color}`}>
+                                            {content.status.label}
+                                        </span>
+                                    )}
+                                    {showDeleteIcon && (
                                         <IconButton
                                             aria-label="delete"
                                             onClick={(e) => {
@@ -105,12 +112,30 @@ const GridView: React.FC<GridViewProps> = ({
                                         >
                                             <Trash2 size={16} className="text-red-500" />
                                         </IconButton>
-                                    </div>
+                                    )}
                                 </div>
-                            )}
+                                {content.action && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            content.action?.onClick();
+                                        }}
+                                        className={`
+                                            mt-3 w-full py-2 px-4 rounded-md 
+                                            border border-red-200 
+                                            text-sm font-medium 
+                                            transition-colors duration-200
+                                            hover:bg-red-50
+                                            ${content.action.color}
+                                        `}
+                                    >
+                                        {content.action.label}
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
-                )
+                );
             })}
         </div>
     );

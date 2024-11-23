@@ -12,6 +12,7 @@ const Navbar: React.FC = () => {
     const { superAdminInfo } = useSelector((state: any) => state.superAdminInfo);
     const { schoolInfo } = useSchoolContext();
     console.log('superAdminInfo', superAdminInfo);
+    console.log('SchoolInfo in Navbar:', schoolInfo);
 
 
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -77,6 +78,10 @@ const Navbar: React.FC = () => {
         closeAllDropdowns();
     };
 
+    // Check if we're in a school context by checking the URL
+    const isInSchoolContext = location.pathname.includes('/schools/') &&
+        location.pathname.split('/').length > 3;
+
     return (
         <>
             <nav className="bg-[#308369] fixed top-0 left-0 w-full z-50">
@@ -88,30 +93,21 @@ const Navbar: React.FC = () => {
 
                         <div className="flex items-center">
                             <ul className="flex flex-row mt-0 space-x-8 text-sm">
-                                {schoolInfo && schoolInfo.schoolPrefix && (
+                                {/* Only show Schools nav when in school context */}
+                                {isInSchoolContext && (
                                     <li className="relative">
                                         <button
                                             onClick={toggleSchoolDropdown}
-                                            className="text-gray-900 dark:text-white focus:outline-none"
+                                            className="text-white hover:text-gray-200 focus:outline-none"
                                         >
                                             Schools
                                         </button>
                                         {isSchoolDropdownOpen && (
-                                            <ul className="absolute left-0 mt-2 w-64 bg-white shadow-md z-10 shadow-gray-400" onClick={(e) => e.stopPropagation()}>
-                                                <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Admissions</li>
-                                                <li>
-                                                    <Link
-                                                        to="/superAdmin/configurations/option2"
-                                                        className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
-                                                        onClick={handleLinkClick}
-                                                    >
-                                                        Admission register
-                                                    </Link>
-                                                </li>
+                                            <ul className="absolute left-0 mt-2 w-64 bg-white shadow-md z-10 shadow-gray-400">
                                                 <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Profiles</li>
                                                 <li>
                                                     <Link
-                                                        to={`/superAdmin/schools/${schoolId}/students`}
+                                                        to={`/superAdmin/schools/${schoolInfo.schoolPrefix}/students`}
                                                         className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                         onClick={handleLinkClick}
                                                     >
@@ -135,17 +131,13 @@ const Navbar: React.FC = () => {
                                                     </Link>
                                                 </li>
                                                 <li>
-                                                    <Link to="/superAdmin/configurations/option3" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
-                                                        School
+                                                    <Link to={`/superAdmin/schools/${schoolInfo.schoolPrefix}/roles`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
+                                                        Roles
                                                     </Link>
                                                 </li>
                                                 <li>
                                                     <Link to="/superAdmin/sections" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
-                                                        Set principle                                                    </Link>
-                                                </li>
-                                                <li>
-                                                    <Link to="/superAdmin/sections" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
-                                                        Set admins                                                    </Link>
+                                                        School                                    </Link>
                                                 </li>
                                             </ul>
                                         )}
