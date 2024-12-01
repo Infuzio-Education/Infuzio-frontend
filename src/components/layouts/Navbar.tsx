@@ -185,7 +185,7 @@ const Navbar: React.FC = () => {
                                             </li>
                                             <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">School configuration</li>
                                             <li>
-                                                <Link to="/superAdmin/configurations/option3" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
+                                                <Link to="/superAdmin/grades" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
                                                     Grades
                                                 </Link>
                                             </li>

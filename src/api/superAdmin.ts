@@ -714,9 +714,17 @@ export const listParents = async (schoolPrefix: string) => {
     }
 };
 
-export const createStudent = async (studentData: any, schoolPrefix: string) => {
+export const createStudent = async (studentData: FormData, schoolPrefix: string) => {
     try {
-        const response = await Api.post(`${superAdminEndpoints.createStudent}?school_prefix=${schoolPrefix}`, studentData);
+        const response = await Api.post(
+            `${superAdminEndpoints.student}?school_prefix=${schoolPrefix}`,
+            studentData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            }
+        );
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -729,7 +737,7 @@ export const createStudent = async (studentData: any, schoolPrefix: string) => {
 
 export const listStudents = async (schoolPrefix: string) => {
     try {
-        const response = await Api.get(`${superAdminEndpoints.listStudent}?school_prefix=${schoolPrefix}`);
+        const response = await Api.get(`${superAdminEndpoints.student}?school_prefix=${schoolPrefix}`);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -928,6 +936,159 @@ export const getPrivilegedStaff = async (schoolPrefix: string) => {
             console.error('Error fetching privileged staff:', error.response);
             throw error;
         }
+        throw error;
+    }
+};
+
+
+// Add these functions
+export const createGradeCategory = async (name: string) => {
+    try {
+        const response = await Api.post(`${superAdminEndpoints.gradeCategory}?public=true`, { name });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error creating grade category:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const getGradeCategories = async () => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.gradeCategory}?public=true`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching grade categories:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const createGradeBoundary = async (data: {
+    category_id: number;
+    base_percentage: number;
+    grade_label: string;
+}) => {
+    try {
+        const response = await Api.post(`${superAdminEndpoints.gradeBoundary}?public=true`, data);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error creating grade boundary:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const getGradeBoundaries = async () => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.gradeBoundary}?public=true`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching grade boundaries:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const deleteGradeCategory = async (id: number) => {
+    try {
+        const response = await Api.delete(`${superAdminEndpoints.gradeCategory}/${id}?public=true`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error deleting grade category:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const updateGradeCategory = async (id: number, name: string) => {
+    try {
+        const response = await Api.put(`${superAdminEndpoints.gradeCategory}?public=true`, { id, name });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating grade category:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const deleteGradeBoundary = async (id: number) => {
+    try {
+        const response = await Api.delete(`${superAdminEndpoints.gradeBoundary}/${id}?public=true`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error deleting grade boundary:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const updateGradeBoundary = async (data: {
+    id: number;
+    category_id: number;
+    base_percentage: number;
+    grade_label: string;
+}) => {
+    try {
+        const response = await Api.put(`${superAdminEndpoints.gradeBoundary}?public=true`, data);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating grade boundary:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const deleteStudent = async (studentId: number, schoolPrefix: string) => {
+    try {
+        const response = await Api.delete(
+            `${superAdminEndpoints.student}/${studentId}?school_prefix=${schoolPrefix}`
+        );
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error deleting student:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+export const updateStudent = async (studentId: number, studentData: FormData, schoolPrefix: string) => {
+    try {
+        const response = await Api.patch(
+            `${superAdminEndpoints.student}/${studentId}?school_prefix=${schoolPrefix}`,
+            studentData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            }
+        );
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating student:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
         throw error;
     }
 };

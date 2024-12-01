@@ -5,7 +5,7 @@ import ListControls from '../../components/ListControls';
 import CreateStudents from './CreateStudents';
 import { Student } from '../../types/Types';
 import { useSchoolContext } from '../../contexts/SchoolContext';
-import { listStudents } from '../../api/superAdmin';
+import { listStudents, deleteStudent } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 
 const ListStudents: React.FC = () => {
@@ -35,6 +35,7 @@ const ListStudents: React.FC = () => {
                 throw new Error("School prefix not found");
             }
             const response = await listStudents(schoolInfo.schoolPrefix);
+            console.log('liststudents', response)
             if (response.status && response.resp_code === "SUCCESS") {
                 setStudents(response.data.students);
             } else {
@@ -93,7 +94,7 @@ const ListStudents: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            // Implement delete API call here
+            await deleteStudent(id, schoolInfo.schoolPrefix || '');
             setStudents(students.filter(student => student.id !== id));
             setSnackbar({
                 open: true,

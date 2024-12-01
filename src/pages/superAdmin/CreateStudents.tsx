@@ -1,56 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, FormControl, InputLabel, Select, MenuItem, Grid, Autocomplete, Modal, Box } from '@mui/material';
-import { CreateStudentProps } from '../../types/Types';
+import { TextField, Button, FormControl, InputLabel, Select, MenuItem, Grid, Autocomplete, Modal, Box, FormControlLabel, Switch } from '@mui/material';
+import { CreateStudentProps, StudentFormValues } from '../../types/Types';
 import { Formik, Form, Field } from 'formik';
 import CustomTabs from '../../components/CustomTabs';
 import { useSchoolContext } from '../../contexts/SchoolContext';
-import { createStudent, getClasses, listParents } from '../../api/superAdmin';
+import { createStudent, getClasses, listParents, updateStudent } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { PlusCircle } from 'lucide-react';
 import CreateParent from './CreateParent';
-import * as Yup from 'yup';
+import { studentValidationSchema } from '../../validations/studentFormValidationSchema';
 
 interface ParentInfo {
     parentId: number;
     relationshipWithStudent: string;
 }
 
-const RELATIONS = ['Father', 'Mother', 'Guardian'];
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
 const CATEGORIES = ['General', 'OBC', 'SC', 'ST', 'Other'];
 
-const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
+const formatDateForDisplay = (date: Date | string): string => {
+    if (!date) return '';
+
+    if (typeof date === 'string') {
+        if (date.endsWith('Z')) {
+            const dateObj = new Date(date);
+            return dateObj.toISOString().split('T')[0];
+        }
+
+        if (date.match(/^\d{2}-\d{2}-\d{4}$/)) {
+            const [day, month, year] = date.split('-');
+            return `${year}-${month}-${day}`;
+        }
+    }
+
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(dateObj.getTime())) return '';
+
+    return dateObj.toISOString().split('T')[0];
 };
 
-// Define the type for form values
-interface StudentFormValues {
-    name: string;
-    idCardNumber: string;
-    gender: string;
-    dob: string;
-    phone: string;
-    email: string;
-    parentsInfo: ParentInfo[]; // Ensure parentsInfo is included
-    street1: string;
-    street2: string;
-    city: string;
-    state: string;
-    pincode: string;
-    country: string;
-    bloodGroup: string;
-    remarks: string;
-    religion: string;
-    caste: string;
-    reservationCategory: string;
-    isPWD: boolean;
-    nationality: string;
-    classID: string;
-}
+const formatDateForSubmit = (date: Date | string): string => {
+    if (!date) return '';
+
+    let day, month, year;
+
+    if (typeof date === 'string') {
+        if (date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            [year, month, day] = date.split('-');
+            return `${day}-${month}-${year}`;
+        }
+
+        if (date.match(/^\d{2}-\d{2}-\d{4}$/)) {
+            return date;
+        }
+    }
+
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    day = String(dateObj.getDate()).padStart(2, '0');
+    month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    year = dateObj.getFullYear();
+
+    return `${day}-${month}-${year}`;
+};
 
 const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onCancel }) => {
     const { schoolInfo } = useSchoolContext();
@@ -76,8 +87,8 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
                     getClasses(schoolInfo.schoolPrefix),
                     listParents(schoolInfo.schoolPrefix)
                 ]);
-                console.log("classesResponse",classesResponse);
-                
+                console.log("classesResponse", classesResponse);
+
 
                 if (classesResponse.status === "fulfilled" && classesResponse.value.status && classesResponse.value.resp_code === "SUCCESS") {
                     setClasses(classesResponse.value.data);
@@ -101,61 +112,51 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
         fetchData();
     }, [schoolInfo.schoolPrefix]);
 
-    const handleSubmit = async (values: any, { setSubmitting }: any) => {
+    const handleSubmit = async (values: StudentFormValues, { setSubmitting, validateForm }: any) => {
+
+        const errors = await validateForm(values);
+
+        if (Object.keys(errors).length > 0) {
+            setSubmitting(false);
+            return;
+        }
+
         try {
             if (!schoolInfo.schoolPrefix) {
                 throw new Error("School prefix not found");
             }
 
-            // Create a FormData object
             const formData = new FormData();
-            formData.append('name', values.name);
-            formData.append('idCardNumber', values.idCardNumber);
-            formData.append('gender', values.gender);
-            formData.append('dob', formatDate(values.dob));
-            formData.append('phone', values.phone);
-            formData.append('email', values.email);
-            values.parentsInfo.forEach((parent: any) => {
-                formData.append('parentsInfo[]', JSON.stringify({
-                    parentId: parent.parentId,
-                    relationshipWithStudent: parent.relationshipWithStudent
-                }));
-            });
-            formData.append('street1', values.street1);
-            formData.append('street2', values.street2);
-            formData.append('city', values.city);
-            formData.append('state', values.state);
-            formData.append('pincode', values.pincode);
-            formData.append('country', values.country);
-            formData.append('bloodGroup', values.bloodGroup);
-            formData.append('remarks', values.remarks);
-            formData.append('religion', values.religion);
-            formData.append('caste', values.caste);
-            formData.append('reservationCategory', values.reservationCategory);
-            formData.append('isPWD', values.isPWD);
-            formData.append('nationality', values.nationality);
-            formData.append('classID', values.classID);
 
-            if (initialData) {
-                // Handle update if needed
-                // await updateStudent(initialData.id, formData, schoolInfo.schoolPrefix);
+            Object.entries(values).forEach(([key, value]) => {
+                if (key === 'parentsInfo' && Array.isArray(value)) {
+                    formData.append('parentsInfo', JSON.stringify(value));
+                } else if (value !== null && value !== undefined) {
+                    formData.append(key, value.toString());
+                }
+            });
+
+            const response = initialData && initialData.id !== undefined
+                ? await updateStudent(initialData.id, formData, schoolInfo.schoolPrefix)
+                : await createStudent(formData, schoolInfo.schoolPrefix);
+
+
+            if (response.status && response.resp_code === "CREATED" || response.status && response.resp_code === "SUCCESS") {
+                setSnackbar({
+                    open: true,
+                    message: initialData ? "Student updated successfully!" : "Student created successfully!",
+                    severity: "success",
+                    position: { vertical: "top", horizontal: "center" },
+                });
+                onSave(values);
             } else {
-                await createStudent(formData, schoolInfo.schoolPrefix);
+                throw new Error(response.message || 'Failed to save student');
             }
-
-            setSnackbar({
-                open: true,
-                message: initialData ? "Student updated successfully!" : "Student created successfully!",
-                severity: "success",
-                position: { vertical: "top", horizontal: "center" },
-            });
-
-            onSave(values);
         } catch (error: any) {
             console.error('Error saving student:', error);
             setSnackbar({
                 open: true,
-                message: error.response?.data?.message || 'Failed to save student',
+                message: error.response?.data?.message || error.message || 'Failed to save student',
                 severity: "error",
                 position: { vertical: "top", horizontal: "center" },
             });
@@ -164,336 +165,460 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
         }
     };
 
+
     return (
-        <div className="flex flex-col h-full">
-            <div className="flex-grow overflow-auto p-4">
-                <h2 className="text-xl font-bold mb-4">{initialData ? 'Edit Student' : 'Create Student'}</h2>
+        <div className="flex flex-col min-h-screen">
+            <div className="flex-grow p-4 overflow-auto">
+                <h2 className="text-xl font-bold mb-4">
+                    {initialData ? 'Edit Student' : 'Create Student'}
+                </h2>
                 <Formik
-                    initialValues={initialData || {
-                        name: '',
-                        idCardNumber: '',
-                        gender: '',
+                    initialValues={initialData ? {
+                        ...initialData,
+                        dob: initialData.dob.endsWith('Z')
+                            ? formatDateForSubmit(initialData.dob)  // Convert ISO date to DD-MM-YYYY
+                            : initialData.dob,  // Keep existing DD-MM-YYYY format
+                        dateOfAdmission: initialData.dateOfAdmission.endsWith('Z')
+                            ? formatDateForSubmit(initialData.dateOfAdmission)
+                            : initialData.dateOfAdmission
+                    } : {
+                        name: 'Mohammed',
+                        dateOfAdmission: formatDateForSubmit(new Date()),
+                        gender: 'male',
                         dob: '',
-                        phone: '',
-                        email: '',
-                        parentsInfo: [], // Ensure this is initialized
-                        street1: '',
-                        street2: '',
-                        city: '',
-                        state: '',
-                        pincode: '',
-                        country: '',
-                        bloodGroup: '',
+                        phone: '+91234234',
+                        email: 'a@gmaill.com',
+                        street1: 'Parakkal',
+                        city: 'Malappuram',
+                        state: 'kerala',
+                        pincode: '678333',
+                        country: 'India',
+                        classID: 2,
+                        idCardNumber: null,
+                        admissionNumber: null,
+                        house: '440A',
+                        street2: 'vazhikkadavu',
+                        bloodGroup: null,
                         remarks: '',
                         religion: '',
                         caste: '',
                         reservationCategory: '',
                         isPWD: false,
-                        nationality: '',
-                        classID: ''
-                    } as StudentFormValues} // Cast to StudentFormValues
-                    onSubmit={handleSubmit}
-                    validationSchema={Yup.object().shape({
-                        name: Yup.string().required('Name is required'),
-                        idCardNumber: Yup.string().required('ID Card Number is required'),
-                        gender: Yup.string().required('Gender is required'),
-                        dob: Yup.string().required('Date of Birth is required'),
-                        phone: Yup.string().required('Phone is required'),
-                        email: Yup.string().email('Invalid email').required('Email is required'),
-                        classID: Yup.string().required('Class is required'),
-                        // Add other validations as needed
-                    })}
+                        nationality: 'Indian',
+                        parentsInfo: [],
+                    } as StudentFormValues}
+                    validationSchema={studentValidationSchema}
+                    onSubmit={(values, actions) => {
+                        console.log("Formik onSubmit triggered", values);
+                        handleSubmit(values, actions);
+                    }}
+                    enableReinitialize={true}
                 >
-                    {({ values, isSubmitting, setFieldValue }:any) => (
-                        <Form className="space-y-4">
-                            <CustomTabs labels={['Basic Info', 'Parents', 'Additional Info']}>
-                                {/* Basic Info Tab */}
-                                <Grid container spacing={2}>
-                                    <Grid item xs={12} md={6}>
-                                        <Field
-                                            as={TextField}
-                                            name="name"
-                                            label="Student Name"
-                                            fullWidth
-                                            required
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <Field
-                                            as={TextField}
-                                            name="idCardNumber"
-                                            label="ID Card Number"
-                                            fullWidth
-                                            required
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <FormControl fullWidth>
-                                            <InputLabel>Gender</InputLabel>
-                                            <Field
-                                                as={Select}
-                                                name="gender"
-                                                label="Gender"
-                                            >
-                                                <MenuItem value="male">Male</MenuItem>
-                                                <MenuItem value="female">Female</MenuItem>
-                                                <MenuItem value="other">Other</MenuItem>
-                                            </Field>
-                                        </FormControl>
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <Field
-                                            as={TextField}
-                                            name="dob"
-                                            label="Date of Birth"
-                                            type="date"
-                                            fullWidth
-                                            InputLabelProps={{ shrink: true }}
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <Field
-                                            as={TextField}
-                                            name="phone"
-                                            label="Phone"
-                                            fullWidth
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <Field
-                                            as={TextField}
-                                            name="email"
-                                            label="Email"
-                                            type="email"
-                                            fullWidth
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12}>
-                                        <FormControl fullWidth>
-                                            <InputLabel>Class</InputLabel>
-                                            <Field
-                                                as={Select}
-                                                name="classID"
-                                                label="Class"
-                                            >
-                                                {classes.map((cls: any) => (
-                                                    <MenuItem key={cls.ID} value={cls.ID}>
-                                                        {cls.Name}
-                                                    </MenuItem>
-                                                ))}
-                                            </Field>
-                                        </FormControl>
-                                    </Grid>
-                                </Grid>
+                    {({ values, errors, touched, isSubmitting, setFieldValue, handleSubmit: formikHandleSubmit }) => {
+                        console.log('Form Values:', values);
+                        console.log('Initial Data:', initialData);
 
-                                {/* Parents Tab */}
-                                <div>
-                                    <div className="flex justify-between items-center mb-4">
-                                        <Autocomplete
-                                            className="flex-grow mr-4"
-                                            multiple
-                                            options={parents}
-                                            getOptionLabel={(option) => `${option.name} (${option.phone})`}
-                                            onChange={(_, newValue) => {
-                                                const newParentsInfo = newValue.map(parent => ({
-                                                    parentId: parent.id,
-                                                    relationshipWithStudent: ''
-                                                }));
-                                                setFieldValue('parentsInfo', newParentsInfo);
-                                            }}
-                                            renderInput={(params) => (
-                                                <TextField
-                                                    {...params}
-                                                    label="Search Parents"
-                                                    variant="outlined"
-                                                />
-                                            )}
-                                        />
-                                        <Button
-                                            startIcon={<PlusCircle size={20} />}
-                                            variant="contained"
-                                            color="primary"
-                                            onClick={() => setOpenParentModal(true)}
-                                        >
-                                            Add Parent
-                                        </Button>
-                                    </div>
-                                    <div className="mt-4">
-                                        {values.parentsInfo.map((parentInfo: ParentInfo, index: number) => (
-                                            <div key={index} className="flex gap-4 mt-2">
-                                                <div className="flex-grow">
-                                                    <TextField
+                        return (
+                            <Form
+                                className="flex flex-col h-full"
+                                noValidate
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    console.log("Form values:", values);
+                                    console.log("Validation errors:", errors);
+                                    formikHandleSubmit(e);
+                                }}
+                            >
+                                <div className="flex-none bg-gray-50 p-4">
+                                    <Grid container spacing={2}>
+                                        <Grid item xs={12} md={6}>
+                                            <TextField
+                                                disabled
+                                                value={schoolInfo.name || ''}
+                                                label="School"
+                                                fullWidth
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={6}>
+                                            <TextField
+                                                label="Date of Admission"
+                                                value={values.dateOfAdmission}
+                                                fullWidth
+                                                disabled
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={6}>
+                                            <Field
+                                                as={TextField}
+                                                name="name"
+                                                label="Student Name"
+                                                fullWidth
+                                                required
+                                                error={touched.name && errors.name}
+                                                helperText={touched.name && errors.name}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={6}>
+                                            <Field
+                                                as={TextField}
+                                                name="idCardNumber"
+                                                label="ID Card Number"
+                                                fullWidth
+                                                error={touched.idCardNumber && errors.idCardNumber}
+                                                helperText={touched.idCardNumber && errors.idCardNumber}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={6}>
+                                            <Field
+                                                as={TextField}
+                                                name="admissionNumber"
+                                                label="Admission Number"
+                                                fullWidth
+                                                error={touched.admissionNumber && errors.admissionNumber}
+                                                helperText={touched.admissionNumber && errors.admissionNumber}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={6}>
+                                            <FormControl fullWidth>
+                                                <InputLabel>Class</InputLabel>
+                                                <Field
+                                                    as={Select}
+                                                    name="classID"
+                                                    label="Class"
+                                                    required
+                                                    error={touched.classID && errors.classID}
+                                                    helperText={touched.classID && errors.classID}
+                                                >
+                                                    {(classes || []).map((cls: any) => (
+                                                        <MenuItem key={cls.ID} value={cls.ID}>
+                                                            {cls.Name}
+                                                        </MenuItem>
+                                                    ))}
+                                                </Field>
+                                            </FormControl>
+                                        </Grid>
+                                    </Grid>
+                                </div>
+
+
+                                <div className="flex-grow overflow-auto">
+                                    <div className="h-full">
+                                        <CustomTabs labels={['Basic Info', 'Parents', 'Additional Info']}>
+                                            {/* Basic Info Tab */}
+                                            <Grid container spacing={2}>
+                                                <Grid item xs={12} md={6}>
+                                                    <FormControl fullWidth>
+                                                        <InputLabel>Gender</InputLabel>
+                                                        <Field
+                                                            as={Select}
+                                                            name="gender"
+                                                            label="Gender"
+                                                            required
+                                                            error={touched.gender && errors.gender}
+                                                            helperText={touched.gender && errors.gender}
+                                                        >
+                                                            <MenuItem value="male">Male</MenuItem>
+                                                            <MenuItem value="female">Female</MenuItem>
+                                                            <MenuItem value="other">Other</MenuItem>
+                                                        </Field>
+                                                    </FormControl>
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Field
+                                                        as={TextField}
+                                                        type="date"
+                                                        name="dob"
+                                                        label="Date of Birth"
                                                         fullWidth
-                                                        disabled
-                                                        value={parents.find(p => p.id === parentInfo.parentId)?.name || ''}
-                                                        label="Parent Name"
+                                                        InputLabelProps={{
+                                                            shrink: true,
+                                                        }}
+                                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                                            const selectedDate = e.target.value; // YYYY-MM-DD from date picker
+                                                            const formattedDate = formatDateForSubmit(selectedDate); // Convert to DD-MM-YYYY
+                                                            setFieldValue('dob', formattedDate);
+                                                        }}
+                                                        value={values.dob ? formatDateForDisplay(values.dob) : ''} // Convert DD-MM-YYYY to YYYY-MM-DD for display
+                                                        error={touched.dob && !!errors.dob}
+                                                        helperText={touched.dob && errors.dob}
                                                     />
-                                                </div>
-                                                <FormControl fullWidth>
-                                                    <InputLabel>Relationship</InputLabel>
-                                                    <Select
-                                                        value={parentInfo.relationshipWithStudent}
-                                                        onChange={(e) => {
-                                                            const newParentsInfo = [...values.parentsInfo];
-                                                            newParentsInfo[index].relationshipWithStudent = e.target.value;
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Field
+                                                        as={TextField}
+                                                        name="phone"
+                                                        label="Phone"
+                                                        fullWidth
+                                                        required
+                                                        error={touched.phone && errors.phone}
+                                                        helperText={touched.phone && errors.phone}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Field
+                                                        as={TextField}
+                                                        name="email"
+                                                        label="Email"
+                                                        type="email"
+                                                        fullWidth
+                                                        required
+                                                        error={touched.email && errors.email}
+                                                        helperText={touched.email && errors.email}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Field
+                                                        as={TextField}
+                                                        name="nationality"
+                                                        label="Nationality"
+                                                        fullWidth
+                                                        error={touched.nationality && errors.nationality}
+                                                        helperText={touched.nationality && errors.nationality}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <FormControl fullWidth>
+                                                        <InputLabel>Blood Group</InputLabel>
+                                                        <Field
+                                                            as={Select}
+                                                            name="bloodGroup"
+                                                            label="Blood Group"
+                                                            error={touched.bloodGroup && errors.bloodGroup}
+                                                            helperText={touched.bloodGroup && errors.bloodGroup}
+                                                        >
+                                                            {BLOOD_GROUPS.map(group => (
+                                                                <MenuItem key={group} value={group}>
+                                                                    {group}
+                                                                </MenuItem>
+                                                            ))}
+                                                        </Field>
+                                                    </FormControl>
+                                                </Grid>
+                                            </Grid>
+
+                                            {/* Parents Tab */}
+                                            <div>
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <Autocomplete
+                                                        className="flex-grow mr-4"
+                                                        multiple
+                                                        options={parents}
+                                                        getOptionLabel={(option) => `${option.name} (${option.phone})`}
+                                                        onChange={(_, newValue) => {
+                                                            const newParentsInfo = newValue.map(parent => ({
+                                                                parentId: parent.id,
+                                                                relationshipWithStudent: ''
+                                                            }));
                                                             setFieldValue('parentsInfo', newParentsInfo);
                                                         }}
-                                                        label="Relationship"
+                                                        renderInput={(params) => (
+                                                            <TextField
+                                                                {...params}
+                                                                label="Search Parents"
+                                                                variant="outlined"
+                                                            />
+                                                        )}
+                                                    />
+                                                    <Button
+                                                        startIcon={<PlusCircle size={20} />}
+                                                        variant="contained"
+                                                        color="primary"
+                                                        onClick={() => setOpenParentModal(true)}
                                                     >
-                                                        {RELATIONS.map(relation => (
-                                                            <MenuItem key={relation} value={relation}>
-                                                                {relation}
-                                                            </MenuItem>
-                                                        ))}
-                                                    </Select>
-                                                </FormControl>
+                                                        Add Parent
+                                                    </Button>
+                                                </div>
+                                                <div className="mt-4">
+                                                    {(values.parentsInfo || []).map((parentInfo: ParentInfo, index: number) => (
+                                                        <div key={index} className="flex gap-4 mt-2">
+                                                            <div className="flex-grow">
+                                                                <TextField
+                                                                    fullWidth
+                                                                    disabled
+                                                                    value={parents.find(p => p.id === parentInfo.parentId)?.name || ''}
+                                                                    label="Parent Name"
+                                                                />
+                                                            </div>
+                                                            <div className="flex-grow">
+                                                                <TextField
+                                                                    fullWidth
+                                                                    value={parentInfo.relationshipWithStudent}
+                                                                    onChange={(e) => {
+                                                                        const newParentsInfo = [...values.parentsInfo];
+                                                                        newParentsInfo[index].relationshipWithStudent = e.target.value;
+                                                                        setFieldValue('parentsInfo', newParentsInfo);
+                                                                    }}
+                                                                    label="Relationship with Student"
+                                                                    placeholder="e.g. Father, Mother, Guardian"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        ))}
+
+                                            {/* Additional Info Tab */}
+                                            <Grid container spacing={2}>
+                                                <Grid item xs={12}>
+                                                    <Field
+                                                        as={TextField}
+                                                        name="house"
+                                                        label="House Name"
+                                                        fullWidth
+                                                        error={touched.house && !!errors.house}
+                                                        helperText={touched.house && errors.house}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Field
+                                                        as={TextField}
+                                                        name="street1"
+                                                        label="Address Line 1"
+                                                        fullWidth
+                                                        required
+                                                        error={touched.street1 && !!errors.street1}
+                                                        helperText={touched.street1 && errors.street1}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Field
+                                                        as={TextField}
+                                                        name="street2"
+                                                        label="Address Line 2"
+                                                        fullWidth
+                                                        error={touched.street2 && !!errors.street2}
+                                                        helperText={touched.street2 && errors.street2}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Field
+                                                        as={TextField}
+                                                        name="city"
+                                                        label="City"
+                                                        fullWidth
+                                                        required
+                                                        error={touched.city && !!errors.city}
+                                                        helperText={touched.city && errors.city}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Field
+                                                        as={TextField}
+                                                        name="state"
+                                                        label="State"
+                                                        fullWidth
+                                                        required
+                                                        error={touched.state && !!errors.state}
+                                                        helperText={touched.state && errors.state}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Field
+                                                        as={TextField}
+                                                        name="pincode"
+                                                        label="Pin Code"
+                                                        fullWidth
+                                                        required
+                                                        error={touched.pincode && !!errors.pincode}
+                                                        helperText={touched.pincode && errors.pincode}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Field
+                                                        as={TextField}
+                                                        name="country"
+                                                        label="Country"
+                                                        fullWidth
+                                                        required
+                                                        error={touched.country && !!errors.country}
+                                                        helperText={touched.country && errors.country}
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Field
+                                                        as={TextField}
+                                                        name="religion"
+                                                        label="Religion"
+                                                        fullWidth
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <Field
+                                                        as={TextField}
+                                                        name="caste"
+                                                        label="Caste"
+                                                        fullWidth
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <FormControl fullWidth>
+                                                        <InputLabel>Reservation Category</InputLabel>
+                                                        <Field
+                                                            as={Select}
+                                                            name="reservationCategory"
+                                                            label="Reservation Category"
+                                                            error={touched.reservationCategory && errors.reservationCategory}
+                                                            helperText={touched.reservationCategory && errors.reservationCategory}
+                                                        >
+                                                            {CATEGORIES.map(category => (
+                                                                <MenuItem key={category} value={category}>
+                                                                    {category}
+                                                                </MenuItem>
+                                                            ))}
+                                                        </Field>
+                                                    </FormControl>
+                                                </Grid>
+                                                <Grid item xs={12} md={6}>
+                                                    <FormControlLabel
+                                                        control={
+                                                            <Field
+                                                                as={Switch}
+                                                                name="isPWD"
+                                                                type="checkbox"
+                                                            />
+                                                        }
+                                                        label="Person with Disability"
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12}>
+                                                    <Field
+                                                        as={TextField}
+                                                        name="remarks"
+                                                        label="Remarks"
+                                                        multiline
+                                                        rows={4}
+                                                        fullWidth
+                                                    />
+                                                </Grid>
+                                            </Grid>
+                                        </CustomTabs>
                                     </div>
                                 </div>
 
-                                {/* Additional Info Tab */}
-                                <Grid container spacing={2}>
-                                    {/* Address Fields */}
-                                    <Grid item xs={12}>
-                                        <Field
-                                            as={TextField}
-                                            name="street1"
-                                            label="Address Line 1"
-                                            fullWidth
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12}>
-                                        <Field
-                                            as={TextField}
-                                            name="street2"
-                                            label="Address Line 2"
-                                            fullWidth
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <Field
-                                            as={TextField}
-                                            name="city"
-                                            label="City"
-                                            fullWidth
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <Field
-                                            as={TextField}
-                                            name="state"
-                                            label="State"
-                                            fullWidth
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <Field
-                                            as={TextField}
-                                            name="pincode"
-                                            label="Pin Code"
-                                            fullWidth
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <Field
-                                            as={TextField}
-                                            name="country"
-                                            label="Country"
-                                            fullWidth
-                                        />
-                                    </Grid>
-
-                                    {/* Other Fields */}
-                                    <Grid item xs={12} md={6}>
-                                        <FormControl fullWidth>
-                                            <InputLabel>Blood Group</InputLabel>
-                                            <Field
-                                                as={Select}
-                                                name="bloodGroup"
-                                                label="Blood Group"
-                                            >
-                                                {BLOOD_GROUPS.map(group => (
-                                                    <MenuItem key={group} value={group}>
-                                                        {group}
-                                                    </MenuItem>
-                                                ))}
-                                            </Field>
-                                        </FormControl>
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <Field
-                                            as={TextField}
-                                            name="religion"
-                                            label="Religion"
-                                            fullWidth
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <Field
-                                            as={TextField}
-                                            name="caste"
-                                            label="Caste"
-                                            fullWidth
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <FormControl fullWidth>
-                                            <InputLabel>Reservation Category</InputLabel>
-                                            <Field
-                                                as={Select}
-                                                name="reservationCategory"
-                                                label="Reservation Category"
-                                            >
-                                                {CATEGORIES.map(category => (
-                                                    <MenuItem key={category} value={category}>
-                                                        {category}
-                                                    </MenuItem>
-                                                ))}
-                                            </Field>
-                                        </FormControl>
-                                    </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <Field
-                                            as={TextField}
-                                            name="nationality"
-                                            label="Nationality"
-                                            fullWidth
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12}>
-                                        <Field
-                                            as={TextField}
-                                            name="remarks"
-                                            label="Remarks"
-                                            multiline
-                                            rows={4}
-                                            fullWidth
-                                        />
-                                    </Grid>
-                                </Grid>
-                            </CustomTabs>
-
-                            <div className="flex justify-end space-x-2 mt-4">
-                                <Button 
-                                    onClick={onCancel} 
-                                    variant="outlined" 
-                                    color="error"
-                                    disabled={isSubmitting}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button 
-                                    type="submit" 
-                                    variant="contained" 
-                                    color="success"
-                                    disabled={isSubmitting}
-                                >
-                                    {isSubmitting ? 'Saving...' : (initialData ? 'Update Student' : 'Create Student')}
-                                </Button>
-                            </div>
-                        </Form>
-                    )}
+                                <div className="flex-none border-t p-4 bg-white mt-auto">
+                                    <div className="flex justify-end space-x-2">
+                                        <Button
+                                            onClick={onCancel}
+                                            variant="outlined"
+                                            color="error"
+                                            disabled={isSubmitting}
+                                            type="button"
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            variant="contained"
+                                            color="success"
+                                            type="submit"
+                                            disabled={isSubmitting}
+                                        >
+                                            {isSubmitting ? 'Saving...' : 'Create Student'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </Form>
+                        );
+                    }}
                 </Formik>
             </div>
 
@@ -507,13 +632,13 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: 400,
+                    width: '600px',
                     bgcolor: 'background.paper',
                     boxShadow: 24,
-                    p: 4,
                     borderRadius: 2,
+                    p: 0
                 }}>
-                    <CreateParent 
+                    <CreateParent
                         onClose={() => {
                             setOpenParentModal(false);
                             // Refresh parents list after creating a new parent
@@ -524,7 +649,7 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
                                     }
                                     const response = await listParents(schoolInfo.schoolPrefix);
                                     if (response.status && response.resp_code === "SUCCESS") {
-                                        setParents(response.data);
+                                        setParents(response.data.parents);
                                     }
                                 } catch (err: any) {
                                     setSnackbar({
@@ -536,7 +661,9 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
                                 }
                             };
                             fetchParents();
-                        } } initialData={undefined}                    />
+                        }}
+                        initialData={undefined}
+                    />
                 </Box>
             </Modal>
 

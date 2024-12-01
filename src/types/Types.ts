@@ -207,32 +207,69 @@ export interface CreateClassProps {
 }
 
 export interface Student {
-    phone: number;
-    email: string;
-    idCardNumber: number;
     id: number;
     name: string;
-    rollNumber: string;
-    classID: number;
-    dateOfBirth: string;
+    idCardNumber: string | null;
+    admissionNumber: string | null;
+    dateOfAdmission: string;
     gender: string;
-    address: {
-        line1: string;
-        city: string;
-        state: string;
-        pinCode: string;
-        country: string;
-    };
-    guardianName: string;
-    guardianPhone: string;
-    guardianEmail: string;
+    dob: string;
+    phone: string;
+    email: string;
+    parentsInfo: {
+        parentId: number;
+        relationshipWithStudent: string;
+    }[];
+    house?: string;
+    street1: string;
+    street2?: string;
+    city: string;
+    state: string;
+    pincode: string;
+    country: string;
+    bloodGroup: string | null;
+    remarks?: string;
+    religion?: string;
+    caste?: string;
+    reservationCategory?: string;
+    isPWD: boolean;
+    nationality?: string;
+    classID: number;
     imageUrl?: string;
 }
 
 export interface CreateStudentProps {
-    initialData: Student | null;
-    onSave: (student: Student) => void;
+    initialData: StudentFormValues | null;
+    onSave: (student: StudentFormValues) => void;
     onCancel: () => void;
+}
+
+export interface StudentFormValues {
+    id?: number;
+    name: string;
+    dateOfAdmission: string;
+    gender: string;
+    dob: string;
+    phone: string;
+    email: string;
+    street1: string;
+    city: string;
+    state: string;
+    pincode: string;
+    country: string;
+    classID: number;
+    idCardNumber: string | null;
+    admissionNumber: string | null;
+    house: string;
+    street2: string;
+    bloodGroup: string | null;
+    remarks: string;
+    religion: string;
+    caste: string;
+    reservationCategory: string;
+    isPWD: boolean;
+    nationality: string;
+    parentsInfo: ParentInfo[];
 }
 
 export interface Religion {
