@@ -3,7 +3,6 @@ import { Link, useLocation, Outlet } from 'react-router-dom';
 import {
     Home,
     Bell,
-    ClipboardCheck,
     FileText,
     Menu,
     X,
@@ -42,7 +41,7 @@ const Sidebar = () => {
                     <Link
                         to="/staffs/home"
                         className={`flex items-center mx-3 px-4 py-2.5 rounded-full transition-all duration-200 ${isActiveLink('/staffs/home')
-                            ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200'
+                            ? 'bg-emerald-700 text-white shadow-lg shadow-emerald-200'
                             : 'text-gray-700 hover:bg-gray-100'
                             }`}
                     >
@@ -65,20 +64,6 @@ const Sidebar = () => {
                         </span>
                         {!collapsed && (
                             <span className="ml-3 text-sm font-medium">Announcements</span>
-                        )}
-                    </Link>
-                    <Link
-                        to="/staffs/teacher-attendance"
-                        className={`flex items-center mx-3 px-4 py-2.5 rounded-full transition-all duration-200 mt-1 ${isActiveLink('/staffs/teacher-attendance')
-                            ? 'bg-emerald-700 text-white shadow-lg shadow-emerald-200'
-                            : 'text-gray-700 hover:bg-gray-100'
-                            }`}
-                    >
-                        <span className="inline-flex items-center justify-center w-6">
-                            <ClipboardCheck size={20} />
-                        </span>
-                        {!collapsed && (
-                            <span className="ml-3 text-sm font-medium">Teacher Attendance</span>
                         )}
                     </Link>
                     <Link

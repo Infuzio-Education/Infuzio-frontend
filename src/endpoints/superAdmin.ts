@@ -1,6 +1,6 @@
 const superAdminEndpoints = {
     // Auth
-    login: 'infuzAdmin/login',
+    login: 'login/infuzAdmin',
 
     // Global   
     syllabus: 'global/syllabus',
@@ -13,8 +13,7 @@ const superAdminEndpoints = {
     classes: '/school/class',
     createParent: 'school/parent',
     listParent: 'school/parent',
-    createStudent: 'school/student',
-    listStudent: 'school/student',
+    student: 'school/student',
     subjects: 'global/subjects',
     workingDays: 'global/workingDay',
 
@@ -30,7 +29,9 @@ const superAdminEndpoints = {
     createSchool: 'manage-school/create',
     schoolLogo: 'manage-school/logo',
 
-
-}
+    // Grades
+    gradeCategory: 'global/grade/category',
+    gradeBoundary: 'global/grade/boundary',
+};
 
 export default superAdminEndpoints;
