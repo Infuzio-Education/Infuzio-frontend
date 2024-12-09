@@ -1,28 +1,11 @@
 import { useState } from 'react';
-import { Bell, Plus, Search, Filter, ChevronDown, Image as ImageIcon, Link as LinkIcon, File, Send, X } from 'lucide-react';
-import { CHAT_BG_IMAGE } from '../../assets/images/chat-bg-constants';
-
-interface Announcement {
-    id: string;
-    title: string;
-    content: string;
-    sender: {
-        name: string;
-        role: string;
-        avatar?: string;
-    };
-    target: {
-        type: 'section' | 'class';
-        value: string;
-    };
-    date: string;
-    attachments?: { name: string; type: string; size: string }[];
-}
+import { Plus, Image as ImageIcon, File, Send, X } from 'lucide-react';
+import { Announcement } from '../../types/Types';
 
 const Announcements = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [selectedFilter, setSelectedFilter] = useState('all');
-    const [searchQuery, setSearchQuery] = useState('');
+    // const [selectedFilter, setSelectedFilter] = useState('all');
+    // const [searchQuery, setSearchQuery] = useState('');
 
     // Mock data for announcements
     const announcements: Announcement[] = [

@@ -2,8 +2,11 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import StaffLayout from "../components/layouts/sidebar";
 import StaffLogin from "../pages/staffs/StaffLogin";
 import StaffHome from "../pages/staffs/StaffHome";
-import ListStudents from "../pages/superAdmin/ListStudents";
+import StudentList from "../pages/staffs/StudentList";
 import Announcements from "../pages/staffs/Announcements";
+import HomeWorkouts from "../pages/staffs/HomeWorkouts";
+import UnitTests from "../pages/staffs/UnitTests";
+import Exams from "../pages/staffs/Exams";
 
 const StaffRoutes = () => {
     return (
@@ -12,9 +15,11 @@ const StaffRoutes = () => {
             <Route path="/" element={<StaffLayout />}>
                 <Route index element={<Navigate to="home" replace />} />
                 <Route path="home" element={<StaffHome />} />
-                <Route path="students" element={<ListStudents />} />
+                <Route path="students" element={<StudentList />} />
                 <Route path="announcements" element={<Announcements />} />
-                {/* Add other routes here */}
+                <Route path="home-workouts" element={<HomeWorkouts />} />
+                <Route path="unit-tests" element={<UnitTests />} />
+                <Route path="exams" element={<Exams />} />
             </Route>
         </Routes>
     );

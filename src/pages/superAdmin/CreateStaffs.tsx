@@ -30,10 +30,8 @@ const INITIAL_STAFF_STATE: CreateStaffPayload = {
     state: '',
     pincode: '',
     country: '',
-    responsibility: '',
     subjects: [],
     section: '',
-    ID: 0,
     profile_pic_link: '',
 };
 
@@ -296,94 +294,74 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                                 helperText={validationErrors.dob}
                             />
                         </Grid>
+                        <Grid item xs={12} md={6}>
+
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={staff.is_teaching_staff}
+                                        onChange={(e) => setStaff(prev => ({
+                                            ...prev,
+                                            is_teaching_staff: e.target.checked
+                                        }))}
+                                        name="is_teaching_staff"
+                                    />
+                                }
+                                label="Teaching Staff"
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            {loadingSections ? (
+                                <div className="flex justify-center p-4">
+                                    <CircularProgress size={24} />
+                                </div>
+                            ) : (
+                                <FormControl fullWidth>
+                                    <InputLabel>Section</InputLabel>
+                                    <Select
+                                        name="section"
+                                        value={staff.section}
+                                        onChange={handleSelectChange}
+                                        label="Section"
+                                        error={!!sectionError}
+                                    >
+                                        {sections.length > 0 ? (sections.map((section: Section) => (
+                                            <MenuItem key={section.ID} value={section.ID}>
+                                                {section.Name}
+                                            </MenuItem>
+                                        ))) : (<MenuItem>No sections found</MenuItem>)}
+                                    </Select>
+                                    {sectionError && (
+                                        <span className="text-red-500 text-sm mt-1">
+                                            {sectionError}
+                                        </span>
+                                    )}
+                                </FormControl>
+                            )}
+                        </Grid>
+                        <Grid item xs={12} md={12}>
+                            {staff.is_teaching_staff && (
+                                <FormControl fullWidth>
+                                    <InputLabel>Subjects</InputLabel>
+                                    <Select
+                                        multiple
+                                        name="subjects"
+                                        value={Array.isArray(staff.subjects) ? staff.subjects : []}
+                                        onChange={handleSelectChange}
+                                        label="Subjects"
+                                    >
+                                        {SUBJECTS.map(subject => (
+                                            <MenuItem key={subject} value={subject}>
+                                                {subject}
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            )}
+                        </Grid>
                     </Grid>
 
-                    <CustomTabs labels={['Basic Info', 'Contact', 'Additional Info']}>
-                        {/* Basic Info Tab */}
-                        <div className="space-y-4">
-                            <Grid container spacing={2}>
-                                <Grid item xs={12} md={6}>
-                                    <FormControl fullWidth>
-                                        <InputLabel>Blood Group</InputLabel>
-                                        <Select
-                                            name="blood_group"
-                                            value={staff.blood_group}
-                                            onChange={handleSelectChange}
-                                            label="Blood Group"
-                                        >
-                                            {BLOOD_GROUPS.map(group => (
-                                                <MenuItem key={group} value={group}>{group}</MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                </Grid>
-                                <Grid item xs={12} md={6}>
-                                    <TextField
-                                        label="Religion"
-                                        variant="outlined"
-                                        fullWidth
-                                        name="religion"
-                                        value={staff.religion}
-                                        onChange={handleChange}
-                                    />
-                                </Grid>
-                            </Grid>
-
-                            <Grid container spacing={2}>
-                                <Grid item xs={12} md={6}>
-                                    <TextField
-                                        label="Caste"
-                                        variant="outlined"
-                                        fullWidth
-                                        name="caste"
-                                        value={staff.caste}
-                                        onChange={handleChange}
-                                    />
-                                </Grid>
-                                <Grid item xs={12} md={6}>
-                                    <TextField
-                                        label="Category"
-                                        variant="outlined"
-                                        fullWidth
-                                        name="category"
-                                        value={staff.category}
-                                        onChange={handleChange}
-                                    />
-                                </Grid>
-                            </Grid>
-
-                            <div>
-                                <FormControlLabel
-                                    control={
-                                        <Switch
-                                            checked={staff.pwd}
-                                            onChange={(e) => setStaff(prev => ({
-                                                ...prev,
-                                                pwd: e.target.checked
-                                            }))}
-                                            name="pwd"
-                                        />
-                                    }
-                                    label="Person with Disability"
-                                />
-                            </div>
-
-                            <div>
-                                <FormControlLabel
-                                    control={
-                                        <Switch
-                                            checked={staff.is_teaching_staff}
-                                            onChange={(e) => setStaff(prev => ({
-                                                ...prev,
-                                                is_teaching_staff: e.target.checked
-                                            }))}
-                                            name="is_teaching_staff"
-                                        />
-                                    }
-                                    label="Teaching Staff"
-                                />
-                            </div>
-                        </div>
+                    <CustomTabs labels={['Contact', 'Additional Info']}>
 
                         {/* Contact Tab */}
                         <div className="space-y-4">
@@ -486,61 +464,72 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
 
                         {/* Additional Info Tab */}
                         <div className="space-y-4">
-                            <TextField
-                                label="Responsibility"
-                                variant="outlined"
-                                fullWidth
-                                name="responsibility"
-                                value={staff.responsibility}
-                                onChange={handleChange}
-                            />
+                            <Grid container spacing={2}>
+                                <Grid item xs={12} md={6}>
+                                    <FormControl fullWidth>
+                                        <InputLabel>Blood Group</InputLabel>
+                                        <Select
+                                            name="blood_group"
+                                            value={staff.blood_group}
+                                            onChange={handleSelectChange}
+                                            label="Blood Group"
+                                        >
+                                            {BLOOD_GROUPS.map(group => (
+                                                <MenuItem key={group} value={group}>{group}</MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <TextField
+                                        label="Religion"
+                                        variant="outlined"
+                                        fullWidth
+                                        name="religion"
+                                        value={staff.religion}
+                                        onChange={handleChange}
+                                    />
+                                </Grid>
+                            </Grid>
 
-                            {staff.is_teaching_staff && (
-                                <FormControl fullWidth>
-                                    <InputLabel>Subjects</InputLabel>
-                                    <Select
-                                        multiple
-                                        name="subjects"
-                                        value={Array.isArray(staff.subjects) ? staff.subjects : []}
-                                        onChange={handleSelectChange}
-                                        label="Subjects"
-                                    >
-                                        {SUBJECTS.map(subject => (
-                                            <MenuItem key={subject} value={subject}>
-                                                {subject}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                            )}
+                            <Grid container spacing={2}>
+                                <Grid item xs={12} md={6}>
+                                    <TextField
+                                        label="Caste"
+                                        variant="outlined"
+                                        fullWidth
+                                        name="caste"
+                                        value={staff.caste}
+                                        onChange={handleChange}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <TextField
+                                        label="Category"
+                                        variant="outlined"
+                                        fullWidth
+                                        name="category"
+                                        value={staff.category}
+                                        onChange={handleChange}
+                                    />
+                                </Grid>
+                            </Grid>
 
-                            {loadingSections ? (
-                                <div className="flex justify-center p-4">
-                                    <CircularProgress size={24} />
-                                </div>
-                            ) : (
-                                <FormControl fullWidth>
-                                    <InputLabel>Section</InputLabel>
-                                    <Select
-                                        name="section"
-                                        value={staff.section}
-                                        onChange={handleSelectChange}
-                                        label="Section"
-                                        error={!!sectionError}
-                                    >
-                                        {sections.length > 0 ? (sections.map((section: Section) => (
-                                            <MenuItem key={section.ID} value={section.ID}>
-                                                {section.Name}
-                                            </MenuItem>
-                                        ))) : (<MenuItem>No sections found</MenuItem>)}
-                                    </Select>
-                                    {sectionError && (
-                                        <span className="text-red-500 text-sm mt-1">
-                                            {sectionError}
-                                        </span>
-                                    )}
-                                </FormControl>
-                            )}
+                            <div>
+                                <FormControlLabel
+                                    control={
+                                        <Switch
+                                            checked={staff.pwd}
+                                            onChange={(e) => setStaff(prev => ({
+                                                ...prev,
+                                                pwd: e.target.checked
+                                            }))}
+                                            name="pwd"
+                                        />
+                                    }
+                                    label="Person with Disability"
+                                />
+                            </div>
 
                             <TextField
                                 label="Remarks"
@@ -554,10 +543,11 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                             />
                         </div>
                     </CustomTabs>
+
                 </form>
             </div>
 
-            <div className="mt-4 flex justify-end space-x-2 p-4 border-t">
+            <div className="flex justify-end space-x-2 p-4 pb-0 border-t">
                 <Button
                     onClick={onCancel}
                     variant="outlined"
@@ -569,7 +559,7 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                 <Button
                     onClick={handleSubmit}
                     variant="contained"
-                    color="primary"
+                    color="success"
                     disabled={loading}
                     startIcon={loading && <CircularProgress size={20} color="inherit" />}
                 >

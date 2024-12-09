@@ -1,25 +1,11 @@
 import React, { useState } from 'react';
 import { Check, Clock, X, Search } from 'lucide-react';
-
-interface Student {
-    id: string;
-    name: string;
-    rollNo: string;
-    attendance: 'present' | 'halfday' | 'absent' | null;
-}
-
-interface TakeAttendanceProps {
-    classInfo: {
-        name: string;
-        section: string;
-    };
-    onClose: () => void;
-}
+import { AttendanceStudent, TakeAttendanceProps } from '../../types/Types';
 
 const TakeAttendance: React.FC<TakeAttendanceProps> = ({ classInfo, onClose }) => {
     const [searchTerm, setSearchTerm] = useState('');
     // Mock data with more students
-    const [students, setStudents] = useState<Student[]>(Array.from({ length: 45 }, (_, i) => ({
+    const [students, setStudents] = useState<AttendanceStudent[]>(Array.from({ length: 45 }, (_, i) => ({
         id: (i + 1).toString(),
         name: `Student ${i + 1}`,
         rollNo: (i + 1).toString().padStart(3, '0'),
