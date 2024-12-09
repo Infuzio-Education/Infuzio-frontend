@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import {
     Home,
-    Bell,
     FileText,
     Menu,
     X,
-    LogOut
+    LogOut,
+    BookOpenCheck,
+    ListTodo,
+    Megaphone
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -17,7 +19,12 @@ const Sidebar = () => {
         setCollapsed(!collapsed);
     };
 
-    const isActiveLink = (path: string) => location.pathname === path;
+    const isActiveLink = (path: string) => {
+        if (path === '/staffs/home') {
+            return location.pathname === path || location.pathname === '/staffs/students';
+        }
+        return location.pathname === path;
+    };
 
     return (
         <div className="flex h-screen w-full bg-[#f5f6fa]">
@@ -60,7 +67,7 @@ const Sidebar = () => {
                             }`}
                     >
                         <span className="inline-flex items-center justify-center w-6">
-                            <Bell size={20} />
+                            <Megaphone size={20} />
                         </span>
                         {!collapsed && (
                             <span className="ml-3 text-sm font-medium">Announcements</span>
@@ -74,13 +81,42 @@ const Sidebar = () => {
                             }`}
                     >
                         <span className="inline-flex items-center justify-center w-6">
-                            <FileText size={20} />
+                            <BookOpenCheck size={20} />
                         </span>
                         {!collapsed && (
                             <span className="ml-3 text-sm font-medium">Exams</span>
                         )}
                     </Link>
+                    <Link
+                        to="/staffs/unit-tests"
+                        className={`flex items-center mx-3 px-4 py-2.5 rounded-full transition-all duration-200 mt-1 ${isActiveLink('/staffs/unit-tests')
+                            ? 'bg-emerald-700 text-white shadow-lg shadow-emerald-200'
+                            : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                    >
+                        <span className="inline-flex items-center justify-center w-6">
+                            <FileText size={20} />
+                        </span>
+                        {!collapsed && (
+                            <span className="ml-3 text-sm font-medium">Unit Tests</span>
+                        )}
+                    </Link>
+                    <Link
+                        to="/staffs/home-workouts"
+                        className={`flex items-center mx-3 px-4 py-2.5 rounded-full transition-all duration-200 mt-1 ${isActiveLink('/staffs/home-workouts')
+                            ? 'bg-emerald-700 text-white shadow-lg shadow-emerald-200'
+                            : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                    >
+                        <span className="inline-flex items-center justify-center w-6">
+                            <ListTodo size={20} />
+                        </span>
+                        {!collapsed && (
+                            <span className="ml-3 text-sm font-medium">Home Workouts</span>
+                        )}
+                    </Link>
                 </nav>
+
 
                 {/* Footer */}
                 <div className="absolute bottom-0 left-0 right-0 border-t bg-white">

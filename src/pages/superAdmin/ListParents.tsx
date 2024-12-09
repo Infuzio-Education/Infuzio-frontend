@@ -6,6 +6,7 @@ import CreateParent from './CreateParent';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import { listParents } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
+import { Parent } from '../../types/Types';
 
 const ListParents: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -70,7 +71,7 @@ const ListParents: React.FC = () => {
         setOpenModal(false);
     };
 
-    const handleSave = async () => {
+    const handleSave = async (values: Parent) => {
         try {
             await fetchParents();
             setSnackbar({
@@ -81,9 +82,10 @@ const ListParents: React.FC = () => {
             });
             handleCloseModal();
         } catch (error: any) {
+            const errorMessage = error.response?.data?.message || error.message || "Failed to save parent";
             setSnackbar({
                 open: true,
-                message: error.message || "Failed to save parent",
+                message: errorMessage,
                 severity: "error",
                 position: { vertical: "top", horizontal: "center" },
             });
@@ -296,7 +298,11 @@ const ListParents: React.FC = () => {
                     p: 4,
                     borderRadius: 2,
                 }}>
-                    <CreateParent onClose={handleSave} initialData={editingParent} />
+                    <CreateParent
+                        initialData={editingParent}
+                        onSave={handleSave}
+                        onCancel={handleCloseModal}
+                    />
                 </Box>
             </Modal>
 

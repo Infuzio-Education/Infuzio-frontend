@@ -1,99 +1,129 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { TextField, Button } from '@mui/material';
+import { Formik, Form, Field } from 'formik';
 import { createParent } from '../../api/superAdmin';
 import { useSchoolContext } from '../../contexts/SchoolContext';
-import SnackbarComponent from '../../components/SnackbarComponent';
+import { parentValidationSchema } from '../../validations/parentFormValidationSchema';
+import { Parent } from '../../types/Types';
 
-const CreateParent: React.FC<{ onClose: () => void; initialData: any }> = ({ onClose, initialData }) => {
+interface CreateParentProps {
+    initialData: Parent | null;
+    onSave: (values: Parent) => void;
+    onCancel: () => void;
+}
+
+const CreateParent: React.FC<CreateParentProps> = ({ initialData, onSave, onCancel }) => {
     const { schoolInfo } = useSchoolContext();
-    const [formData, setFormData] = useState({
-        name: '',
-        phone: '',
-        email: ''
-    });
-    const [snackbar, setSnackbar] = useState({
-        open: false,
-        message: '',
-        severity: 'success' as 'success' | 'error',
-        position: { vertical: 'top' as const, horizontal: 'center' as const }
-    });
 
-    useEffect(() => {
-        if (initialData) {
-            setFormData({
-                name: initialData.name || '',
-                phone: initialData.phone || '',
-                email: initialData.email || ''
-            });
-        }
-    }, [initialData]);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (values: Parent, { setSubmitting, setFieldError }: any) => {
         try {
             if (!schoolInfo.schoolPrefix) {
                 throw new Error("School prefix not found");
             }
-            await createParent(formData, schoolInfo.schoolPrefix);
-            setSnackbar({
-                open: true,
-                message: "Parent created successfully!",
-                severity: "success",
-                position: { vertical: "top", horizontal: "center" },
-            });
-            onClose();
+            const response = await createParent(values, schoolInfo.schoolPrefix);
+
+            if (response.status === false) {
+                // Handle specific error cases
+                if (response.resp_code === "EMAIL_ALREADY_EXIST") {
+                    setFieldError('email', 'Email already exists');
+                    return;
+                }
+                if (response.resp_code === "PHONE_ALREADY_EXIST") {
+                    setFieldError('phone', 'Phone number already exists');
+                    return;
+                }
+
+                throw new Error(response.message || 'Failed to create parent');
+            }
+
+            onSave(values);
         } catch (error: any) {
-            setSnackbar({
-                open: true,
-                message: error.message || "Failed to create parent",
-                severity: "error",
-                position: { vertical: "top", horizontal: "center" },
-            });
+            // Handle axios error structure
+            if (error.response?.data) {
+                const { resp_code } = error.response.data;
+                switch (resp_code) {
+                    case "EMAIL_ALREADY_EXIST":
+                        setFieldError('email', 'Email already exists');
+                        break;
+                    case "PHONE_ALREADY_EXIST":
+                        setFieldError('phone', 'Phone number already exists');
+                        break;
+                    default:
+                        throw error;
+                }
+            } else {
+                throw error;
+            }
+        } finally {
+            setSubmitting(false);
         }
     };
 
     return (
         <div className="p-4">
-            <h2 className="text-xl font-bold mb-4">{initialData ? "Edit Parent" : "Create Parent"}</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <TextField
-                    label="Name"
-                    fullWidth
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-                <TextField
-                    label="Phone"
-                    fullWidth
-                    required
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                />
-                <TextField
-                    label="Email"
-                    type="email"
-                    fullWidth
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                />
-                <div className="flex justify-end space-x-2">
-                    <Button onClick={onClose} variant="outlined" color="error">
-                        Cancel
-                    </Button>
-                    <Button type="submit" variant="contained" color="success">
-                        {initialData ? "Update Parent" : "Create Parent"}
-                    </Button>
-                </div>
-            </form>
-            <SnackbarComponent
-                open={snackbar.open}
-                message={snackbar.message}
-                severity={snackbar.severity}
-                position={snackbar.position}
-                onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-            />
+            <h2 className="text-xl font-bold mb-4">
+                {initialData ? 'Edit Parent' : 'Create Parent'}
+            </h2>
+            <Formik
+                initialValues={initialData || {
+                    name: '',
+                    phone: '',
+                    email: ''
+                }}
+                validationSchema={parentValidationSchema}
+                onSubmit={handleSubmit}
+            >
+                {({ errors, touched, isSubmitting }) => (
+                    <Form className="space-y-4">
+                        <Field
+                            as={TextField}
+                            name="name"
+                            label="Name"
+                            fullWidth
+                            required
+                            error={touched.name && !!errors.name}
+                            helperText={touched.name && errors.name}
+                        />
+                        <Field
+                            as={TextField}
+                            name="phone"
+                            label="Phone"
+                            fullWidth
+                            required
+                            error={touched.phone && !!errors.phone}
+                            helperText={touched.phone && errors.phone}
+                        />
+                        <Field
+                            as={TextField}
+                            name="email"
+                            label="Email"
+                            type="email"
+                            fullWidth
+                            required
+                            error={touched.email && !!errors.email}
+                            helperText={touched.email && errors.email}
+                        />
+                        <div className="flex justify-end space-x-2">
+                            <Button
+                                onClick={onCancel}
+                                variant="outlined"
+                                color="error"
+                                disabled={isSubmitting}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="submit"
+                                variant="contained"
+                                color="success"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? 'Saving...' : (initialData ? 'Update Parent' : 'Create Parent')}
+                            </Button>
+                        </div>
+                    </Form>
+                )}
+            </Formik>
         </div>
     );
 };
