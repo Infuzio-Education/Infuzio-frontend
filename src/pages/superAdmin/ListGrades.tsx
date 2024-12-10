@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Box, IconButton, Checkbox } from '@mui/material';
+import { Modal, Box } from '@mui/material';
 import { PlusCircle, Trash2, Edit2 } from 'lucide-react';
-import ListControls from '../../components/ListControls';
+// import ListControls from '../../components/ListControls';
 import {
     createGradeCategory,
     getGradeCategories,
@@ -31,10 +31,10 @@ const ListGrades: React.FC = () => {
     const [boundaries, setBoundaries] = useState<GradeBoundary[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
-    const [selectedItems, setSelectedItems] = useState<number[]>([]);
-    const [selectAll, setSelectAll] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+    // const [selectedItems, setSelectedItems] = useState<number[]>([]);
+    // const [selectAll, setSelectAll] = useState(false);
+    // const [searchTerm, setSearchTerm] = useState('');
+    // const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
     const [modalType, setModalType] = useState<'category' | 'boundary'>('category');
     const [newCategory, setNewCategory] = useState('');
     const [newBoundary, setNewBoundary] = useState({
@@ -111,13 +111,18 @@ const ListGrades: React.FC = () => {
                     });
                 }
             } else {
-                const boundaryData = editingItem
-                    ? { ...newBoundary, id: editingItem.id }
-                    : newBoundary;
-
-                const response = editingItem
-                    ? await updateGradeBoundary(boundaryData)
-                    : await createGradeBoundary(newBoundary);
+                let response;
+                if (editingItem) {
+                    const boundaryData = {
+                        id: editingItem.id,
+                        category_id: newBoundary.category_id,
+                        base_percentage: newBoundary.base_percentage,
+                        grade_label: newBoundary.grade_label
+                    };
+                    response = await updateGradeBoundary(boundaryData);
+                } else {
+                    response = await createGradeBoundary(newBoundary);
+                }
 
                 if (response.status) {
                     setSnackbar({
@@ -140,21 +145,21 @@ const ListGrades: React.FC = () => {
         }
     };
 
-    const handleSelectAll = () => {
-        if (selectAll) {
-            setSelectedItems([]);
-        } else {
-            const allIds = [...categories, ...boundaries].map(item => item.id);
-            setSelectedItems(allIds);
-        }
-        setSelectAll(!selectAll);
-    };
+    // const handleSelectAll = () => {
+    //     if (selectAll) {
+    //         setSelectedItems([]);
+    //     } else {
+    //         const allIds = [...categories, ...boundaries].map(item => item.id);
+    //         setSelectedItems(allIds);
+    //     }
+    //     setSelectAll(!selectAll);
+    // };
 
-    const handleSelect = (id: number) => {
-        setSelectedItems(prev =>
-            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-        );
-    };
+    // const handleSelect = (id: number) => {
+    //     setSelectedItems(prev =>
+    //         prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    //     );
+    // };
 
     const handleDelete = async (type: 'category' | 'boundary', id: number) => {
         try {

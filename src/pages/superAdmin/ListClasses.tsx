@@ -171,7 +171,10 @@ const ListClasses: React.FC = () => {
         if (selectAll) {
             setSelectedClasses([]);
         } else {
-            setSelectedClasses(classes.map(c => c.ID));
+            const validIds = classes
+                .map(c => c.ID)
+                .filter((id): id is number => id !== undefined);
+            setSelectedClasses(validIds);
         }
         setSelectAll(!selectAll);
     };
@@ -185,7 +188,7 @@ const ListClasses: React.FC = () => {
     };
 
     const filteredClasses = classes.filter(classData =>
-        classData.Name.toLowerCase().includes(searchTerm.toLowerCase())
+        classData.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false
     );
 
     return (
@@ -238,8 +241,8 @@ const ListClasses: React.FC = () => {
                                 <tr key={classData.ID} className="cursor-pointer">
                                     <td className="text-center">
                                         <Checkbox
-                                            checked={selectedClasses.includes(classData.ID)}
-                                            onChange={() => handleSelectClass(classData.ID)}
+                                            checked={classData.ID !== undefined && selectedClasses.includes(classData.ID)}
+                                            onChange={() => classData.ID !== undefined && handleSelectClass(classData.ID)}
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                     </td>
@@ -258,7 +261,7 @@ const ListClasses: React.FC = () => {
                                     <td className="text-center">
                                         <IconButton
                                             aria-label="delete"
-                                            onClick={() => handleDelete(classData.ID)}
+                                            onClick={() => classData.ID !== undefined && handleDelete(classData.ID)}
                                         >
                                             <Trash2 size={20} className="text-red-500" />
                                         </IconButton>

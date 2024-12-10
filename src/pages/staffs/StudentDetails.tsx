@@ -8,10 +8,10 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import {
     ExamScore,
     UnitTestScore,
-    AttendanceRecord,
+    // AttendanceRecord,
     mockExamScores,
     mockUnitTestScores,
-    mockAttendanceRecords,
+    // mockAttendanceRecords,
     StudentDetailsProps,
 } from '../../types/Types';
 
@@ -51,7 +51,7 @@ const StudentDetails = ({ student, onBack, onEdit, onDelete }: StudentDetailsPro
     const [activeTab, setActiveTab] = useState('details');
     const [examScores] = useState<ExamScore[]>(mockExamScores);
     const [unitTestScores] = useState<UnitTestScore[]>(mockUnitTestScores);
-    const [attendanceRecords] = useState<AttendanceRecord[]>(mockAttendanceRecords);
+    // const [attendanceRecords] = useState<AttendanceRecord[]>(mockAttendanceRecords);
     const [selectedExam, setSelectedExam] = useState<number | null>(null);
     const [exams] = useState<Exam[]>([
         {
@@ -103,6 +103,7 @@ const StudentDetails = ({ student, onBack, onEdit, onDelete }: StudentDetailsPro
         try {
             const response = await fetch(`/student/attendance/monthly?year=${year}&month=${month}`);
             const data = await response.json();
+            console.log(data)
             // Update attendance data here
         } catch (error) {
             console.error('Error fetching attendance:', error);

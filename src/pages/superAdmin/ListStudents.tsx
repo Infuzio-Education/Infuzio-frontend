@@ -3,7 +3,7 @@ import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2, Mail, Phone, UserCircle2 } from "lucide-react";
 import ListControls from '../../components/ListControls';
 import CreateStudents from './CreateStudents';
-import { Student } from '../../types/Types';
+import { Student, StudentFormValues } from '../../types/Types';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import { listStudents, deleteStudent } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
@@ -11,6 +11,7 @@ import SnackbarComponent from '../../components/SnackbarComponent';
 const ListStudents: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
     const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+    const [editingFormValues, setEditingFormValues] = useState<StudentFormValues | null>(null);
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -62,13 +63,43 @@ const ListStudents: React.FC = () => {
         setSnackbar(prev => ({ ...prev, open: false }));
     };
 
+    const mapStudentToFormValues = (student: Student): StudentFormValues => ({
+        id: student.id,
+        name: student.name,
+        dateOfAdmission: student.dateOfAdmission,
+        gender: student.gender,
+        dob: student.dob,
+        phone: student.phone,
+        email: student.email,
+        street1: student.street1,
+        city: student.city,
+        state: student.state,
+        pincode: student.pincode,
+        country: student.country,
+        classID: student.class_id,
+        idCardNumber: student.idCardNumber,
+        admissionNumber: student.admissionNumber,
+        house: student.house,
+        street2: student.street2,
+        bloodGroup: student.bloodGroup,
+        remarks: student.remarks,
+        religion: student.religion,
+        caste: student.caste,
+        reservationCategory: student.reservationCategory,
+        isPWD: student.isPwd,
+        nationality: student.nationality,
+        parentsInfo: student.parentsInfo
+    });
+
     const handleOpenModal = (student: Student | null) => {
         setEditingStudent(student);
+        setEditingFormValues(student ? mapStudentToFormValues(student) : null);
         setOpenModal(true);
     };
 
     const handleCloseModal = () => {
         setEditingStudent(null);
+        setEditingFormValues(null);
         setOpenModal(false);
     };
 
@@ -202,7 +233,7 @@ const ListStudents: React.FC = () => {
                                 <div className="mt-4 pt-4 border-t border-gray-200">
                                     <div className="flex items-center justify-between">
                                         <span className="px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                                            Class {student.classID}
+                                            Class {student.class_id}
                                         </span>
                                         <IconButton
                                             aria-label="delete"
@@ -259,7 +290,7 @@ const ListStudents: React.FC = () => {
                                         <div className="text-sm font-medium text-gray-900">{student.idCardNumber}</div>
                                     </td>
                                     <td className="text-center" onClick={() => handleOpenModal(student)}>
-                                        <div className="text-sm font-medium text-gray-900">Class {student.classID}</div>
+                                        <div className="text-sm font-medium text-gray-900">Class {student.class_id}</div>
                                     </td>
                                     <td className="text-center" onClick={() => handleOpenModal(student)}>
                                         <div className="text-sm font-medium text-gray-900">{student.phone}</div>
@@ -313,7 +344,7 @@ const ListStudents: React.FC = () => {
                     overflow: 'auto',
                 }}>
                     <CreateStudents
-                        initialData={editingStudent}
+                        initialData={editingFormValues}
                         onSave={handleSave}
                         onCancel={handleCloseModal}
                     />

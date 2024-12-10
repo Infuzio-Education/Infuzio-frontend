@@ -32,7 +32,6 @@ const INITIAL_STAFF_STATE: CreateStaffPayload = {
     country: '',
     subjects: [],
     section: '',
-    profile_pic_link: '',
 };
 
 
@@ -64,9 +63,30 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
         if (initialData) {
             try {
                 setStaff({
-                    ...initialData,
-                    dob: initialData.dob ? new Date(initialData.dob).toISOString().split('T')[0] : '',
-                    subjects: Array.isArray(initialData.subjects) ? initialData.subjects : [],
+                    ...INITIAL_STAFF_STATE,
+                    ...{
+                        id_card_number: initialData.id_card_number || '',
+                        name: initialData.name || '',
+                        gender: initialData.gender || 'male',
+                        dob: initialData.dob ? new Date(initialData.dob).toISOString().split('T')[0] : '',
+                        mobile: initialData.mobile || '',
+                        email: initialData.email || '',
+                        blood_group: initialData.blood_group || '',
+                        religion: initialData.religion || '',
+                        caste: initialData.caste || '',
+                        category: initialData.category || '',
+                        pwd: initialData.pwd || false,
+                        is_teaching_staff: initialData.is_teaching_staff || false,
+                        remarks: initialData.remarks || '',
+                        street1: initialData.street1 || '',
+                        street2: initialData.street2 || '',
+                        city: initialData.city || '',
+                        state: initialData.state || '',
+                        pincode: initialData.pincode || '',
+                        country: initialData.country || '',
+                        subjects: Array.isArray(initialData.subjects) ? initialData.subjects : [],
+                        section: initialData.section || ''
+                    }
                 });
             } catch (err) {
                 console.error('Error setting initial data:', err);
@@ -185,8 +205,8 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                 ...staff,
             };
 
-            if (initialData?.ID) {
-                await updateStaff(initialData.ID, staffData, schoolPrefix);
+            if (initialData?.id) {
+                await updateStaff(initialData.id, staffData, schoolPrefix);
                 setSnackbar({
                     open: true,
                     message: 'Staff updated successfully!',
