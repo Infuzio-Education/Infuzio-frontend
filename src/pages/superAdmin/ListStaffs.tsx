@@ -90,7 +90,7 @@ const ListStaffs: React.FC = () => {
         try {
             const response = await deleteStaff(id, schoolInfo.schoolPrefix || '');
             if (response.status === true) {
-                setStaffs(staffs.filter(staff => staff.ID !== id));
+                setStaffs(staffs.filter(staff => staff.id !== id));
                 setSelectedStaffs(selectedStaffs.filter(staffId => staffId !== id));
                 setSnackbar({
                     open: true,
@@ -126,7 +126,7 @@ const ListStaffs: React.FC = () => {
         if (selectAll) {
             setSelectedStaffs([]);
         } else {
-            setSelectedStaffs(staffs.map(staff => staff.ID));
+            setSelectedStaffs(staffs.map(staff => staff.id));
         }
         setSelectAll(!selectAll);
     };
@@ -145,7 +145,7 @@ const ListStaffs: React.FC = () => {
 
     const getStaffContent = (staff: Staff) => ({
         title: staff.name,
-        subtitle: staff.id_card_number,
+        subtitle: staff.id_card_number || undefined,
         email: staff.email,
         phone: staff.mobile,
         status: {
@@ -213,11 +213,11 @@ const ListStaffs: React.FC = () => {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {staffs.map((staff, index) => (
-                                <tr key={staff.ID} className="cursor-pointer">
+                                <tr key={staff.id} className="cursor-pointer">
                                     <td className="text-center">
                                         <Checkbox
-                                            checked={selectedStaffs.includes(staff.ID)}
-                                            onChange={() => handleSelectStaff(staff.ID)}
+                                            checked={selectedStaffs.includes(staff.id)}
+                                            onChange={() => handleSelectStaff(staff.id)}
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                     </td>
@@ -236,7 +236,7 @@ const ListStaffs: React.FC = () => {
                                     <td className="text-center">
                                         <IconButton
                                             aria-label="delete"
-                                            onClick={() => handleDelete(staff.ID)}
+                                            onClick={() => handleDelete(staff.id)}
                                         >
                                             <Trash2 size={20} className="text-red-500" />
                                         </IconButton>

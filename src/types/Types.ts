@@ -608,17 +608,69 @@ export interface TimetableData {
 }
 
 // Add these interfaces for UnitTests
-export interface ExamStudent {
+export interface Student {
     id: number;
     name: string;
-    rollNo: string;
-    marks: StudentMark[];
+    rollNumber: string;
+    class_id: number;
+    street1: string;
+    street2: string;
+    city: string;
+    state: string;
+    pincode: string;
+    country: string;
+    bloodGroup: string;
+    profilePic: string;
+    remarks: string;
+    religion: string;
+    caste: string;
+    reservationCategory: string;
+    isPwd: boolean;
+    nationality: string;
+    className: string;
+    parentsInfo: ParentInfo[];
 }
 
-export interface StudentMark {
+// Add these interfaces for StudentList
+export interface StudentListProps {
+    fromClass?: any;
+    returnTab?: string;
+}
+
+// Add these interfaces for Exams
+export interface Exam {
+    ID: number;
+    Name: string;
+    AcademicYear: string;
+    CreatedBy: number;
+    UpdatedBy: number;
+    gradeSystemId: number;
+    UpdateAt: string;
+    CreatedAt: string;
+    subjectMaxMarks?: SubjectMaxMarks[];
+}
+
+export interface GradeSystem {
+    category_id: number;
+    base_percentage: number;
+    grade_label: string;
+}
+
+export interface Class {
+    id: number;
+    name: string;
+    isClassTeacher: boolean;
+}
+
+export interface Subject {
+    id: number;
+    name: string;
+    isSubjectTeacher: boolean;
+}
+
+export interface SubjectMaxMarks {
     subjectId: number;
-    marks: number;
-    isAbsent: boolean;
+    maxMarks: number;
 }
 
 // Add this interface for attendance data
@@ -700,29 +752,5 @@ export interface StudentMark {
     subjectId: number;
     marks: number;
     isAbsent: boolean;
-}
-
-// Add these interfaces for exam-related types
-export interface Exam {
-    ID: number;
-    Name: string;
-    AcademicYear: string;
-    CreatedBy: number;
-    UpdatedBy: number;
-    gradeSystemId: number;
-    UpdateAt: string;
-    CreatedAt: string;
-    subjectMaxMarks?: SubjectMaxMarks[];
-}
-
-export interface GradeSystem {
-    category_id: number;
-    base_percentage: number;
-    grade_label: string;
-}
-
-export interface SubjectMaxMarks {
-    subjectId: number;
-    maxMarks: number;
 }
 

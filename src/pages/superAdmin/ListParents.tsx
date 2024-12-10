@@ -6,7 +6,7 @@ import CreateParent from './CreateParent';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import { listParents } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
-import { Parent } from '../../types/Types';
+// import { Parent } from '../../types/Types';
 
 const ListParents: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -71,7 +71,7 @@ const ListParents: React.FC = () => {
         setOpenModal(false);
     };
 
-    const handleSave = async (values: Parent) => {
+    const handleSave = async () => {
         try {
             await fetchParents();
             setSnackbar({

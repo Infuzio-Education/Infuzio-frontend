@@ -10,7 +10,8 @@ const CreateSubject: React.FC<CreateSubjectProps> = ({ initialData, onSave, onCa
     const [subject, setSubject] = useState<Subject>({
         id: initialData?.id || 0,
         name: initialData?.name || '',
-        code: initialData?.code || ''
+        code: initialData?.code || '',
+        isSubjectTeacher: initialData?.isSubjectTeacher || false
     });
 
     const [teachers, _setTeachers] = useState<Teacher[]>([

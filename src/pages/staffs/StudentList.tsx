@@ -10,7 +10,9 @@ const StudentList = () => {
     const fromClass = location.state?.fromClass;
     const returnTab = location.state?.returnTab;
     const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-    const [isEditing, setIsEditing] = useState(false);
+    const [
+        // isEditing
+        , setIsEditing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
     const students: Student[] = [
