@@ -1,8 +1,17 @@
 import { useSelector } from "react-redux";
 import { Navigate, Outlet } from "react-router-dom";
+import { RootState } from "../redux/store/store";
 
-export const superAdminProtect = () => {
-    const {superAdminInfo} = useSelector((state:any)=> state.superAdminInfo);
+export const SuperAdminProtect = () => {
+    const { superAdminInfo } = useSelector(
+        (state: RootState) => state.superAdminInfo
+    );
 
-  return superAdminInfo ? <Outlet /> : <Navigate to='/' replace />
-}
+    return superAdminInfo ? <Outlet /> : <Navigate to="/" replace />;
+};
+
+export const StaffProtect = () => {
+    const { staffInfo } = useSelector((state: RootState) => state.staffInfo);
+
+    return staffInfo ? <Outlet /> : <Navigate to="/staff/login" replace />;
+};

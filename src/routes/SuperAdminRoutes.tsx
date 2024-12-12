@@ -9,7 +9,7 @@ import ListSubjects from "../pages/superAdmin/ListSubjects";
 import ListStaffs from "../pages/superAdmin/ListStaffs";
 import ListStandards from "../pages/superAdmin/ListStandards";
 import ListMediums from "../pages/superAdmin/ListMediums";
-import { superAdminProtect as ProtectedRoute } from "../components/PrivateRoute";
+import { SuperAdminProtect as ProtectedRoute } from "../components/PrivateRoute";
 import { SchoolProvider } from "../contexts/SchoolContext";
 import ListSyllabus from "../pages/superAdmin/ListSyllabus";
 import ListReligions from "../pages/superAdmin/ListReligions";
