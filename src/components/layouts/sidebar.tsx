@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import {
     Home,
     FileText,
@@ -8,12 +8,31 @@ import {
     LogOut,
     BookOpenCheck,
     ListTodo,
-    Megaphone
+    Megaphone,
+    User
 } from 'lucide-react';
+
+interface StaffProfile {
+    name: string;
+    id_card_number: string;
+    profile_pic_link?: string;
+}
 
 const Sidebar = () => {
     const location = useLocation();
+    const navigate = useNavigate();
     const [collapsed, setCollapsed] = useState(false);
+    const [profile, setProfile] = useState<StaffProfile | null>(null);
+
+    useEffect(() => {
+        // TODO: Fetch staff profile from API
+        // For now using mock data
+        setProfile({
+            name: "David Wilson",
+            id_card_number: "GVH-STAFF-001",
+            profile_pic_link: ""
+        });
+    }, []);
 
     const toggleCollapse = () => {
         setCollapsed(!collapsed);
@@ -121,12 +140,25 @@ const Sidebar = () => {
                 {/* Footer */}
                 <div className="absolute bottom-0 left-0 right-0 border-t bg-white">
                     {!collapsed && (
-                        <div className="p-4">
+                        <div
+                            onClick={() => navigate('/staffs/profile')}
+                            className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                        >
                             <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 rounded-full bg-gray-200"></div>
+                                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                    {profile?.profile_pic_link ? (
+                                        <img
+                                            src={profile.profile_pic_link}
+                                            alt={profile.name}
+                                            className="w-full h-full rounded-full object-cover"
+                                        />
+                                    ) : (
+                                        <User size={16} className="text-gray-400" />
+                                    )}
+                                </div>
                                 <div>
-                                    <p className="text-sm font-medium text-gray-700">Staff Name</p>
-                                    <p className="text-xs text-gray-500">Staff ID: #12345</p>
+                                    <p className="text-sm font-medium text-gray-700">{profile?.name || "Staff Name"}</p>
+                                    <p className="text-xs text-gray-500">ID: {profile?.id_card_number || "#12345"}</p>
                                 </div>
                             </div>
                         </div>
