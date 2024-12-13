@@ -13,5 +13,5 @@ export const SuperAdminProtect = () => {
 export const StaffProtect = () => {
     const { staffInfo } = useSelector((state: RootState) => state.staffInfo);
 
-    return staffInfo ? <Outlet /> : <Navigate to="/staff/login" replace />;
+    return staffInfo ? <Outlet /> : <Navigate to="/staffs/login" replace />;
 };
