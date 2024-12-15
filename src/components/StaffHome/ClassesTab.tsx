@@ -11,12 +11,12 @@ import { ClassesTabState } from "../../types/StateTypes";
 
 const ClassesTab = ({ setShowTimetable }: ClassesTabProps) => {
     const navigate = useNavigate();
-    const [showAttendance, setShowAttendance] = useState(false);
     const [state, setState] = useState<ClassesTabState>({
         loading: true,
         error: "",
         classes: [],
         selectedClass: null,
+        showAttendance: false,
     });
 
     const updateClassesTabState = (newState: Partial<ClassesTabState>) => {
@@ -47,8 +47,8 @@ const ClassesTab = ({ setShowTimetable }: ClassesTabProps) => {
 
     // Update the handleBack function
     const handleBack = () => {
-        if (showAttendance) {
-            setShowAttendance(false);
+        if (state.showAttendance) {
+            updateClassesTabState({ showAttendance: false });
         } else {
             updateClassesTabState({ selectedClass: null });
         }
@@ -70,7 +70,7 @@ const ClassesTab = ({ setShowTimetable }: ClassesTabProps) => {
             {state.selectedClass ? (
                 <SelectedClassDetails
                     selectedClass={state.selectedClass}
-                    setShowAttendance={setShowAttendance}
+                    updateClassesTabState={updateClassesTabState}
                     setShowTimetable={setShowTimetable}
                     navigateToStudents={navigateToStudents}
                     handleBack={handleBack}
@@ -101,7 +101,7 @@ const ClassesTab = ({ setShowTimetable }: ClassesTabProps) => {
                 </div>
             )}
 
-            {showAttendance && state.selectedClass && (
+            {state.showAttendance && state.selectedClass && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
                     <div className="w-full max-w-4xl">
                         <div className="flex items-center gap-4 mb-4">
@@ -116,8 +116,11 @@ const ClassesTab = ({ setShowTimetable }: ClassesTabProps) => {
                             classInfo={{
                                 name: state.selectedClass.name,
                                 section: state.selectedClass.section,
+                                id: state.selectedClass.id,
                             }}
-                            onClose={() => setShowAttendance(false)}
+                            onClose={() =>
+                                updateClassesTabState({ showAttendance: false })
+                            }
                         />
                     </div>
                 </div>

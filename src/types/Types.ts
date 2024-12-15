@@ -524,14 +524,15 @@ export interface Homework {
 export interface AttendanceStudent {
     id: string;
     name: string;
-    rollNo: string;
-    attendance: "present" | "halfday" | "absent" | null;
+    rollNumber: string;
+    attendance: "a" | "f" | "m" | "e" | null;
 }
 
 export interface TakeAttendanceProps {
     classInfo: {
         name: string;
         section: string;
+        id: string;
     };
     onClose: () => void;
 }

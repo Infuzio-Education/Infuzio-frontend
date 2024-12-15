@@ -67,3 +67,68 @@ export const getClasses = async (params: {
         }
     }
 };
+
+export const getAttendanceByClass = async (params: {
+    classId: string;
+    date: string;
+}) => {
+    try {
+        const response = await Api.get(staffEndpoints.getAttendanceByClass, {
+            params,
+        });
+        if (response?.data && response?.data?.status === true) {
+            return response?.data?.data?.Attendance;
+        }
+        return [];
+    } catch (error: any) {
+        if (axios.isAxiosError(error)) {
+            console.error("No attendance found:", error.response);
+            throw error;
+        } else {
+            console.error("Unexpected error:", error);
+            throw error;
+        }
+    }
+};
+
+export const takeAttendance = async (body: {
+    class_id: string;
+    attendance_date: string;
+    attendance: {
+        studentId: string;
+        status: "f" | "a" | "m" | "e";
+    }[];
+}) => {
+    try {
+        const response = await Api.post(staffEndpoints.postAttendance, body);
+        return response;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            return error?.response;
+        } else {
+            console.error("Unexpected error:", error);
+            throw error;
+        }
+    }
+};
+
+export const getStudentsByClass = async (classId: string) => {
+    try {
+        const response = await Api.get(
+            staffEndpoints.getStudentsByClass + `/${classId}`
+        );
+
+        if (response?.data && response?.data?.status === true) {
+            return response?.data?.data?.students;
+        }
+        return [];
+    } catch (error: any) {
+        if (axios.isAxiosError(error)) {
+            console.error("Error fetching attendance:", error.response);
+            throw error;
+        } else {
+            console.error("Unexpected error:", error);
+            throw error;
+        }
+    }
+};
