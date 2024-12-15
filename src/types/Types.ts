@@ -23,7 +23,6 @@ export interface Section {
     SectionCode: string;
 }
 
-
 export interface CreateSectionProps {
     initialData: Section | null;
     onSave: (data: { sectionName: string; sectionCode: string }) => void;
@@ -92,7 +91,6 @@ export interface CreateMediumProps {
     onCancel: () => void;
 }
 
-
 export interface Standard {
     ID: number;
     Name: string;
@@ -104,7 +102,12 @@ export interface Standard {
 
 export interface CreateStandardProps {
     initialData: Standard | null;
-    onSave: (name: string, hasGroup: boolean, sequence: number, sequenceNumber: number) => void;
+    onSave: (
+        name: string,
+        hasGroup: boolean,
+        sequence: number,
+        sequenceNumber: number
+    ) => void;
     onCancel: () => void;
     sections: Section[];
 }
@@ -115,7 +118,7 @@ export interface Group {
 }
 
 export interface CreateGroupProps {
-    initialData: Group | null
+    initialData: Group | null;
     onSave: (name: string) => void;
     onCancel: () => void;
 }
@@ -123,8 +126,8 @@ export interface CreateGroupProps {
 export interface ListControlsProps {
     searchTerm: string;
     setSearchTerm: (term: string) => void;
-    viewMode: 'grid' | 'list';
-    setViewMode: (mode: 'grid' | 'list') => void;
+    viewMode: "grid" | "list";
+    setViewMode: (mode: "grid" | "list") => void;
     itemCount: number;
 }
 
@@ -140,7 +143,7 @@ export interface School {
 }
 
 export interface Religion {
-    ID: number,
+    ID: number;
     Name: string;
 }
 
@@ -171,12 +174,11 @@ export interface CreateGroupProps {
     onCancel: () => void;
 }
 
-
 export interface CreateStaffProps {
     initialData: Staff | null;
     onSave: (staff: Staff) => void;
     onCancel: () => void;
-    schoolPrefix: string
+    schoolPrefix: string;
 }
 
 export interface ClassSubmitData {
@@ -318,7 +320,7 @@ export interface StaffAddress {
 // First, let's define a base interface for common staff properties
 interface BaseStaffProps {
     name: string;
-    gender: 'male' | 'female' | 'other';
+    gender: "male" | "female" | "other";
     dob: string;
     mobile: string;
     email: string;
@@ -377,7 +379,6 @@ export interface SyllabusData {
     custom: null;
 }
 
-
 export interface SchoolStats {
     totalStudents: number;
     totalClasses: number;
@@ -415,8 +416,6 @@ export interface ParentResponse {
 
 export interface ClassesTabProps {
     setShowTimetable: (show: boolean) => void;
-    selectedClass: any;
-    setSelectedClass: (cls: any) => void;
 }
 
 export interface ClassSubject {
@@ -430,7 +429,7 @@ export interface ClassItem {
     section: string;
     studentCount: number;
     isClassTeacher: boolean;
-    subjects: ClassSubject[];
+    subjectsTaught: string[];
 }
 
 // Add these exam and attendance related interfaces
@@ -467,7 +466,7 @@ export const mockExamScores: ExamScore[] = [
         maxMarks: 100,
         marksObtained: 85,
         isPassed: true,
-        date: "2024-03-15"
+        date: "2024-03-15",
     },
     // ... other exam scores
 ];
@@ -479,7 +478,7 @@ export const mockUnitTestScores: UnitTestScore[] = [
         maxMarks: 50,
         marksObtained: 45,
         isPassed: true,
-        date: "2024-02-10"
+        date: "2024-02-10",
     },
     // ... other unit test scores
 ];
@@ -489,7 +488,7 @@ export const mockAttendanceRecords: AttendanceRecord[] = [
         month: "January",
         totalDays: 22,
         presentDays: 20,
-        percentage: 90.9
+        percentage: 90.9,
     },
     // ... other attendance records
 ];
@@ -505,7 +504,7 @@ export interface Announcement {
         avatar?: string;
     };
     target: {
-        type: 'section' | 'class';
+        type: "section" | "class";
         value: string;
     };
     date: string;
@@ -526,7 +525,7 @@ export interface AttendanceStudent {
     id: string;
     name: string;
     rollNo: string;
-    attendance: 'present' | 'halfday' | 'absent' | null;
+    attendance: "present" | "halfday" | "absent" | null;
 }
 
 export interface TakeAttendanceProps {
@@ -753,4 +752,3 @@ export interface StudentMark {
     marks: number;
     isAbsent: boolean;
 }
-

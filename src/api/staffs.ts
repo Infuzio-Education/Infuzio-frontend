@@ -38,7 +38,29 @@ export const staffLogin = async (body: {
         return response;
     } catch (error) {
         if (axios.isAxiosError(error)) {
-            return error.response;
+            return error?.response;
+        } else {
+            console.error("Unexpected error:", error);
+            throw error;
+        }
+    }
+};
+
+export const getClasses = async (params: {
+    criteria: "all" | "all-in-my-sections" | "my-classes";
+}) => {
+    try {
+        const response = await Api.get(staffEndpoints.getClasses, {
+            params,
+        });
+        if (response?.data && response?.data?.status === true) {
+            return response?.data?.data;
+        }
+        return [];
+    } catch (error: any) {
+        if (axios.isAxiosError(error)) {
+            console.error("Error fetching classes:", error.response);
+            throw error;
         } else {
             console.error("Unexpected error:", error);
             throw error;
