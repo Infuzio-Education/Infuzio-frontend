@@ -528,6 +528,11 @@ export interface AttendanceStudent {
     attendance: "a" | "f" | "m" | "e" | null;
 }
 
+export interface AttendanceData {
+    student_id: string;
+    status: "a" | "f" | "m" | "e" | null;
+}
+
 export interface TakeAttendanceProps {
     classInfo: {
         name: string;

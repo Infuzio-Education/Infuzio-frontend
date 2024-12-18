@@ -77,7 +77,15 @@ export const getAttendanceByClass = async (params: {
             params,
         });
         if (response?.data && response?.data?.status === true) {
-            return response?.data?.data?.Attendance;
+            return response?.data?.data?.Attendance?.map(
+                (attendance: {
+                    StudentID: string;
+                    Status: "a" | "f" | "m" | "e" | null;
+                }) => ({
+                    student_id: attendance.StudentID,
+                    status: attendance.Status,
+                })
+            );
         }
         return [];
     } catch (error: any) {
@@ -95,7 +103,7 @@ export const takeAttendance = async (body: {
     class_id: string;
     attendance_date: string;
     attendance: {
-        studentId: string;
+        student_id: string;
         status: "f" | "a" | "m" | "e";
     }[];
 }) => {

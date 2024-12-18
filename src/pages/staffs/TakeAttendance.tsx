@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Check, Clock, X, Search } from "lucide-react";
-import { AttendanceStudent, TakeAttendanceProps } from "../../types/Types";
+import {
+    AttendanceData,
+    AttendanceStudent,
+    TakeAttendanceProps,
+} from "../../types/Types";
 import {
     getAttendanceByClass,
     getStudentsByClass,
@@ -14,31 +18,50 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
     const [searchTerm, setSearchTerm] = useState("");
     // Mock data with more students
     const [students, setStudents] = useState<AttendanceStudent[]>([]);
+    const [attendance, setAttendance] = useState<AttendanceData[]>([]);
+    const [studentsDetails, setStudentsDetails] = useState<AttendanceStudent[]>([]);
 
     const fetchAttendance = async () => {
         try {
             const date = new Date();
             const formattedDate = `${date.getDate().toString().padStart(2, "0")}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getFullYear()}`;
-            const data = await getAttendanceByClass({
+            const attendance = await getAttendanceByClass({
                 classId: classInfo?.id,
                 date: formattedDate,
             });
-            if (data && data.length > 0) {
-                setStudents([...data]);
+            if (attendance && attendance.length > 0) {
+                setAttendance(attendance);
             }
         } catch (error) {
-            try {
-                const students = await getStudentsByClass(classInfo?.id);
-                setStudents(students);
-            } catch (error) {
-                console.error("Error fetching attendance:", error);
-            }
+            console.error("Error fetching attendance:", error);
+        }
+    };
+
+    const fetchStudents = async () => {
+        try {
+            const students = await getStudentsByClass(classInfo?.id);
+            setStudentsDetails(students);
+        } catch (error) {
+            console.error("Error fetching students:", error);
         }
     };
 
     useEffect(() => {
         fetchAttendance();
+        fetchStudents();
     }, []);
+
+    useEffect(() => {
+        if (studentsDetails?.length > 0 && attendance?.length > 0) {
+            setStudents(
+                studentsDetails.map((student) => ({
+                    ...student,
+                    attendance: attendance.find((a) => a.student_id === student.id)?.status || null,
+                }))
+            );
+        }
+    }, [attendance, studentsDetails]);
+
 
     const handleSelectAll = (status: "a" | "f" | "m" | "e") => {
         setStudents(
@@ -72,11 +95,11 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
         try {
             await takeAttendance({
                 class_id: classInfo?.id,
-                attendance_date: new Date().toISOString(),
+                attendance_date: new Date().toLocaleDateString("en-CA"),
                 attendance: students.map((student) => ({
-                    studentId: student.id,
+                    student_id: student.id,
                     status: student.attendance,
-                })) as { studentId: string; status: "f" | "a" | "m" | "e" }[],
+                })) as { student_id: string; status: "f" | "a" | "m" | "e" }[],
             });
             onClose();
         } catch (error) {
@@ -256,16 +279,18 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                 </div>
 
                 {/* Submit Button - Fixed at bottom */}
-                <div className="pt-4 mt-4 border-t">
-                    <button
+                {attendance.length === 0 && (
+                    <div className="pt-4 mt-4 border-t">
+                        <button
                         className="w-full px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium disabled:opacity-70 disabled:hover:bg-emerald-600 disabled:cursor-not-allowed"
                         disabled={stats.pending > 0}
                         onClick={handleSubmit}
                     >
                         Submit Attendance ({students.length - stats.pending}/
                         {students.length} Marked)
-                    </button>
-                </div>
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
