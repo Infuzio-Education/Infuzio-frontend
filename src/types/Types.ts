@@ -23,6 +23,7 @@ export interface Section {
     SectionCode: string;
 }
 
+
 export interface CreateSectionProps {
     initialData: Section | null;
     onSave: (data: { sectionName: string; sectionCode: string }) => void;
@@ -90,6 +91,7 @@ export interface CreateMediumProps {
     onSave: (name: string) => void;
     onCancel: () => void;
 }
+
 
 export interface Standard {
     ID: number;
