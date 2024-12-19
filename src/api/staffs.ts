@@ -140,3 +140,21 @@ export const getStudentsByClass = async (classId: string) => {
         }
     }
 };
+
+export const getTimeTable = async (classId: string) => {
+    try {
+        const response = await Api.get(staffEndpoints.getTimeTable + `/${classId}`);
+        if (response?.data && response?.data?.status === true) {
+            return response?.data?.data?.timetable;
+        }
+        return null;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("Error fetching attendance:", error.response);
+            throw error;
+        } else {
+            console.error("Unexpected error:", error);
+            throw error;
+        }
+    }
+}

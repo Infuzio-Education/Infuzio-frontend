@@ -416,6 +416,7 @@ export interface ParentResponse {
 
 export interface ClassesTabProps {
     setShowTimetable: (show: boolean) => void;
+    setSelectedClass: (classItem: ClassItem | null) => void;
 }
 
 export interface ClassSubject {
@@ -556,6 +557,7 @@ export interface TimetableDay {
 
 export interface TimeTableProps {
     onBack: () => void;
+    classId: string;
 }
 
 // Add these interfaces for UnitTests
@@ -757,4 +759,17 @@ export interface StudentMark {
     subjectId: number;
     marks: number;
     isAbsent: boolean;
+}
+
+export interface TimeTableData {
+    id: number;
+    classId: number;
+    className: string;
+    activeFrom: string;
+    createdAt: string;
+    updatedAt: string;
+    isActive: boolean;
+    lastUpdatedBy: number;
+    lastUpdatedStaffName: string;
+    timetableDays: TimetableDay[];
 }

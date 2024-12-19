@@ -19,7 +19,9 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
     // Mock data with more students
     const [students, setStudents] = useState<AttendanceStudent[]>([]);
     const [attendance, setAttendance] = useState<AttendanceData[]>([]);
-    const [studentsDetails, setStudentsDetails] = useState<AttendanceStudent[]>([]);
+    const [studentsDetails, setStudentsDetails] = useState<AttendanceStudent[]>(
+        []
+    );
 
     const fetchAttendance = async () => {
         try {
@@ -52,16 +54,17 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
     }, []);
 
     useEffect(() => {
-        if (studentsDetails?.length > 0 && attendance?.length > 0) {
+        if (studentsDetails?.length > 0) {
             setStudents(
                 studentsDetails.map((student) => ({
                     ...student,
-                    attendance: attendance.find((a) => a.student_id === student.id)?.status || null,
+                    attendance:
+                        attendance.find((a) => a.student_id === student.id)
+                            ?.status || null,
                 }))
             );
         }
     }, [attendance, studentsDetails]);
-
 
     const handleSelectAll = (status: "a" | "f" | "m" | "e") => {
         setStudents(
@@ -282,12 +285,14 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                 {attendance.length === 0 && (
                     <div className="pt-4 mt-4 border-t">
                         <button
-                        className="w-full px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium disabled:opacity-70 disabled:hover:bg-emerald-600 disabled:cursor-not-allowed"
-                        disabled={stats.pending > 0}
-                        onClick={handleSubmit}
-                    >
-                        Submit Attendance ({students.length - stats.pending}/
-                        {students.length} Marked)
+                            className="w-full px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium disabled:opacity-70 disabled:hover:bg-emerald-600 disabled:cursor-not-allowed"
+                            disabled={
+                                stats.pending > 0 || students.length === 0
+                            }
+                            onClick={handleSubmit}
+                        >
+                            Submit Attendance ({students.length - stats.pending}
+                            /{students.length} Marked)
                         </button>
                     </div>
                 )}

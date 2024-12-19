@@ -3,14 +3,19 @@ import { ClassItem } from "../../types/Types";
 const ClassCard = ({
     classItem,
     updateClassesTabState,
+    setSelectedClass,
 }: {
     classItem: ClassItem;
     updateClassesTabState: (state: any) => void;
+    setSelectedClass: (classItem: ClassItem) => void;
 }) => {
     return (
         <div
             key={classItem.id}
-            onClick={() => updateClassesTabState({ selectedClass: classItem })}
+            onClick={() => {
+                setSelectedClass(classItem);
+                updateClassesTabState({ selectedClass: classItem });
+            }}
             className={`cursor-pointer transition-all duration-200 ${
                 classItem?.isClassTeacher
                     ? "bg-emerald-50 border-2 border-emerald-500"

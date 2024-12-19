@@ -5,6 +5,7 @@ import TimeTable from "./TimeTable";
 import OverviewTab from "../../components/StaffHome/OverviewTab";
 import ClassesTab from "../../components/StaffHome/ClassesTab";
 import { useLocation } from "react-router-dom";
+import { ClassItem } from "../../types/Types";
 
 type TabType = "overview" | "classes" | "attendance";
 
@@ -17,6 +18,9 @@ const StaffHome = () => {
     //     location.state?.selectedClass || null
     // );
     const [showTimetable, setShowTimetable] = useState(false);
+    const [selectedClass, setSelectedClass] = useState<ClassItem | null>(
+        location.state?.selectedClass || null
+    );
 
     const tabs = [
         { id: "overview", label: "Overview", icon: <ChartLine size={18} /> },
@@ -31,6 +35,7 @@ const StaffHome = () => {
                 return (
                     <ClassesTab
                         setShowTimetable={setShowTimetable}
+                        setSelectedClass={setSelectedClass}
                     />
                 );
             case "attendance":
@@ -48,6 +53,7 @@ const StaffHome = () => {
                         setShowTimetable(false);
                         // selectedClass state is maintained
                     }}
+                    classId={selectedClass?.id || ""}
                 />
             ) : (
                 <div className="space-y-6">

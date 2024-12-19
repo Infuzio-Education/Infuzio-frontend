@@ -9,7 +9,7 @@ import { ArrowLeft } from "lucide-react";
 import { CircularProgress } from "@mui/material";
 import { ClassesTabState } from "../../types/StateTypes";
 
-const ClassesTab = ({ setShowTimetable }: ClassesTabProps) => {
+const ClassesTab = ({ setShowTimetable, setSelectedClass }: ClassesTabProps) => {
     const navigate = useNavigate();
     const [state, setState] = useState<ClassesTabState>({
         loading: true,
@@ -51,6 +51,7 @@ const ClassesTab = ({ setShowTimetable }: ClassesTabProps) => {
             updateClassesTabState({ showAttendance: false });
         } else {
             updateClassesTabState({ selectedClass: null });
+            setSelectedClass(null);
         }
     };
 
@@ -91,6 +92,7 @@ const ClassesTab = ({ setShowTimetable }: ClassesTabProps) => {
                                 key={classItem.id}
                                 classItem={classItem}
                                 updateClassesTabState={updateClassesTabState}
+                                setSelectedClass={setSelectedClass}
                             />
                         ))
                     ) : (
