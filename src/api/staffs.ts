@@ -158,3 +158,42 @@ export const getTimeTable = async (classId: string) => {
         }
     }
 }
+
+export const getStudentsDetails = async (classId: string) => {
+    try {
+        const response = await Api.get(staffEndpoints.getStudentsDetails, {
+            params: {
+                classID: classId,
+            },
+        });
+        if (response?.data && response?.data?.status === true) {
+            return response?.data?.data?.students;
+        }
+        return [];
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("Error fetching attendance:", error.response);
+            throw error;
+        } else {
+            console.error("Unexpected error:", error);
+            throw error;
+        }
+    }
+};
+
+export const getStudentDetails = async (studentId: string) => {
+    try {
+        const response = await Api.get(staffEndpoints.getStudentsDetails + `/${studentId}`);
+        if (response?.data && response?.data?.status === true) {
+            return response?.data?.data?.student;
+        }
+        return null;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            return error?.response;
+        } else {
+            console.error("Unexpected error:", error);
+            throw error;
+        }
+    }
+}

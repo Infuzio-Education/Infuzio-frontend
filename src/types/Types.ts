@@ -419,6 +419,7 @@ export interface ParentResponse {
 export interface ClassesTabProps {
     setShowTimetable: (show: boolean) => void;
     setSelectedClass: (classItem: ClassItem | null) => void;
+    selectedClass: ClassItem | null;
 }
 
 export interface ClassSubject {

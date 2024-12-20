@@ -5,6 +5,7 @@ const staffEndpoints = {
     getStudentsByClass: "/staff/class/students",
     postAttendance: "/staff/attendance",
     getTimeTable: "/public/tt/byClass",
+    getStudentsDetails: "/school/student",
 };
 
 export default staffEndpoints;

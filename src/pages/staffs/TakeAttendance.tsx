@@ -10,6 +10,7 @@ import {
     getStudentsByClass,
     takeAttendance,
 } from "../../api/staffs";
+import { CircularProgress } from "@mui/material";
 
 const TakeAttendance: React.FC<TakeAttendanceProps> = ({
     classInfo,
@@ -22,6 +23,13 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
     const [studentsDetails, setStudentsDetails] = useState<AttendanceStudent[]>(
         []
     );
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        fetchAttendance();
+        fetchStudents();
+    }, []);
 
     const fetchAttendance = async () => {
         try {
@@ -43,15 +51,16 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
         try {
             const students = await getStudentsByClass(classInfo?.id);
             setStudentsDetails(students);
+            setLoading(false);
+            setError(null);
         } catch (error) {
             console.error("Error fetching students:", error);
+            setError("Error fetching students");
+            setLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchAttendance();
-        fetchStudents();
-    }, []);
+
 
     useEffect(() => {
         if (studentsDetails?.length > 0) {
@@ -221,8 +230,17 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                 </div>
 
                 {/* Students List */}
-                <div className="flex-1 overflow-y-auto pr-2">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {loading ? (
+                    <div className="flex justify-center items-center h-[200px]">
+                        <CircularProgress />
+                    </div>
+                ) : error ? (
+                    <div className="text-center text-red-400 py-20  text-sm  w-full flex justify-center items-center h-full">
+                        {error}
+                    </div>
+                ) : students.length > 0 ? (
+                    <div className="flex-1 overflow-y-auto pr-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {filteredStudents.map((student) => (
                             <div
                                 key={student?.id}
@@ -278,8 +296,13 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                                 </div>
                             </div>
                         ))}
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="text-center text-gray-400 py-20  text-sm  w-full flex justify-center items-center h-full">
+                        No students found
+                    </div>
+                )}
 
                 {/* Submit Button - Fixed at bottom */}
                 {attendance.length === 0 && (

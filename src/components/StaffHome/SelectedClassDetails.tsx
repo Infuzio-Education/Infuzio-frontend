@@ -49,7 +49,10 @@ const SelectedClassDetails = ({
                 iconHoverBgColor: "bg-purple-200",
                 iconTextColor: "text-purple-600",
                 actionText: "View List",
-                onClick: navigateToStudents,
+                locked: !selectedClass?.isClassTeacher, 
+                onClick: selectedClass?.isClassTeacher
+                    ? navigateToStudents
+                    : () => {},
             },
         ],
         [selectedClass]

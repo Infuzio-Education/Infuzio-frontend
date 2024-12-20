@@ -4,6 +4,5 @@ export interface ClassesTabState {
     loading: boolean;
     error: string;
     classes: ClassItem[];
-    selectedClass: ClassItem | null;
     showAttendance: boolean;
 }

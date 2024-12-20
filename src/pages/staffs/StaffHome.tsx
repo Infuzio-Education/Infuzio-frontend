@@ -36,6 +36,7 @@ const StaffHome = () => {
                     <ClassesTab
                         setShowTimetable={setShowTimetable}
                         setSelectedClass={setSelectedClass}
+                        selectedClass={selectedClass}
                     />
                 );
             case "attendance":
