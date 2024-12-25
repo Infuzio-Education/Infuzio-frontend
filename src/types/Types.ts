@@ -23,7 +23,6 @@ export interface Section {
     SectionCode: string;
 }
 
-
 export interface CreateSectionProps {
     initialData: Section | null;
     onSave: (data: { sectionName: string; sectionCode: string }) => void;
@@ -91,7 +90,6 @@ export interface CreateMediumProps {
     onSave: (name: string) => void;
     onCancel: () => void;
 }
-
 
 export interface Standard {
     ID: number;
@@ -242,7 +240,7 @@ export interface Student {
     reservationCategory: string;
     isPwd: boolean;
     nationality: string;
-    parentsInfo: ParentInfo[];
+    parentsInfos: ParentInfo[];
 }
 
 export interface CreateStudentProps {
@@ -584,7 +582,7 @@ export interface UnitTest {
 
 // Add these interfaces for StudentDetails
 export interface StudentDetailsProps {
-    student: Student;
+    studentId: string;
     onBack: () => void;
     onEdit: (student: Student) => void;
     onDelete: (id: number) => void;
@@ -638,7 +636,7 @@ export interface Student {
     isPwd: boolean;
     nationality: string;
     className: string;
-    parentsInfo: ParentInfo[];
+    parentInfos: ParentInfo[];
 }
 
 // Add these interfaces for StudentList

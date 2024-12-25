@@ -143,7 +143,9 @@ export const getStudentsByClass = async (classId: string) => {
 
 export const getTimeTable = async (classId: string) => {
     try {
-        const response = await Api.get(staffEndpoints.getTimeTable + `/${classId}`);
+        const response = await Api.get(
+            staffEndpoints.getTimeTable + `/${classId}`
+        );
         if (response?.data && response?.data?.status === true) {
             return response?.data?.data?.timetable;
         }
@@ -157,7 +159,7 @@ export const getTimeTable = async (classId: string) => {
             throw error;
         }
     }
-}
+};
 
 export const getStudentsDetails = async (classId: string) => {
     try {
@@ -183,9 +185,12 @@ export const getStudentsDetails = async (classId: string) => {
 
 export const getStudentDetails = async (studentId: string) => {
     try {
-        const response = await Api.get(staffEndpoints.getStudentsDetails + `/${studentId}`);
+        const response = await Api.get(
+            staffEndpoints.getStudentsDetails + `/${studentId}`
+        );
+        console.log(response?.data?.data);
         if (response?.data && response?.data?.status === true) {
-            return response?.data?.data?.student;
+            return response?.data?.data;
         }
         return null;
     } catch (error) {
@@ -196,4 +201,4 @@ export const getStudentDetails = async (studentId: string) => {
             throw error;
         }
     }
-}
+};
