@@ -188,7 +188,6 @@ export const getStudentDetails = async (studentId: string) => {
         const response = await Api.get(
             staffEndpoints.getStudentsDetails + `/${studentId}`
         );
-        console.log(response?.data?.data);
         if (response?.data && response?.data?.status === true) {
             return response?.data?.data;
         }
@@ -200,5 +199,19 @@ export const getStudentDetails = async (studentId: string) => {
             console.error("Unexpected error:", error);
             throw error;
         }
+    }
+};
+
+export const getStaffAttendanceByMonth = async (params: {
+    year: string;
+    month: string;
+}) => {
+    try {
+        const response = await Api.get(staffEndpoints.getStaffAttendance, {
+            params,
+        });
+        return response?.data?.data || null;
+    } catch (error) {
+        console.log(error);
     }
 };
