@@ -10,28 +10,31 @@ const superAdminEndpoints = {
     groups: 'global/groups',
     sections: 'global/sections',
     castes: 'global/caste',
-    classes: '/school/class',
-    createParent: 'school/parent',
-    listParent: 'school/parent',
-    student: 'school/student',
     subjects: 'global/subjects',
     workingDays: 'global/workingDay',
+    gradeBoundary: 'global/grade/boundary',
+    gradeCategory: 'global/grade/category',
 
     // School
-    listStaff: 'school/staff/list',
-    createStaff: 'school/staff/create',
-    updateStaff: 'school/staff/update',
-    deleteStaff: 'school/staff/delete',
+    schoolMediums: 'school/medium',
+    schoolStandards: 'school/standards',
+    schoolSections: 'school/section',
+    schoolCastes: 'school/caste',
+    schoolSubjects: 'school/subjects',
+    schoolReligions: 'school/religion',
+    schoolSyllabus: 'school/syllabus',
+    staff: 'school/staff',
+    student: 'school/student',
+    parent: 'school/parent',
+    classes: 'school/class',
     specialPrivilege: 'school/special-privilege',
+    // gradeCategory: 'school/grade/category',
 
     // Manage school
-    listSchool: 'manage-school/list',
-    createSchool: 'manage-school/create',
+    school: 'manage-school',
     schoolLogo: 'manage-school/logo',
 
-    // Grades
-    gradeCategory: 'global/grade/category',
-    gradeBoundary: 'global/grade/boundary',
+    academicYear: 'school/academic-year',
 };
 
 export default superAdminEndpoints;

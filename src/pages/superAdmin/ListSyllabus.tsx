@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
-import ListControls from '../../components/ListControls';
+import Togglebar from '../../components/Togglebar';
 import CreateSyllabus from './CreateSyllubus';
 import { Syllabus } from '../../types/Types';
 import { getSyllabus, createSyllabus, deleteSyllabus, updateSyllabus } from '../../api/superAdmin';
@@ -171,7 +171,7 @@ const ListSyllabus: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">
-            <ListControls
+            <Togglebar
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}

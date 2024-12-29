@@ -83,7 +83,7 @@ export const createSyllabus = async (name: string) => {
 
 export const getSchools = async () => {
     try {
-        const response = await Api.get(superAdminEndpoints.listSchool);
+        const response = await Api.get(superAdminEndpoints.school);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -103,7 +103,7 @@ export const createSchool = async (body: FormData) => {
             console.log(pair[0], pair[1]);
         }
 
-        const response = await Api.post(superAdminEndpoints.createSchool, body, {
+        const response = await Api.post(superAdminEndpoints.school, body, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
@@ -363,21 +363,22 @@ export const deleteReligion = async (id: number) => {
 
 export const createStaff = async (values: CreateStaffPayload, schoolPrefix: string) => {
     try {
+        // Create FormData and append only the values from the payload
         const formData = new FormData();
-        console.log('hey');
-
         Object.entries(values).forEach(([key, value]) => {
-            if (key === 'subjects' && Array.isArray(value)) {
-                formData.append(key, JSON.stringify(value));
-            } else if (key === 'profile_pic' && value instanceof File) {
-                formData.append(key, value);
-            } else {
+            if (value !== null && value !== undefined) {
                 formData.append(key, String(value));
             }
         });
 
+        // Log FormData for debugging
+        console.log('FormData Contents:');
+        for (let pair of formData.entries()) {
+            console.log(pair[0], pair[1]);
+        }
+
         const response = await Api.post(
-            `${superAdminEndpoints.createStaff}?school_prefix=${schoolPrefix}`,
+            `${superAdminEndpoints.staff}?school_prefix=${schoolPrefix}`,
             formData,
             {
                 headers: {
@@ -398,7 +399,7 @@ export const createStaff = async (values: CreateStaffPayload, schoolPrefix: stri
 
 export const listStaff = async (schoolPrefix: string) => {
     try {
-        const response = await Api.get(`${superAdminEndpoints.listStaff}?school_prefix=${schoolPrefix}`);
+        const response = await Api.get(`${superAdminEndpoints.staff}?school_prefix=${schoolPrefix}`);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -424,8 +425,8 @@ export const updateStaff = async (staffId: number, values: Partial<CreateStaffPa
             }
         });
 
-        const response = await Api.put(
-            `${superAdminEndpoints.updateStaff}/${staffId}?school_prefix=${schoolPrefix}`,
+        const response = await Api.patch(
+            `/school/staff/${staffId}?school_prefix=${schoolPrefix}`,
             formData,
             {
                 headers: {
@@ -446,24 +447,19 @@ export const updateStaff = async (staffId: number, values: Partial<CreateStaffPa
 
 export const deleteStaff = async (staffId: number, schoolPrefix: string) => {
     try {
-        const response = await Api.delete(
-            `${superAdminEndpoints.deleteStaff}/${staffId}?school_prefix=${schoolPrefix}`
-        );
+        const response = await Api.delete(`/school/staff/${staffId}?school_prefix=${schoolPrefix}`);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error('Error deleting staff:', error.response);
             throw error;
         }
-        console.error('Unexpected error:', error);
         throw error;
     }
 };
 
 export const updateGroup = async (id: number, name: string) => {
     try {
-        // console.log(id,name);
-
         const response = await Api.put(superAdminEndpoints.groups, {
             id: id,
             name: name
@@ -523,15 +519,25 @@ export const getClasses = async (schoolPrefix: string) => {
 
 export const createClass = async (classData: any, schoolPrefix: string) => {
     try {
+        console.log("classData", classData);
         const response = await Api.post(`${superAdminEndpoints.classes}?school_prefix=${schoolPrefix}`, classData);
-        return response.data;
+        // console.log("response", response);
+        return response;
     } catch (error) {
         if (axios.isAxiosError(error)) {
-            console.error('Error creating class:', error.response);
-            throw error;
+            console.error('Error creating class:', error.response?.data);
+            return error.response?.data || {
+                status: false,
+                error: "Failed to create class",
+                resp_code: "ERROR"
+            };
         }
         console.error('Unexpected error:', error);
-        throw error;
+        return {
+            status: false,
+            error: "An unexpected error occurred",
+            resp_code: "ERROR"
+        };
     }
 };
 
@@ -643,7 +649,7 @@ export const deleteMedium = async (id: number) => {
 
 export const deleteSchool = async (id: number) => {
     try {
-        const response = await Api.delete(`${superAdminEndpoints.listSchool}/${id}`);
+        const response = await Api.delete(`${superAdminEndpoints.school}/${id}`);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -690,7 +696,7 @@ export const updateSyllabus = async (id: number, name: string) => {
 export const createParent = async (parentData: any, schoolPrefix: string) => {
     try {
         console.log("parentData", parentData);
-        const response = await Api.post(`${superAdminEndpoints.createParent}?school_prefix=${schoolPrefix}`, parentData);
+        const response = await Api.post(`${superAdminEndpoints.parent}?school_prefix=${schoolPrefix}`, parentData);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -703,7 +709,7 @@ export const createParent = async (parentData: any, schoolPrefix: string) => {
 
 export const listParents = async (schoolPrefix: string) => {
     try {
-        const response = await Api.get(`${superAdminEndpoints.listParent}?school_prefix=${schoolPrefix}`);
+        const response = await Api.get(`${superAdminEndpoints.parent}?school_prefix=${schoolPrefix}`);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -748,21 +754,15 @@ export const listStudents = async (schoolPrefix: string) => {
     }
 };
 
-export const createSubject = async (name: string) => {
+export const createSubject = async (name: string, code: string) => {
     try {
-        const response = await Api.post(superAdminEndpoints.subjects, { name });
-        if (response.data) {
-            return response.data;
-        }
-        throw new Error('No response data');
+        const response = await Api.post(`${superAdminEndpoints.subjects}`, {
+            name,
+            code
+        });
+        return response.data;
     } catch (error) {
-        if (axios.isAxiosError(error)) {
-            console.error('Error creating subject:', error.response);
-            throw error;
-        } else {
-            console.error('Unexpected error:', error);
-            throw error;
-        }
+        throw error;
     }
 };
 
@@ -782,11 +782,12 @@ export const getSubjects = async () => {
     }
 };
 
-export const updateSubject = async (id: number, name: string) => {
+export const updateSubject = async (id: number, name: string, code: string) => {
     try {
         const response = await Api.put(superAdminEndpoints.subjects, {
             id,
-            name
+            name,
+            code
         });
         return response.data;
     } catch (error) {
@@ -942,9 +943,9 @@ export const getPrivilegedStaff = async (schoolPrefix: string) => {
 
 
 // Add these functions
-export const createGradeCategory = async (name: string) => {
+export const createGradeCategory = async (name: string, schoolPrefix: string) => {
     try {
-        const response = await Api.post(`${superAdminEndpoints.gradeCategory}?public=true`, { name });
+        const response = await Api.post(`${superAdminEndpoints.gradeCategory}?school_prefix=${schoolPrefix}`, { name });
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -957,7 +958,7 @@ export const createGradeCategory = async (name: string) => {
 
 export const getGradeCategories = async () => {
     try {
-        const response = await Api.get(`${superAdminEndpoints.gradeCategory}?public=true`);
+        const response = await Api.get(superAdminEndpoints.gradeCategory);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -968,13 +969,13 @@ export const getGradeCategories = async () => {
     }
 };
 
-export const createGradeBoundary = async (data: {
+export const createGradeBoundary = async (boundaryData: {
     category_id: number;
     base_percentage: number;
     grade_label: string;
-}) => {
+}, schoolPrefix: string) => {
     try {
-        const response = await Api.post(`${superAdminEndpoints.gradeBoundary}?public=true`, data);
+        const response = await Api.post(`${superAdminEndpoints.gradeBoundary}?school_prefix=${schoolPrefix}`, boundaryData);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -985,9 +986,9 @@ export const createGradeBoundary = async (data: {
     }
 };
 
-export const getGradeBoundaries = async () => {
+export const getGradeBoundaries = async (categoryId: number) => {
     try {
-        const response = await Api.get(`${superAdminEndpoints.gradeBoundary}?public=true`);
+        const response = await Api.get(`${superAdminEndpoints.gradeBoundary}?id=${categoryId}`);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -998,9 +999,9 @@ export const getGradeBoundaries = async () => {
     }
 };
 
-export const deleteGradeCategory = async (id: number) => {
+export const deleteGradeCategory = async (id: number, schoolPrefix: string) => {
     try {
-        const response = await Api.delete(`${superAdminEndpoints.gradeCategory}/${id}?public=true`);
+        const response = await Api.delete(`${superAdminEndpoints.gradeCategory}?school_prefix=${schoolPrefix}&id=${id}`);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -1011,9 +1012,15 @@ export const deleteGradeCategory = async (id: number) => {
     }
 };
 
-export const updateGradeCategory = async (id: number, name: string) => {
+export const updateGradeCategory = async (id: number, name: string, schoolPrefix: string) => {
     try {
-        const response = await Api.put(`${superAdminEndpoints.gradeCategory}?public=true`, { id, name });
+        const response = await Api.put(
+            `${superAdminEndpoints.gradeCategory}?school_prefix=${schoolPrefix}&id=${id}`,
+            {
+                id,
+                name
+            }
+        );
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -1026,7 +1033,7 @@ export const updateGradeCategory = async (id: number, name: string) => {
 
 export const deleteGradeBoundary = async (id: number) => {
     try {
-        const response = await Api.delete(`${superAdminEndpoints.gradeBoundary}/${id}?public=true`);
+        const response = await Api.delete(`${superAdminEndpoints.gradeBoundary}?id=${id}`);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -1044,7 +1051,13 @@ export const updateGradeBoundary = async (data: {
     grade_label: string;
 }) => {
     try {
-        const response = await Api.put(`${superAdminEndpoints.gradeBoundary}?public=true`, data);
+        console.log("Data", data);
+        const response = await Api.put(`${superAdminEndpoints.gradeBoundary}`, {
+            id: data.id,
+            category_id: data.category_id,
+            base_percentage: data.base_percentage,
+            grade_label: data.grade_label
+        });
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -1092,5 +1105,251 @@ export const updateStudent = async (studentId: number, studentData: FormData, sc
         throw error;
     }
 };
+
+export const deleteParent = async (parentId: number, schoolPrefix: string) => {
+    try {
+        const response = await Api.delete(`${superAdminEndpoints.parent}/${parentId}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error deleting parent:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const updateParent = async (parentId: number, data: any, schoolPrefix: string) => {
+    try {
+        const response = await Api.patch(
+            `${superAdminEndpoints.parent}/${parentId}?school_prefix=${schoolPrefix}`,
+            data
+        );
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating parent:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const fetchCastesByReligion = async (religionId: string | number, schoolPrefix: string) => {
+    try {
+        if (!religionId) {
+            return { status: true, data: [] };
+        }
+        const response = await Api.get(`/school/caste?religionId=${religionId}&school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching castes:', error);
+        return { status: false, data: [] };
+    }
+};
+
+// Add this function to fetch specific staff details
+export const getStaffById = async (staffId: number, schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.staff}/${staffId}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching staff details:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+// Add this function to get academic years
+export const getAcademicYears = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.academicYear}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching academic years:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+// Add these functions for academic year operations
+export const createAcademicYear = async (data: { name: string, isCurrent: boolean }, schoolPrefix: string) => {
+    try {
+        const response = await Api.post(`${superAdminEndpoints.academicYear}?school_prefix=${schoolPrefix}`, data);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error creating academic year:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const updateAcademicYear = async (id: number, data: { name: string, isCurrent: boolean }, schoolPrefix: string) => {
+    try {
+        const response = await Api.put(`${superAdminEndpoints.academicYear}/${id}?school_prefix=${schoolPrefix}`, data);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating academic year:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const deleteAcademicYear = async (id: number, schoolPrefix: string) => {
+    try {
+        const response = await Api.delete(`${superAdminEndpoints.academicYear}/${id}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error deleting academic year:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+// Add this function to get teaching staff
+export const getTeachingStaff = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.staff}?isTeachingStaff=true&school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching teaching staff:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+// Add this function to update a standard
+export const updateStandard = async (data: {
+    id: number,
+    name: string,
+    hasGroup: boolean,
+    sectionId: number,
+    sequenceNumber: number
+}) => {
+    try {
+        const response = await Api.put(`${superAdminEndpoints.standards}`, data);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating standard:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+// Update these functions to use school endpoints
+export const getSchoolMediums = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.schoolMediums}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching school mediums:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const getSchoolStandards = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.schoolStandards}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching school standards:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+// Add this new function to get school-specific syllabus
+export const getSchoolSyllabus = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.schoolSyllabus}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching school syllabus:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+// Add this new function to get school-specific religions
+export const getSchoolReligions = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.schoolReligions}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching school religions:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+// Add new school-specific functions
+export const getSchoolSections = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.schoolSections}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching school sections:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+export const getSchoolSubjects = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.schoolSubjects}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching school subjects:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+// Add this function to fetch student details
+export const getStudentById = async (studentId: number, schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.student}/${studentId}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching student details:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
 
 

@@ -1,14 +1,17 @@
 import * as Yup from 'yup';
-import { addressValidationSchema } from './addressValidationSchema'; // Import the address validation schema
+import { addressValidationSchema } from './addressValidationSchema';
 
 const PATTERNS = {
-    E164: /^\+?[1-9]\d{1,14}$/, // E.164 phone number format
-    ALPHA_SPACE_DOT: /^[a-zA-Z\s.]+$/, // Alphabets, spaces, and dots only
-    DATE_DD_MM_YYYY: /^\d{2}-\d{2}-\d{4}$/, // Date format DD-MM-YYYY
+    E164: /^\+?[1-9]\d{1,14}$/,
+    ALPHA_SPACE_DOT: /^[a-zA-Z\s.]+$/,
+    DATE_DD_MM_YYYY: /^\d{2}-\d{2}-\d{4}$/,
 };
 
 export const staffValidationSchema = Yup.object().shape({
     id_card_number: Yup.string().nullable(),
+    regNumber: Yup.number()
+        .required('Registration Number is required')
+        .positive('Registration Number must be positive'),
     name: Yup.string()
         .required('Name is required')
         .matches(PATTERNS.ALPHA_SPACE_DOT, 'Name can only contain alphabets, spaces, and dots'),
@@ -18,12 +21,12 @@ export const staffValidationSchema = Yup.object().shape({
     dob: Yup.string()
         .required('Date of Birth is required')
         .matches(PATTERNS.DATE_DD_MM_YYYY, 'Date of Birth must be in DD-MM-YYYY format'),
-    mobile: Yup.string()
-        .required('Mobile number is required')
-        .matches(PATTERNS.E164, 'Invalid mobile number format'),
     email: Yup.string()
         .required('Email is required')
         .email('Invalid email format'),
+    mobile: Yup.string()
+        .required('Mobile number is required')
+        .matches(PATTERNS.E164, 'Invalid mobile number format'),
     blood_group: Yup.string()
         .oneOf(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'], 'Invalid blood group')
         .nullable(),

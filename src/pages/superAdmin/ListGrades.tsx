@@ -1,144 +1,139 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Box } from '@mui/material';
-import { PlusCircle, Trash2, Edit2 } from 'lucide-react';
-// import ListControls from '../../components/ListControls';
-import {
-    createGradeCategory,
-    getGradeCategories,
-    createGradeBoundary,
-    getGradeBoundaries,
-    deleteGradeCategory,
-    updateGradeCategory,
-    deleteGradeBoundary,
-    updateGradeBoundary
-} from '../../api/superAdmin';
+import { Checkbox, Modal, Box, IconButton } from "@mui/material";
+import { PlusCircle, Trash2, Edit2 } from "lucide-react";
+import Togglebar from '../../components/Togglebar';
+import CreateGrade from './CreateGrade';
 import SnackbarComponent from '../../components/SnackbarComponent';
-
-interface GradeCategory {
-    id: number;
-    name: string;
-}
-
-interface GradeBoundary {
-    id: number;
-    category_id: number;
-    base_percentage: number;
-    grade_label: string;
-}
+import { createGradeCategory, getGradeCategories, deleteGradeCategory, updateGradeCategory, getGradeBoundaries, createGradeBoundary, deleteGradeBoundary, updateGradeBoundary } from '../../api/superAdmin';
+import CreateBoundary from './CreateBoundary';
+import { useSchoolContext } from '../../contexts/SchoolContext';
+import { Grade, GradeSystem, GradeSnackbar } from '../../types/Types';
 
 const ListGrades: React.FC = () => {
-    const [categories, setCategories] = useState<GradeCategory[]>([]);
-    const [boundaries, setBoundaries] = useState<GradeBoundary[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [showModal, setShowModal] = useState(false);
-    // const [selectedItems, setSelectedItems] = useState<number[]>([]);
-    // const [selectAll, setSelectAll] = useState(false);
-    // const [searchTerm, setSearchTerm] = useState('');
-    // const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
-    const [modalType, setModalType] = useState<'category' | 'boundary'>('category');
-    const [newCategory, setNewCategory] = useState('');
-    const [newBoundary, setNewBoundary] = useState({
-        category_id: 0,
-        base_percentage: 0,
-        grade_label: ''
-    });
-    const [snackbar, setSnackbar] = useState({
+    const { schoolInfo } = useSchoolContext();
+    const [openModal, setOpenModal] = useState<boolean>(false);
+    const [editingGrade, setEditingGrade] = useState<Grade | null>(null);
+    const [grades, setGrades] = useState<Grade[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+    const [selectedGrades, setSelectedGrades] = useState<number[]>([]);
+    // const [selectAll, setSelectAll] = useState<boolean>(false);
+    const [searchTerm, setSearchTerm] = useState<string>('');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [snackbar, setSnackbar] = useState<GradeSnackbar>({
         open: false,
         message: '',
         severity: 'success' as 'success' | 'error',
         position: { vertical: 'top' as const, horizontal: 'center' as const }
     });
-    const [editingItem, setEditingItem] = useState<{
-        type: 'category' | 'boundary';
-        id: number;
-        data: any;
-    } | null>(null);
+    const [selectedGrade, setSelectedGrade] = useState<Grade | null>(null);
+    const [showBoundaries, setShowBoundaries] = useState(false);
+    const [boundaries, setBoundaries] = useState<GradeSystem[]>([]);
+    const [editingBoundary, setEditingBoundary] = useState<GradeSystem | null>(null);
 
     useEffect(() => {
-        fetchData();
+        fetchGrades();
     }, []);
 
-    const fetchData = async () => {
+    const fetchGrades = async () => {
         setLoading(true);
+        setError(null);
         try {
-            const [categoriesRes, boundariesRes] = await Promise.all([
-                getGradeCategories(),
-                getGradeBoundaries()
-            ]);
-            if (categoriesRes.status) setCategories(categoriesRes.data || []);
-            if (boundariesRes.status) setBoundaries(boundariesRes.data || []);
+            const response = await getGradeCategories();
+            if (response.status === true) {
+                setGrades(response.data);
+            } else {
+                throw new Error('Failed to fetch grades');
+            }
         } catch (error) {
-            setSnackbar({
-                open: true,
-                message: 'Failed to load grades data',
-                severity: 'error',
-                position: { vertical: 'top', horizontal: 'center' }
-            });
+            setError('Failed to load grades. Please try again.');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleOpenModal = (type: 'category' | 'boundary') => {
-        setModalType(type);
-        setShowModal(true);
+    const handleCloseSnackbar = () => {
+        setSnackbar(prev => ({ ...prev, open: false }));
+    };
+
+    const handleOpenModal = (grade: Grade | null) => {
+        setEditingGrade(grade);
+        setOpenModal(true);
     };
 
     const handleCloseModal = () => {
-        setShowModal(false);
-        setEditingItem(null);
-        setNewCategory('');
-        setNewBoundary({
-            category_id: 0,
-            base_percentage: 0,
-            grade_label: ''
-        });
+        setEditingGrade(null);
+        setEditingBoundary(null);
+        setOpenModal(false);
     };
 
-    const handleSave = async () => {
+    const handleSave = async (name: string) => {
         try {
-            if (modalType === 'category') {
-                const response = editingItem
-                    ? await updateGradeCategory(editingItem.id, newCategory)
-                    : await createGradeCategory(newCategory);
+            if (!schoolInfo.schoolPrefix) {
+                throw new Error("School prefix not found");
+            }
 
-                if (response.status) {
+            if (editingGrade) {
+                const response = await updateGradeCategory(editingGrade.id, name, schoolInfo.schoolPrefix);
+                if (response.status === true) {
+                    setGrades(prevGrades => prevGrades.map(grade =>
+                        grade.id === editingGrade.id ? { ...grade, name } : grade
+                    ));
                     setSnackbar({
                         open: true,
-                        message: `Grade category ${editingItem ? 'updated' : 'created'} successfully`,
+                        message: 'Grade category updated successfully!',
                         severity: 'success',
                         position: { vertical: 'top', horizontal: 'center' }
                     });
+                } else {
+                    throw new Error(response.message || 'Failed to update grade category');
                 }
             } else {
-                let response;
-                if (editingItem) {
-                    const boundaryData = {
-                        id: editingItem.id,
-                        category_id: newBoundary.category_id,
-                        base_percentage: newBoundary.base_percentage,
-                        grade_label: newBoundary.grade_label
-                    };
-                    response = await updateGradeBoundary(boundaryData);
-                } else {
-                    response = await createGradeBoundary(newBoundary);
-                }
-
-                if (response.status) {
+                const response = await createGradeCategory(name, schoolInfo.schoolPrefix);
+                if (response.status === true) {
+                    await fetchGrades();
                     setSnackbar({
                         open: true,
-                        message: `Grade boundary ${editingItem ? 'updated' : 'created'} successfully`,
+                        message: 'Grade category created successfully!',
                         severity: 'success',
                         position: { vertical: 'top', horizontal: 'center' }
                     });
+                } else {
+                    throw new Error(response.message || 'Failed to create grade category');
                 }
             }
-            await fetchData();
             handleCloseModal();
-        } catch (error) {
+        } catch (error: any) {
             setSnackbar({
                 open: true,
-                message: `Failed to ${editingItem ? 'update' : 'create'} grade ${modalType}`,
+                message: error.response?.data?.error || error.message || 'Failed to save grade',
+                severity: 'error',
+                position: { vertical: 'top', horizontal: 'center' }
+            });
+        }
+    };
+
+    const handleDelete = async (id: number) => {
+        try {
+            if (!schoolInfo.schoolPrefix) {
+                throw new Error("School prefix not found");
+            }
+
+            const response = await deleteGradeCategory(id, schoolInfo.schoolPrefix);
+            if (response.status === true) {
+                setGrades(grades.filter(grade => grade.id !== id));
+                setSelectedGrades(selectedGrades.filter(gradeId => gradeId !== id));
+                setSnackbar({
+                    open: true,
+                    message: 'Grade category deleted successfully!',
+                    severity: 'success',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            }
+        } catch (error: any) {
+            setSnackbar({
+                open: true,
+                message: error.response?.data?.error || 'Failed to delete grade category',
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'center' }
             });
@@ -146,230 +141,319 @@ const ListGrades: React.FC = () => {
     };
 
     // const handleSelectAll = () => {
-    //     if (selectAll) {
-    //         setSelectedItems([]);
-    //     } else {
-    //         const allIds = [...categories, ...boundaries].map(item => item.id);
-    //         setSelectedItems(allIds);
-    //     }
+    //     setSelectedGrades(selectAll ? [] : grades.map(g => g.id));
     //     setSelectAll(!selectAll);
     // };
 
-    // const handleSelect = (id: number) => {
-    //     setSelectedItems(prev =>
-    //         prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-    //     );
-    // };
+    const handleSelectGrade = (id: number) => {
+        if (!grades) return;
+        setSelectedGrades(prev =>
+            prev.includes(id) ? prev.filter(selectedId => selectedId !== id) : [...prev, id]
+        );
+    };
 
-    const handleDelete = async (type: 'category' | 'boundary', id: number) => {
+    const filteredGrades = grades?.filter(grade =>
+        grade?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || [];
+
+    const handleGradeClick = async (grade: Grade) => {
+        setSelectedGrade(grade);
+        setShowBoundaries(true);
         try {
-            const response = await (type === 'category'
-                ? deleteGradeCategory(id)
-                : deleteGradeBoundary(id)
-            );
-
+            const response = await getGradeBoundaries(grade.id);
             if (response.status) {
-                setSnackbar({
-                    open: true,
-                    message: `Grade ${type} deleted successfully`,
-                    severity: 'success',
-                    position: { vertical: 'top', horizontal: 'center' }
-                });
-                await fetchData();
+                const formattedBoundaries = response.data.map((boundary: any) => ({
+                    id: boundary.ID,
+                    category_id: boundary.category_id,
+                    base_percentage: boundary.base_percentage,
+                    grade_label: boundary.grade_label,
+                    is_failed: boundary.is_failed
+                }));
+                setBoundaries(formattedBoundaries);
             }
         } catch (error) {
+            console.error('Error fetching boundaries:', error);
             setSnackbar({
                 open: true,
-                message: `Failed to delete grade ${type}`,
+                message: 'Failed to load grade boundaries',
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'center' }
             });
         }
     };
 
-    const handleEdit = (type: 'category' | 'boundary', id: number, data: any) => {
-        setEditingItem({ type, id, data });
-        setModalType(type);
-        if (type === 'category') {
-            setNewCategory(data.name);
-        } else {
-            setNewBoundary({
-                category_id: data.category_id,
-                base_percentage: data.base_percentage,
-                grade_label: data.grade_label
-            });
-        }
-        setShowModal(true);
+    const handleBackToGrades = () => {
+        setSelectedGrade(null);
+        setShowBoundaries(false);
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-gray-200 p-8 pt-5 flex items-center justify-center">
-                <p className="text-xl font-semibold">Loading grades...</p>
-            </div>
-        );
-    }
+    const handleSaveBoundary = async (boundaryData: {
+        category_id: number;
+        base_percentage: number;
+        grade_label: string;
+        id?: number;
+    }) => {
+        try {
+            if (!schoolInfo.schoolPrefix) {
+                throw new Error("School prefix not found");
+            }
+
+            let response;
+            if (editingBoundary) {
+                console.log("Editing Boundary", editingBoundary);
+                response = await updateGradeBoundary({
+                    id: editingBoundary.id,
+                    category_id: selectedGrade?.id || 0,
+                    base_percentage: boundaryData.base_percentage,
+                    grade_label: boundaryData.grade_label
+                });
+
+            } else {
+                response = await createGradeBoundary(boundaryData, schoolInfo.schoolPrefix);
+            }
+
+            if (response.status) {
+                setSnackbar({
+                    open: true,
+                    message: editingBoundary
+                        ? 'Grade boundary updated successfully!'
+                        : 'Grade boundary created successfully!',
+                    severity: 'success',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+                handleCloseModal();
+                if (selectedGrade) {
+                    const boundariesResponse = await getGradeBoundaries(selectedGrade.id);
+                    if (boundariesResponse.status) {
+                        const formattedBoundaries = boundariesResponse.data.map((boundary: any) => ({
+                            id: boundary.ID,
+                            category_id: boundary.category_id,
+                            base_percentage: boundary.base_percentage,
+                            grade_label: boundary.grade_label,
+                            is_failed: boundary.is_failed
+                        }));
+                        setBoundaries(formattedBoundaries);
+                    }
+                }
+            }
+        } catch (error: any) {
+            setSnackbar({
+                open: true,
+                message: error.message || 'Failed to save boundary',
+                severity: 'error',
+                position: { vertical: 'top', horizontal: 'center' }
+            });
+        }
+    };
+
+    const handleDeleteBoundary = async (boundaryId: number) => {
+        try {
+            const response = await deleteGradeBoundary(boundaryId);
+            if (response.status) {
+                setBoundaries(prev => prev.filter(boundary => boundary.id !== boundaryId));
+                setSnackbar({
+                    open: true,
+                    message: 'Grade boundary deleted successfully!',
+                    severity: 'success',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            }
+        } catch (error: any) {
+            setSnackbar({
+                open: true,
+                message: error.response?.data?.error || 'Failed to delete grade boundary',
+                severity: 'error',
+                position: { vertical: 'top', horizontal: 'center' }
+            });
+        }
+    };
+
+    const handleEditBoundary = (boundary: GradeSystem) => {
+        setEditingBoundary(boundary);
+        setOpenModal(true);
+    };
 
     return (
-        <div className="min-h-screen bg-gray-200 p-8 pt-5">
-            {/* Header Section */}
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-800 mb-2">Grade Management</h1>
-                <p className="text-gray-600">Manage grade categories and their boundaries</p>
-            </div>
+        <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">
+            {!showBoundaries ? (
+                <>
+                    <Togglebar
+                        searchTerm={searchTerm}
+                        setSearchTerm={setSearchTerm}
+                        viewMode={viewMode}
+                        setViewMode={setViewMode}
+                        itemCount={grades?.length || 0}
+                    />
 
-            {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-gray-500">Total Categories</p>
-                            <h3 className="text-2xl font-bold text-gray-800">{categories.length}</h3>
+                    {loading ? (
+                        <div className="rounded-lg p-8 text-center">
+                            <p className="text-xl font-semibold">Loading grades...</p>
                         </div>
-                        <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
-                            <div className="text-emerald-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-                                </svg>
-                            </div>
+                    ) : error ? (
+                        <div className="rounded-lg p-8 text-center">
+                            <p className="text-xl font-semibold text-red-500">{error}</p>
                         </div>
-                    </div>
-                </div>
+                    ) : !grades || grades.length === 0 ? (
+                        <div className="rounded-lg p-8 text-center">
+                            <p className="text-xl font-semibold mb-4">No grades found.</p>
+                            <p className="text-gray-600">Click the "+" button to create a new grade.</p>
+                        </div>
+                    ) : filteredGrades.length === 0 ? (
+                        <div className="rounded-lg p-8 text-center">
+                            <p className="text-lg font-semibold">No grades match your search criteria.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            {filteredGrades.map((grade) => (
+                                <div
+                                    key={grade.id}
+                                    className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform transition duration-300 hover:scale-105 hover:shadow-xl"
+                                    onClick={() => handleGradeClick(grade)}
+                                >
+                                    <div className="p-6">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center space-x-3">
+                                                <div className="bg-[#308369] rounded-full p-2">
+                                                    <span className="text-white font-bold">{grade.name.charAt(0)}</span>
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-lg font-semibold text-gray-900">{grade.name}</h3>
+                                                </div>
+                                            </div>
+                                            <Checkbox
+                                                checked={selectedGrades.includes(grade.id)}
+                                                onChange={() => handleSelectGrade(grade.id)}
+                                                onClick={(e) => e.stopPropagation()}
+                                            />
+                                        </div>
 
-                <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-gray-500">Total Boundaries</p>
-                            <h3 className="text-2xl font-bold text-gray-800">{boundaries.length}</h3>
-                        </div>
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                            <div className="text-blue-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-gray-500">Average Percentage</p>
-                            <h3 className="text-2xl font-bold text-gray-800">
-                                {boundaries.length > 0
-                                    ? Math.round(boundaries.reduce((acc, curr) => acc + curr.base_percentage, 0) / boundaries.length)
-                                    : 0}%
-                            </h3>
-                        </div>
-                        <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                            <div className="text-purple-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Categories Section */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-semibold text-gray-800">Grade Categories</h2>
-                    <button
-                        onClick={() => handleOpenModal('category')}
-                        className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 
-                        transition-colors flex items-center gap-2"
-                    >
-                        <PlusCircle size={20} />
-                        Add Category
-                    </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {categories.map((category) => (
-                        <div key={category.id}
-                            className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
-                        >
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h3 className="font-medium text-gray-800">{category.name}</h3>
-                                    <p className="text-sm text-gray-500 mt-1">
-                                        {boundaries.filter(b => b.category_id === category.id).length} boundaries
-                                    </p>
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => handleEdit('category', category.id, category)}
-                                        className="p-1 hover:bg-gray-100 rounded-full"
-                                    >
-                                        <Edit2 size={16} className="text-blue-500" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete('category', category.id)}
-                                        className="p-1 hover:bg-gray-100 rounded-full"
-                                    >
-                                        <Trash2 size={16} className="text-red-500" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Boundaries Section */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-semibold text-gray-800">Grade Boundaries</h2>
-                    <button
-                        onClick={() => handleOpenModal('boundary')}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 
-                        transition-colors flex items-center gap-2"
-                    >
-                        <PlusCircle size={20} />
-                        Add Boundary
-                    </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {boundaries.map((boundary) => (
-                        <div key={boundary.id}
-                            className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
-                        >
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <h3 className="font-medium text-gray-800">Grade {boundary.grade_label}</h3>
-                                        <span className="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">
-                                            {boundary.base_percentage}%
-                                        </span>
+                                        <div className="mt-4 pt-4 border-t border-gray-200">
+                                            <div className="flex items-center justify-end">
+                                                <div className="flex gap-2">
+                                                    <IconButton
+                                                        aria-label="edit"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleOpenModal(grade);
+                                                        }}
+                                                        size="small"
+                                                    >
+                                                        <Edit2 size={16} className="text-blue-500" />
+                                                    </IconButton>
+                                                    <IconButton
+                                                        aria-label="delete"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDelete(grade.id);
+                                                        }}
+                                                        size="small"
+                                                    >
+                                                        <Trash2 size={16} className="text-red-500" />
+                                                    </IconButton>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p className="text-sm text-gray-500 mt-1">
-                                        Category: {categories.find(c => c.id === boundary.category_id)?.name}
-                                    </p>
                                 </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => handleEdit('boundary', boundary.id, boundary)}
-                                        className="p-1 hover:bg-gray-100 rounded-full"
-                                    >
-                                        <Edit2 size={16} className="text-blue-500" />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete('boundary', boundary.id)}
-                                        className="p-1 hover:bg-gray-100 rounded-full"
-                                    >
-                                        <Trash2 size={16} className="text-red-500" />
-                                    </button>
-                                </div>
-                            </div>
+                            ))}
                         </div>
-                    ))}
+                    )}
+                </>
+            ) : (
+                <div>
+                    <div className="flex items-center mb-6">
+                        <button
+                            onClick={handleBackToGrades}
+                            className="mr-4 text-gray-600 hover:text-gray-800"
+                        >
+                            ←
+                        </button>
+                        <h2 className="text-xl font-bold">
+                            Boundaries for {selectedGrade?.name}
+                        </h2>
+                    </div>
+
+                    <div className="rounded-lg  p-6">
+                        {boundaries.length === 0 ? (
+                            <div className="text-center py-8">
+                                <p className="text-xl font-semibold mb-4">No boundaries found for this grade.</p>
+                                <p className="text-gray-600">Click the "+" button to create a new boundary.</p>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="bg-gray-50">
+                                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Grade Label
+                                            </th>
+                                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Base Percentage
+                                            </th>
+                                            <th className="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {boundaries.map((boundary) => (
+                                            <tr key={boundary.grade_label} className="hover:bg-gray-50">
+                                                <td className="px-4 py-3">
+                                                    <span className="font-medium">{boundary.grade_label}</span>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <span className="px-2 py-1 text-sm bg-blue-100 text-blue-800 rounded-full">
+                                                        {boundary.base_percentage}%
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-center">
+                                                    <div className="flex justify-center gap-2">
+                                                        <IconButton
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleEditBoundary(boundary);
+                                                            }}
+                                                        >
+                                                            <Edit2 size={18} className="text-blue-500" />
+                                                        </IconButton>
+                                                        <IconButton
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteBoundary(boundary.id);
+                                                            }}
+                                                        >
+                                                            <Trash2 size={18} className="text-red-500" />
+                                                        </IconButton>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
                 </div>
+            )}
+
+            <div className="fixed bottom-10 right-16 flex items-center space-x-2">
+                <button
+                    className="bg-green-500 text-white p-2 rounded-full shadow-lg relative group hover:bg-green-600"
+                    onClick={() => handleOpenModal(null)}
+                >
+                    <PlusCircle size={34} />
+                    <span className="absolute left-[-140px] top-1/2 transform -translate-y-1/2 bg-white text-black text-sm py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow">
+                        Create New Grade
+                    </span>
+                </button>
             </div>
 
-            {/* Modal */}
-            <Modal open={showModal} onClose={handleCloseModal}>
+            <Modal
+                open={openModal}
+                onClose={handleCloseModal}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
                 <Box sx={{
                     position: 'absolute',
                     top: '50%',
@@ -378,97 +462,23 @@ const ListGrades: React.FC = () => {
                     width: 400,
                     bgcolor: 'background.paper',
                     boxShadow: 24,
-                    p: 4,
-                    borderRadius: 2
+                    p: 3,
+                    borderRadius: 2,
                 }}>
-                    <h2 className="text-xl font-semibold mb-4">
-                        Add New Grade {modalType === 'category' ? 'Category' : 'Boundary'}
-                    </h2>
-                    {modalType === 'category' ? (
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Category Name
-                                </label>
-                                <input
-                                    type="text"
-                                    value={newCategory}
-                                    onChange={(e) => setNewCategory(e.target.value)}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 
-                                    focus:ring-emerald-500 focus:border-emerald-500"
-                                    placeholder="Enter category name"
-                                />
-                            </div>
-                        </div>
+                    {selectedGrade ? (
+                        <CreateBoundary
+                            gradeId={selectedGrade.id}
+                            initialData={editingBoundary || undefined}
+                            onSave={handleSaveBoundary}
+                            onCancel={handleCloseModal}
+                        />
                     ) : (
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Category
-                                </label>
-                                <select
-                                    value={newBoundary.category_id}
-                                    onChange={(e) => setNewBoundary({
-                                        ...newBoundary,
-                                        category_id: Number(e.target.value)
-                                    })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 
-                                    focus:ring-emerald-500 focus:border-emerald-500"
-                                >
-                                    <option value="">Select Category</option>
-                                    {categories.map((category) => (
-                                        <option key={category.id} value={category.id}>
-                                            {category.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Base Percentage
-                                </label>
-                                <input
-                                    type="number"
-                                    value={newBoundary.base_percentage}
-                                    onChange={(e) => setNewBoundary({
-                                        ...newBoundary,
-                                        base_percentage: Number(e.target.value)
-                                    })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 
-                                    focus:ring-emerald-500 focus:border-emerald-500"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Grade Label
-                                </label>
-                                <input
-                                    type="text"
-                                    value={newBoundary.grade_label}
-                                    onChange={(e) => setNewBoundary({
-                                        ...newBoundary,
-                                        grade_label: e.target.value
-                                    })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 
-                                    focus:ring-emerald-500 focus:border-emerald-500"
-                                />
-                            </div>
-                        </div>
+                        <CreateGrade
+                            initialData={editingGrade ? { name: editingGrade.name } : undefined}
+                            onSave={handleSave}
+                            onCancel={handleCloseModal}
+                        />
                     )}
-                    <div className="mt-6 flex justify-end gap-3">
-                        <button
-                            onClick={handleCloseModal}
-                            className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleSave}
-                            className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600"
-                        >
-                            Save
-                        </button>
-                    </div>
                 </Box>
             </Modal>
 
@@ -477,7 +487,7 @@ const ListGrades: React.FC = () => {
                 message={snackbar.message}
                 severity={snackbar.severity}
                 position={snackbar.position}
-                onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
+                onClose={handleCloseSnackbar}
             />
         </div>
     );

@@ -33,7 +33,6 @@ export interface Subject {
     id: number;
     name: string;
     code: string;
-    isSubjectTeacher: boolean;
 }
 
 export interface CreateSubjectProps {
@@ -123,12 +122,18 @@ export interface CreateGroupProps {
     onCancel: () => void;
 }
 
-export interface ListControlsProps {
+export interface TogglebarProps {
     searchTerm: string;
     setSearchTerm: (term: string) => void;
     viewMode: "grid" | "list";
     setViewMode: (mode: "grid" | "list") => void;
     itemCount: number;
+    onSort?: () => void;
+    onPrint?: () => void;
+    showDeleted?: boolean;
+    setShowDeleted?: (show: boolean) => void;
+    onSelectAll?: () => void;
+    selectedCount?: number;
 }
 
 export interface School {
@@ -184,18 +189,31 @@ export interface CreateStaffProps {
 export interface ClassSubmitData {
     id?: number;
     name: string;
-    section: string;
     mediumId: number;
     standardId: number;
     classStaffId: number;
-    group_id: number;
+    group_id?: number;
     syllabusId: number;
+    academicYearId: number;
 }
 
 export interface Class {
     id: number;
     name: string;
-    isClassTeacher: boolean;
+    classStaffId: number;
+    classStaffName: string;
+    mediumId: number;
+    mediumName: string;
+    syllabusId: number;
+    syllabus: string;
+    standardId: number;
+    standard: string;
+    groupId?: number;
+    group?: string;
+    academicYearID: number;
+    academicYearName: string;
+    studentCount: number;
+    // Keep these for backward compatibility
     ID?: number;
     Name?: string;
     ClassStaffId?: number;
@@ -203,6 +221,8 @@ export interface Class {
     SyllabusId?: number;
     StandardId?: number;
     GroupID?: number;
+    AcademicYearId?: number;
+    RollNumsLastSetBy?: null;
 }
 
 export interface CreateClassProps {
@@ -211,15 +231,28 @@ export interface CreateClassProps {
     onCancel: () => void;
 }
 
+// First, define the parent info interfaces
+export interface ParentDisplayInfo {
+    parentId: number;
+    relationshipWithStudent: string;
+    name: string;
+    phone: string;
+    email: string;
+}
+
+export interface ParentFormInfo {
+    parentId: number;
+    relationshipWithStudent: string;
+}
+
 export interface Student {
     id: number;
     name: string;
-    rollNumber: string;
-    class_id: number;
-    marks?: StudentMark[];
+    rollNumber: string | null;
+    classID: number;
     className: string;
     profilePic: string;
-    idCardNumber: string;
+    idCardNumber: string | null;
     admissionNumber: string | null;
     dateOfAdmission: string;
     gender: string;
@@ -240,27 +273,14 @@ export interface Student {
     reservationCategory: string;
     isPwd: boolean;
     nationality: string;
-    parentsInfos: ParentInfo[];
-}
-
-export interface CreateStudentProps {
-    initialData: StudentFormValues | null;
-    onSave: (student: StudentFormValues) => void;
-    onCancel: () => void;
-}
-
-export interface ParentInfo {
-    parentId: number;
-    relationshipWithStudent: string;
-    name: string;
-    phone: string;
-    email: string;
+    parentInfo?: ParentDisplayInfo[];
 }
 
 export interface StudentFormValues {
     id?: number;
     name: string;
     dateOfAdmission: string;
+    rollNumber: number | null;
     gender: string;
     dob: string;
     phone: string;
@@ -282,7 +302,7 @@ export interface StudentFormValues {
     reservationCategory: string;
     isPWD: boolean;
     nationality: string;
-    parentsInfo: ParentInfo[];
+    parentsInfo: ParentFormInfo[];
 }
 
 export interface Religion {
@@ -320,42 +340,50 @@ export interface StaffAddress {
 // First, let's define a base interface for common staff properties
 interface BaseStaffProps {
     name: string;
-    gender: "male" | "female" | "other";
+    regNumber: number;
+    gender: 'male' | 'female' | 'other';
     dob: string;
     mobile: string;
     email: string;
-    blood_group: string;
+    bloodGroup: string;
     religion: string;
     caste: string;
-    category: string;
     pwd: boolean;
-    is_teaching_staff: boolean;
+    isTeachingStaff: boolean;
     remarks?: string;
+    category: string;
+    house?: string;
     street1: string;
     street2?: string;
     city: string;
     state: string;
     pincode: string;
     country: string;
-    responsibility?: string;
-    subjects?: string[];
-    section?: string;
+    subjectIDs: number[];
+    sectionIDs: number[];
 }
 
 // Interface for creating staff
 export interface CreateStaffPayload extends BaseStaffProps {
-    id_card_number: string;
-    profile_pic?: File;
+    regNumber: number;
+    idCardNumber: string;
+    subjectIDs: number[];
+    sectionIDs: number[];
 }
 
 // Interface for staff data from API
 export interface Staff extends BaseStaffProps {
-    id: number;
+    id?: number;
+    regNumber: number;
     staffId: number;
-    id_card_number: string | null;
-    profile_pic_link: string;
-    current_role?: string;
+    idCardNumber: string | null;
+    profilePicLink: string;
+    currentRole?: string;
     privilegeType: string;
+    subjectIDs: number[];
+    subjects: { id: number; name: string }[];
+    sectionIDs: number[];
+    sections: { id: number; name: string }[];
 }
 
 // Interface for privileged staff data
@@ -619,7 +647,7 @@ export interface TimetableData {
 export interface Student {
     id: number;
     name: string;
-    rollNumber: string;
+    // rollNumber: string;
     class_id: number;
     street1: string;
     street2: string;
@@ -659,9 +687,11 @@ export interface Exam {
 }
 
 export interface GradeSystem {
+    ID: number;
     category_id: number;
     base_percentage: number;
     grade_label: string;
+    is_failed?: boolean;
 }
 
 export interface Class {
@@ -670,11 +700,6 @@ export interface Class {
     isClassTeacher: boolean;
 }
 
-export interface Subject {
-    id: number;
-    name: string;
-    isSubjectTeacher: boolean;
-}
 
 export interface SubjectMaxMarks {
     subjectId: number;
@@ -706,16 +731,15 @@ export interface StudentMark {
     isAbsent: boolean;
 }
 
-// Update the Student interface with consistent property modifiers
 export interface Student {
     id: number;
     name: string;
-    rollNumber: string;
     class_id: number;
     marks?: StudentMark[];
+    rollNumber: string | null;
     className: string;
     profilePic: string;
-    idCardNumber: string;
+    idCardNumber: string | null;
     admissionNumber: string | null;
     dateOfAdmission: string;
     gender: string;
