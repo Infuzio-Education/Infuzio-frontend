@@ -3,7 +3,7 @@ import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
 import CreateSection from './CreateSection';
 import { Section } from '../../types/Types';
-import ListControls from '../../components/ListControls';
+import Togglebar from '../../components/Togglebar';
 import { createSections, getSections, updateSection, deleteSection } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 
@@ -187,7 +187,7 @@ const ListSections: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">
-            <ListControls
+            <Togglebar
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}

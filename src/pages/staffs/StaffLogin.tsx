@@ -35,8 +35,8 @@ const StaffLogin = () => {
     const { handleSubmit, handleChange, handleBlur, values, errors, touched } =
         useFormik({
             initialValues: {
-                username: "",
-                password: "",
+                username: "GVH000001",
+                password: "password",
             },
             validationSchema: LoginValidationSchema,
             onSubmit: async (values) => {

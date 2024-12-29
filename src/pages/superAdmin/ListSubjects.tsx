@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
-import ListControls from '../../components/ListControls';
+import Togglebar from '../../components/Togglebar';
 import CreateSubject from './CreateSubject';
 import { Subject } from '../../types/Types';
 import SnackbarComponent from '../../components/SnackbarComponent';
@@ -24,6 +24,7 @@ const ListSubjects: React.FC = () => {
         position: { vertical: 'top' as const, horizontal: 'center' as const }
     });
 
+
     useEffect(() => {
         fetchSubjects();
     }, []);
@@ -34,13 +35,7 @@ const ListSubjects: React.FC = () => {
         try {
             const response = await getSubjects();
             if (response.status === true && response.resp_code === "SUCCESS") {
-                console.log(response.data);
-                const formattedSubjects = response.data.map((subject: any) => ({
-                    id: subject.ID,
-                    name: subject.Name,
-                    code: subject.Code
-                }));
-                setSubjects(formattedSubjects);
+                setSubjects(response.data);
             } else {
                 throw new Error('Failed to fetch subjects');
             }
@@ -72,7 +67,7 @@ const ListSubjects: React.FC = () => {
         try {
             if (editingSubject) {
                 // Update existing subject
-                const response = await updateSubject(editingSubject.id, updatedSubject.name);
+                const response = await updateSubject(editingSubject.id, updatedSubject.name, updatedSubject.code);
                 if (response.status === true) {
                     setSubjects(prevSubjects =>
                         prevSubjects.map(subject =>
@@ -95,10 +90,10 @@ const ListSubjects: React.FC = () => {
                     throw new Error(response.message || 'Failed to update subject');
                 }
             } else {
-                // Create new subject
-                const response = await createSubject(updatedSubject.name);
+                // Create new subject - now sending both name and code
+                const response = await createSubject(updatedSubject.name, updatedSubject.code);
                 if (response.status === true) {
-                    await fetchSubjects(); // Refresh the list
+                    await fetchSubjects();
                     setSnackbar({
                         open: true,
                         message: 'Subject created successfully!',
@@ -172,14 +167,14 @@ const ListSubjects: React.FC = () => {
         setSnackbar(prev => ({ ...prev, open: false }));
     };
 
-    const filteredSubjects = subjects.filter(subject => {
-        if (!subject.name) return false;
-        return subject.name.toLowerCase().includes(searchTerm.toLowerCase());
-    });
+    const filteredSubjects = subjects.filter(subject =>
+        subject.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        subject.code.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">
-            <ListControls
+            <Togglebar
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}
@@ -278,14 +273,13 @@ const ListSubjects: React.FC = () => {
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: 1000,
-                    maxWidth: '90%',
-                    height: 900,
-                    maxHeight: '90%',
+                    width: 500,
                     bgcolor: 'background.paper',
+                    borderRadius: '8px',
                     boxShadow: 24,
                     p: 4,
-                    borderRadius: 2,
+                    maxHeight: '90vh',
+                    overflowY: 'auto'
                 }}>
                     <CreateSubject
                         initialData={editingSubject}

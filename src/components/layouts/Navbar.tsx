@@ -136,8 +136,13 @@ const Navbar: React.FC = () => {
                                                     </Link>
                                                 </li>
                                                 <li>
-                                                    <Link to="/superAdmin/sections" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
-                                                        School                                    </Link>
+                                                    <Link to={`/superAdmin/schools/${schoolInfo.schoolPrefix}/academicYears`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
+                                                        Academic years
+                                                    </Link>
+                                                </li>
+                                                <li>
+                                                    <Link to={`/superAdmin/schools/${schoolInfo.schoolPrefix}/manage`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                        School settings</Link>
                                                 </li>
                                             </ul>
                                         )}
@@ -278,7 +283,7 @@ const Navbar: React.FC = () => {
                         </div>
                     )}
                 </div>
-            </nav>
+            </nav >
 
             <Breadcrumbs />
 

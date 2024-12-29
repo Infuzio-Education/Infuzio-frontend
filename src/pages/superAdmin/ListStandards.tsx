@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
-import ListControls from "../../components/ListControls";
+import Togglebar from "../../components/Togglebar";
 import CreateStandard from "./CreateStandard";
 import SnackbarComponent from "../../components/SnackbarComponent";
-import { getStandards, createStandard, getSections, deleteStandard } from "../../api/superAdmin";
+import { getStandards, createStandard, getSections, deleteStandard, updateStandard } from "../../api/superAdmin";
 import { Standard, Section } from "../../types/Types";
 
 const ListStandards: React.FC = () => {
@@ -86,45 +86,82 @@ const ListStandards: React.FC = () => {
     sequenceNumber: number
   ) => {
     try {
-      const response = await createStandard({
-        name,
-        hasGroup,
-        sectionId,
-        sequenceNumber
-      });
+      if (editingStandard) {
+        // Update existing standard
+        const response = await updateStandard({
+          id: editingStandard.ID,
+          name,
+          hasGroup,
+          sectionId,
+          sequenceNumber
+        });
 
-      if (response.status && response.resp_code === "CREATED") {
-        const newStandard: Standard = {
-          ID: Date.now(),
-          Name: name,
-          HasGroup: hasGroup,
-          SectionId: sectionId,
-          SequenceNumber: sequenceNumber,
-          section: sections.find(s => s.ID === sectionId)?.Name || '',
-        };
-        setStandards((prevStandards) => {
-          const updatedStandards = [...prevStandards, newStandard];
-          return updatedStandards.sort((a, b) => a.SequenceNumber - b.SequenceNumber);
-        });
-        setSnackbar({
-          open: true,
-          message: "Standard created successfully!",
-          severity: "success",
-          position: { vertical: "top", horizontal: "center" },
-        });
+        if (response.status && response.resp_code === "SUCCESS") {
+          setStandards(prevStandards =>
+            prevStandards.map(standard =>
+              standard.ID === editingStandard.ID
+                ? {
+                  ...standard,
+                  Name: name,
+                  HasGroup: hasGroup,
+                  SectionId: sectionId,
+                  SequenceNumber: sequenceNumber,
+                  section: sections.find(s => s.ID === sectionId)?.Name || ''
+                }
+                : standard
+            ).sort((a, b) => a.SequenceNumber - b.SequenceNumber)
+          );
+          setSnackbar({
+            open: true,
+            message: "Standard updated successfully!",
+            severity: "success",
+            position: { vertical: "top", horizontal: "center" },
+          });
+        }
       } else {
-        throw new Error(response.data);
+        // Create new standard
+        const response = await createStandard({
+          name,
+          hasGroup,
+          sectionId,
+          sequenceNumber
+        });
+
+        if (response.status && response.resp_code === "CREATED") {
+          // Use ID from response if available, otherwise generate a temporary one
+          const newId = response.data?.ID || response.data?.id || Date.now();
+          const newStandard: Standard = {
+            ID: newId,
+            Name: name,
+            HasGroup: hasGroup,
+            SectionId: sectionId,
+            SequenceNumber: sequenceNumber,
+            section: sections.find(s => s.ID === sectionId)?.Name || '',
+          };
+          setStandards((prevStandards) => {
+            const updatedStandards = [...prevStandards, newStandard];
+            return updatedStandards.sort((a, b) => a.SequenceNumber - b.SequenceNumber);
+          });
+          setSnackbar({
+            open: true,
+            message: "Standard created successfully!",
+            severity: "success",
+            position: { vertical: "top", horizontal: "center" },
+          });
+        } else {
+          throw new Error(response.data || "Failed to create standard");
+        }
       }
+      handleCloseModal();
     } catch (error: any) {
-      console.error("Error creating standard:", error);
+      console.error("Error saving standard:", error);
       setSnackbar({
         open: true,
-        message: error.response?.data?.error || "Failed to create standard. Please try again.",
+        message: error.response?.data?.error || "Failed to save standard. Please try again.",
         severity: "error",
         position: { vertical: "top", horizontal: "center" },
       });
     }
-    handleCloseModal();
   };
 
   const handleDelete = async (id: number) => {
@@ -170,6 +207,7 @@ const ListStandards: React.FC = () => {
     setSelectAll(!selectAll);
   };
 
+
   const handleSelectStandard = (id: number) => {
     setSelectedStandards((prev) =>
       prev.includes(id)
@@ -186,14 +224,13 @@ const ListStandards: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">
-      <ListControls
+      <Togglebar
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         viewMode={viewMode as "list" | "grid"}
         setViewMode={setViewMode}
         itemCount={standards.length}
       />
-
       {loading ? (
         <div className="rounded-lg p-8 text-center">
           <p className="text-xl font-semibold">Loading standards...</p>

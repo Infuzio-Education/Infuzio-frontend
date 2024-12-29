@@ -21,6 +21,8 @@ import ListParents from "../pages/superAdmin/ListParents";
 import ListWorkingDays from "../pages/superAdmin/ListWorkingDays";
 import ManageStaffRoles from '../pages/superAdmin/ManageStaffRoles';
 import ListGrades from '../pages/superAdmin/ListGrades';
+import ManageSchool from "../pages/superAdmin/ManageSchool";
+import ListAcademicYears from "../pages/superAdmin/ListAcademicYears";
 
 const SuperAdminRoutes = () => {
     return (
@@ -49,7 +51,10 @@ const SuperAdminRoutes = () => {
                         <Route path="castes" element={<ListCastes />} />
                         <Route path="workingDays" element={<ListWorkingDays />} />
                         <Route path="schools/:prefix/roles" element={<ManageStaffRoles />} />
+                        <Route path="schools/:prefix/academicYears" element={<ListAcademicYears />} />
                         <Route path="grades" element={<ListGrades />} />
+                        <Route path="schools/:prefix/manage" element={<ManageSchool />} />
+
 
                     </Route>
                 </Route>

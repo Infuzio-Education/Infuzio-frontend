@@ -172,6 +172,7 @@ const CreateSchool: React.FC = () => {
 
     const handleCancel = () => {
         formik.resetForm();
+        navigate('/superAdmin/schools');
     };
 
     return (

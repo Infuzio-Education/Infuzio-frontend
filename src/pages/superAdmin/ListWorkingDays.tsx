@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Box, IconButton, Checkbox } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
-import ListControls from "../../components/ListControls";
+import Togglebar from "../../components/Togglebar";
 import SnackbarComponent from "../../components/SnackbarComponent";
 import { getWorkingDays, createWorkingDays, updateWorkingDays, deleteWorkingDays } from "../../api/superAdmin";
 import CreateWorkingDays from "./CreateWorkingDays";
@@ -149,7 +149,7 @@ const ListWorkingDays: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">
-            <ListControls
+            <Togglebar
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}
