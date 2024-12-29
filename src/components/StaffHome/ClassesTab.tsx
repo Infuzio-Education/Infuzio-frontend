@@ -32,7 +32,7 @@ const ClassesTab = ({
     const fetchClasses = async () => {
         try {
             const response = await getClasses({
-                criteria: "my-classes",
+                criteria: "all-in-my-sections",
             });
             updateClassesTabState({ loading: false, classes: response });
         } catch (error) {

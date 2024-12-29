@@ -19,14 +19,18 @@ const ClassInfo = ({ selectedClass }: { selectedClass: ClassItem }) => {
                         Subjects Teaching
                     </h4>
                     <div className="mt-2 flex flex-wrap gap-2">
-                        {selectedClass.subjectsTaught.map((subject) => (
+                        {selectedClass?.subjectsTaught?.map((subject) => (
                             <span
                                 key={subject}
                                 className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full"
                             >
                                 {subject}
                             </span>
-                        ))}
+                        )) || (
+                            <span className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full">
+                                No subjects found
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>

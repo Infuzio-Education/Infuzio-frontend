@@ -7,6 +7,8 @@ const staffEndpoints = {
     getTimeTable: "/public/tt/byClass",
     getStudentsDetails: "/school/student",
     getStaffAttendance: "/staff/myAttendance/monthly",
+    getAnnouncements: "/staff/announcement",
+    getStudentAttendance: "/staff/attendance/student",
 };
 
 export default staffEndpoints;

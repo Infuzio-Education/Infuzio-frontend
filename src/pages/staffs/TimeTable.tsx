@@ -39,7 +39,7 @@ const TimeTable = ({ onBack, classId }: TimeTableProps) => {
         const day = timetableData?.timetableDays?.find(
             (d: any) => d.weekDay === dayNumber
         );
-        return day?.periods.find((p: Period) => p.periodIndex === periodIndex);
+        return day?.periods?.find((p: Period) => p?.periodIndex === periodIndex);
     };
 
     return (
@@ -74,9 +74,11 @@ const TimeTable = ({ onBack, classId }: TimeTableProps) => {
                                     <Clock size={14} />
                                     <span>
                                         Last updated:{" "}
-                                        {new Date(
-                                            timetableData?.updatedAt
-                                        ).toLocaleString()}
+                                        {timetableData?.updatedAt
+                                            ? new Date(
+                                                  timetableData?.updatedAt
+                                              ).toLocaleString()
+                                            : "Unavailable"}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-1">

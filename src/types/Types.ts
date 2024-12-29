@@ -101,7 +101,12 @@ export interface Standard {
 
 export interface CreateStandardProps {
     initialData: Standard | null;
-    onSave: (name: string, hasGroup: boolean, sequence: number, sequenceNumber: number) => void;
+    onSave: (
+        name: string,
+        hasGroup: boolean,
+        sequence: number,
+        sequenceNumber: number
+    ) => void;
     onCancel: () => void;
     sections: Section[];
 }
@@ -112,7 +117,7 @@ export interface Group {
 }
 
 export interface CreateGroupProps {
-    initialData: Group | null
+    initialData: Group | null;
     onSave: (name: string) => void;
     onCancel: () => void;
 }
@@ -120,8 +125,8 @@ export interface CreateGroupProps {
 export interface TogglebarProps {
     searchTerm: string;
     setSearchTerm: (term: string) => void;
-    viewMode: 'grid' | 'list';
-    setViewMode: (mode: 'grid' | 'list') => void;
+    viewMode: "grid" | "list";
+    setViewMode: (mode: "grid" | "list") => void;
     itemCount: number;
     onSort?: () => void;
     onPrint?: () => void;
@@ -143,7 +148,7 @@ export interface School {
 }
 
 export interface Religion {
-    ID: number,
+    ID: number;
     Name: string;
 }
 
@@ -174,12 +179,11 @@ export interface CreateGroupProps {
     onCancel: () => void;
 }
 
-
 export interface CreateStaffProps {
     initialData: Staff | null;
     onSave: (staff: Staff) => void;
     onCancel: () => void;
-    schoolPrefix: string
+    schoolPrefix: string;
 }
 
 export interface ClassSubmitData {
@@ -269,7 +273,7 @@ export interface Student {
     reservationCategory: string;
     isPwd: boolean;
     nationality: string;
-    parentInfo?: ParentDisplayInfo[];
+    parentInfo: ParentInfo[];
 }
 
 // Keep StudentFormValues with required parentsInfo
@@ -338,7 +342,7 @@ export interface StaffAddress {
 interface BaseStaffProps {
     name: string;
     regNumber: number;
-    gender: 'male' | 'female' | 'other';
+    gender: "male" | "female" | "other";
     dob: string;
     mobile: string;
     email: string;
@@ -404,7 +408,6 @@ export interface SyllabusData {
     custom: null;
 }
 
-
 export interface SchoolStats {
     totalStudents: number;
     totalClasses: number;
@@ -440,12 +443,6 @@ export interface ParentResponse {
     message?: string;
 }
 
-export interface ClassesTabProps {
-    setShowTimetable: (show: boolean) => void;
-    selectedClass: any;
-    setSelectedClass: (cls: any) => void;
-}
-
 export interface ClassSubject {
     id: string;
     name: string;
@@ -457,7 +454,13 @@ export interface ClassItem {
     section: string;
     studentCount: number;
     isClassTeacher: boolean;
-    subjects: ClassSubject[];
+    subjectsTaught: string[] | null;
+}
+
+export interface ClassesTabProps {
+    setShowTimetable: (show: boolean) => void;
+    selectedClass: ClassItem;
+    setSelectedClass: (cls: any) => void;
 }
 
 // Add these exam and attendance related interfaces
@@ -494,7 +497,7 @@ export const mockExamScores: ExamScore[] = [
         maxMarks: 100,
         marksObtained: 85,
         isPassed: true,
-        date: "2024-03-15"
+        date: "2024-03-15",
     },
     // ... other exam scores
 ];
@@ -506,7 +509,7 @@ export const mockUnitTestScores: UnitTestScore[] = [
         maxMarks: 50,
         marksObtained: 45,
         isPassed: true,
-        date: "2024-02-10"
+        date: "2024-02-10",
     },
     // ... other unit test scores
 ];
@@ -516,7 +519,7 @@ export const mockAttendanceRecords: AttendanceRecord[] = [
         month: "January",
         totalDays: 22,
         presentDays: 20,
-        percentage: 90.9
+        percentage: 90.9,
     },
     // ... other attendance records
 ];
@@ -532,7 +535,7 @@ export interface Announcement {
         avatar?: string;
     };
     target: {
-        type: 'section' | 'class';
+        type: "section" | "class";
         value: string;
     };
     date: string;
@@ -552,14 +555,15 @@ export interface Homework {
 export interface AttendanceStudent {
     id: string;
     name: string;
-    rollNo: string;
-    attendance: 'present' | 'halfday' | 'absent' | null;
+    rollNumber: string;
+    attendance: "a" | "m" | "e" | "f" | null;
 }
 
 export interface TakeAttendanceProps {
     classInfo: {
         name: string;
         section: string;
+        id: string;
     };
     onClose: () => void;
 }
@@ -580,7 +584,6 @@ export interface TimeTableProps {
     onBack: () => void;
     classId: number | string;
 }
-
 
 // Add these interfaces for UnitTests
 export interface UnitTest {
@@ -603,7 +606,7 @@ export interface UnitTest {
 
 // Add these interfaces for StudentDetails
 export interface StudentDetailsProps {
-    student: Student;
+    studentId: string;
     onBack: () => void;
     onEdit: (student: Student) => void;
     onDelete: (id: number) => void;
@@ -657,7 +660,7 @@ export interface Student {
     isPwd: boolean;
     nationality: string;
     className: string;
-    parentsInfo: ParentDisplayInfo[];
+    parentInfo: ParentInfo[];
 }
 
 // Add these interfaces for StudentList
@@ -692,7 +695,6 @@ export interface Class {
     name: string;
     isClassTeacher: boolean;
 }
-
 
 export interface SubjectMaxMarks {
     subjectId: number;
@@ -789,7 +791,11 @@ export interface CreateStudentProps {
 export interface CreateGradeProps {
     initialData?: { id?: number; name: string };
     onSave: (name: string) => void;
-    onSaveBoundary?: (data: { category_id: number; base_percentage: number; grade_label: string }) => void;
+    onSaveBoundary?: (data: {
+        category_id: number;
+        base_percentage: number;
+        grade_label: string;
+    }) => void;
     onCancel: () => void;
 }
 
@@ -817,7 +823,7 @@ export interface CreateBoundaryProps {
         id?: number;
         category_id: number;
         base_percentage: number;
-        grade_label: string
+        grade_label: string;
     }) => void;
     onCancel: () => void;
 }
@@ -830,10 +836,10 @@ export interface BoundaryFormData {
 export interface GradeSnackbar {
     open: boolean;
     message: string;
-    severity: 'success' | 'error';
+    severity: "success" | "error";
     position: {
-        vertical: 'top';
-        horizontal: 'center';
+        vertical: "top";
+        horizontal: "center";
     };
 }
 
@@ -849,3 +855,15 @@ export interface SchoolInfo {
     schoolPrefix: string;
 }
 
+export interface AnnouncementData {
+    id: number;
+    title: string;
+    body: string;
+    author: string;
+    author_profile_pic: string;
+    files: string[] | null;
+    created_at: string;
+    authorID: number;
+    deleted_at: null | string;
+    is_deleted: boolean;
+}

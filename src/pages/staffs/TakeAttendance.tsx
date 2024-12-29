@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Check, Clock, X, Search } from "lucide-react";
 import {
-    AttendanceData,
     AttendanceStudent,
     TakeAttendanceProps,
 } from "../../types/Types";
@@ -19,7 +18,9 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
     const [searchTerm, setSearchTerm] = useState("");
     // Mock data with more students
     const [students, setStudents] = useState<AttendanceStudent[]>([]);
-    const [attendance, setAttendance] = useState<AttendanceData[]>([]);
+    const [attendance, setAttendance] = useState<
+        { student_id: string; status: "a" | "m" | "e" | "f" | null }[]
+    >([]);
     const [studentsDetails, setStudentsDetails] = useState<AttendanceStudent[]>(
         []
     );
@@ -34,7 +35,7 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
     const fetchAttendance = async () => {
         try {
             const date = new Date();
-            const formattedDate = `${date.getDate().toString().padStart(2, "0")}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getFullYear()}`;
+            const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
             const attendance = await getAttendanceByClass({
                 classId: classInfo?.id,
                 date: formattedDate,
@@ -59,8 +60,6 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
             setLoading(false);
         }
     };
-
-
 
     useEffect(() => {
         if (studentsDetails?.length > 0) {
@@ -241,61 +240,70 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                 ) : students.length > 0 ? (
                     <div className="flex-1 overflow-y-auto pr-2">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {filteredStudents.map((student) => (
-                            <div
-                                key={student?.id}
-                                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                            >
-                                <div>
-                                    <h3 className="font-medium text-gray-800">
-                                        {student?.name}
-                                    </h3>
-                                    {student?.rollNumber && (
-                                        <p className="text-sm text-gray-500">
-                                            Roll No: {student?.rollNumber}
-                                        </p>
-                                    )}
+                            {filteredStudents.map((student) => (
+                                <div
+                                    key={student?.id}
+                                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                                >
+                                    <div>
+                                        <h3 className="font-medium text-gray-800">
+                                            {student?.name}
+                                        </h3>
+                                        {student?.rollNumber && (
+                                            <p className="text-sm text-gray-500">
+                                                Roll No: {student?.rollNumber}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <button
+                                            onClick={() =>
+                                                handleAttendance(
+                                                    student.id,
+                                                    "f"
+                                                )
+                                            }
+                                            className={`p-2 rounded-full ${
+                                                student?.attendance === "f"
+                                                    ? "bg-emerald-100 text-emerald-700"
+                                                    : "bg-gray-100 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600"
+                                            }`}
+                                        >
+                                            <Check size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                handleAttendance(
+                                                    student.id,
+                                                    "m"
+                                                )
+                                            }
+                                            className={`p-2 rounded-full ${
+                                                student?.attendance === "m"
+                                                    ? "bg-blue-100 text-blue-700"
+                                                    : "bg-gray-100 text-gray-500 hover:bg-blue-50 hover:text-blue-600"
+                                            }`}
+                                        >
+                                            <Clock size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                handleAttendance(
+                                                    student.id,
+                                                    "a"
+                                                )
+                                            }
+                                            className={`p-2 rounded-full ${
+                                                student?.attendance === "a"
+                                                    ? "bg-red-100 text-red-700"
+                                                    : "bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-600"
+                                            }`}
+                                        >
+                                            <X size={18} />
+                                        </button>
+                                    </div>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                    <button
-                                        onClick={() =>
-                                            handleAttendance(student.id, "f")
-                                        }
-                                        className={`p-2 rounded-full ${
-                                            student?.attendance === "f"
-                                                ? "bg-emerald-100 text-emerald-700"
-                                                : "bg-gray-100 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600"
-                                        }`}
-                                    >
-                                        <Check size={18} />
-                                    </button>
-                                    <button
-                                        onClick={() =>
-                                            handleAttendance(student.id, "m")
-                                        }
-                                        className={`p-2 rounded-full ${
-                                            student?.attendance === "m"
-                                                ? "bg-blue-100 text-blue-700"
-                                                : "bg-gray-100 text-gray-500 hover:bg-blue-50 hover:text-blue-600"
-                                        }`}
-                                    >
-                                        <Clock size={18} />
-                                    </button>
-                                    <button
-                                        onClick={() =>
-                                            handleAttendance(student.id, "a")
-                                        }
-                                        className={`p-2 rounded-full ${
-                                            student?.attendance === "a"
-                                                ? "bg-red-100 text-red-700"
-                                                : "bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-600"
-                                        }`}
-                                    >
-                                        <X size={18} />
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
+                            ))}
                         </div>
                     </div>
                 ) : (
