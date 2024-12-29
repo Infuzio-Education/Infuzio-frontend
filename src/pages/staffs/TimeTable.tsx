@@ -74,9 +74,11 @@ const TimeTable = ({ onBack, classId }: TimeTableProps) => {
                                     <Clock size={14} />
                                     <span>
                                         Last updated:{" "}
-                                        {new Date(
-                                            timetableData?.updatedAt
-                                        ).toLocaleString()}
+                                        {timetableData?.updatedAt
+                                            ? new Date(
+                                                  timetableData?.updatedAt
+                                              ).toLocaleString()
+                                            : "Unavailable"}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-1">
