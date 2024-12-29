@@ -1049,6 +1049,7 @@ export const updateGradeBoundary = async (data: {
     category_id: number;
     base_percentage: number;
     grade_label: string;
+    is_failed: boolean;
 }) => {
     try {
         console.log("Data", data);

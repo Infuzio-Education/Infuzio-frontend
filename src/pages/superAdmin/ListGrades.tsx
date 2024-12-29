@@ -161,18 +161,23 @@ const ListGrades: React.FC = () => {
         setShowBoundaries(true);
         try {
             const response = await getGradeBoundaries(grade.id);
-            if (response.status) {
-                const formattedBoundaries = response.data.map((boundary: any) => ({
-                    id: boundary.ID,
+            if (response.status && response.data) {
+                // Check if data exists and is an array
+                const boundaryData = Array.isArray(response.data) ? response.data : [];
+
+                const formattedBoundaries = boundaryData.map((boundary: any) => ({
+                    id: boundary.id || boundary.ID,
                     category_id: boundary.category_id,
                     base_percentage: boundary.base_percentage,
                     grade_label: boundary.grade_label,
                     is_failed: boundary.is_failed
                 }));
+
                 setBoundaries(formattedBoundaries);
             }
         } catch (error) {
             console.error('Error fetching boundaries:', error);
+            setBoundaries([]); // Set empty array on error
             setSnackbar({
                 open: true,
                 message: 'Failed to load grade boundaries',
@@ -200,16 +205,18 @@ const ListGrades: React.FC = () => {
 
             let response;
             if (editingBoundary) {
-                console.log("Editing Boundary", editingBoundary);
                 response = await updateGradeBoundary({
                     id: editingBoundary.id,
                     category_id: selectedGrade?.id || 0,
                     base_percentage: boundaryData.base_percentage,
-                    grade_label: boundaryData.grade_label
+                    grade_label: boundaryData.grade_label,
+                    is_failed: editingBoundary.is_failed || false
                 });
-
             } else {
-                response = await createGradeBoundary(boundaryData, schoolInfo.schoolPrefix);
+                response = await createGradeBoundary({
+                    ...boundaryData,
+                    category_id: selectedGrade?.id || 0
+                }, schoolInfo.schoolPrefix);
             }
 
             if (response.status) {
@@ -222,11 +229,12 @@ const ListGrades: React.FC = () => {
                     position: { vertical: 'top', horizontal: 'center' }
                 });
                 handleCloseModal();
+
                 if (selectedGrade) {
                     const boundariesResponse = await getGradeBoundaries(selectedGrade.id);
-                    if (boundariesResponse.status) {
+                    if (boundariesResponse.status && boundariesResponse.data) {
                         const formattedBoundaries = boundariesResponse.data.map((boundary: any) => ({
-                            id: boundary.ID,
+                            id: boundary.id || boundary.ID,
                             category_id: boundary.category_id,
                             base_percentage: boundary.base_percentage,
                             grade_label: boundary.grade_label,

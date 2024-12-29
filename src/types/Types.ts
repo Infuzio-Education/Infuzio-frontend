@@ -101,12 +101,7 @@ export interface Standard {
 
 export interface CreateStandardProps {
     initialData: Standard | null;
-    onSave: (
-        name: string,
-        hasGroup: boolean,
-        sequence: number,
-        sequenceNumber: number
-    ) => void;
+    onSave: (name: string, hasGroup: boolean, sequence: number, sequenceNumber: number) => void;
     onCancel: () => void;
     sections: Section[];
 }
@@ -117,7 +112,7 @@ export interface Group {
 }
 
 export interface CreateGroupProps {
-    initialData: Group | null;
+    initialData: Group | null
     onSave: (name: string) => void;
     onCancel: () => void;
 }
@@ -125,8 +120,8 @@ export interface CreateGroupProps {
 export interface TogglebarProps {
     searchTerm: string;
     setSearchTerm: (term: string) => void;
-    viewMode: "grid" | "list";
-    setViewMode: (mode: "grid" | "list") => void;
+    viewMode: 'grid' | 'list';
+    setViewMode: (mode: 'grid' | 'list') => void;
     itemCount: number;
     onSort?: () => void;
     onPrint?: () => void;
@@ -148,7 +143,7 @@ export interface School {
 }
 
 export interface Religion {
-    ID: number;
+    ID: number,
     Name: string;
 }
 
@@ -179,11 +174,12 @@ export interface CreateGroupProps {
     onCancel: () => void;
 }
 
+
 export interface CreateStaffProps {
     initialData: Staff | null;
     onSave: (staff: Staff) => void;
     onCancel: () => void;
-    schoolPrefix: string;
+    schoolPrefix: string
 }
 
 export interface ClassSubmitData {
@@ -276,6 +272,7 @@ export interface Student {
     parentInfo?: ParentDisplayInfo[];
 }
 
+// Keep StudentFormValues with required parentsInfo
 export interface StudentFormValues {
     id?: number;
     name: string;
@@ -407,6 +404,7 @@ export interface SyllabusData {
     custom: null;
 }
 
+
 export interface SchoolStats {
     totalStudents: number;
     totalClasses: number;
@@ -444,8 +442,8 @@ export interface ParentResponse {
 
 export interface ClassesTabProps {
     setShowTimetable: (show: boolean) => void;
-    setSelectedClass: (classItem: ClassItem | null) => void;
-    selectedClass: ClassItem | null;
+    selectedClass: any;
+    setSelectedClass: (cls: any) => void;
 }
 
 export interface ClassSubject {
@@ -459,7 +457,7 @@ export interface ClassItem {
     section: string;
     studentCount: number;
     isClassTeacher: boolean;
-    subjectsTaught: string[];
+    subjects: ClassSubject[];
 }
 
 // Add these exam and attendance related interfaces
@@ -496,7 +494,7 @@ export const mockExamScores: ExamScore[] = [
         maxMarks: 100,
         marksObtained: 85,
         isPassed: true,
-        date: "2024-03-15",
+        date: "2024-03-15"
     },
     // ... other exam scores
 ];
@@ -508,7 +506,7 @@ export const mockUnitTestScores: UnitTestScore[] = [
         maxMarks: 50,
         marksObtained: 45,
         isPassed: true,
-        date: "2024-02-10",
+        date: "2024-02-10"
     },
     // ... other unit test scores
 ];
@@ -518,7 +516,7 @@ export const mockAttendanceRecords: AttendanceRecord[] = [
         month: "January",
         totalDays: 22,
         presentDays: 20,
-        percentage: 90.9,
+        percentage: 90.9
     },
     // ... other attendance records
 ];
@@ -534,7 +532,7 @@ export interface Announcement {
         avatar?: string;
     };
     target: {
-        type: "section" | "class";
+        type: 'section' | 'class';
         value: string;
     };
     date: string;
@@ -554,20 +552,14 @@ export interface Homework {
 export interface AttendanceStudent {
     id: string;
     name: string;
-    rollNumber: string;
-    attendance: "a" | "f" | "m" | "e" | null;
-}
-
-export interface AttendanceData {
-    student_id: string;
-    status: "a" | "f" | "m" | "e" | null;
+    rollNo: string;
+    attendance: 'present' | 'halfday' | 'absent' | null;
 }
 
 export interface TakeAttendanceProps {
     classInfo: {
         name: string;
         section: string;
-        id: string;
     };
     onClose: () => void;
 }
@@ -586,8 +578,9 @@ export interface TimetableDay {
 
 export interface TimeTableProps {
     onBack: () => void;
-    classId: string;
+    classId: number | string;
 }
+
 
 // Add these interfaces for UnitTests
 export interface UnitTest {
@@ -610,7 +603,7 @@ export interface UnitTest {
 
 // Add these interfaces for StudentDetails
 export interface StudentDetailsProps {
-    studentId: string;
+    student: Student;
     onBack: () => void;
     onEdit: (student: Student) => void;
     onDelete: (id: number) => void;
@@ -664,7 +657,7 @@ export interface Student {
     isPwd: boolean;
     nationality: string;
     className: string;
-    parentInfos: ParentInfo[];
+    parentsInfo: ParentDisplayInfo[];
 }
 
 // Add these interfaces for StudentList
@@ -687,7 +680,7 @@ export interface Exam {
 }
 
 export interface GradeSystem {
-    ID: number;
+    id: number;
     category_id: number;
     base_percentage: number;
     grade_label: string;
@@ -760,7 +753,7 @@ export interface Student {
     reservationCategory: string;
     isPwd: boolean;
     nationality: string;
-    parentsInfo: ParentInfo[];
+    parentsInfo: ParentDisplayInfo[];
 }
 
 // Update ParentInfo interface
@@ -786,15 +779,73 @@ export interface StudentMark {
     isAbsent: boolean;
 }
 
-export interface TimeTableData {
-    id: number;
-    classId: number;
-    className: string;
-    activeFrom: string;
-    createdAt: string;
-    updatedAt: string;
-    isActive: boolean;
-    lastUpdatedBy: number;
-    lastUpdatedStaffName: string;
-    timetableDays: TimetableDay[];
+// Add this interface for CreateStudents component
+export interface CreateStudentProps {
+    initialData: StudentFormValues | null;
+    onSave: (student: StudentFormValues) => void;
+    onCancel: () => void;
 }
+
+export interface CreateGradeProps {
+    initialData?: { id?: number; name: string };
+    onSave: (name: string) => void;
+    onSaveBoundary?: (data: { category_id: number; base_percentage: number; grade_label: string }) => void;
+    onCancel: () => void;
+}
+
+// Add these interfaces for grade management
+export interface Grade {
+    id: number;
+    name: string;
+}
+
+export interface GradeSystem {
+    id: number;
+    grade_label: string;
+    base_percentage: number;
+    category_id: number;
+}
+
+export interface CreateBoundaryProps {
+    gradeId: number;
+    initialData?: {
+        id: number;
+        base_percentage: number;
+        grade_label: string;
+    };
+    onSave: (data: {
+        id?: number;
+        category_id: number;
+        base_percentage: number;
+        grade_label: string
+    }) => void;
+    onCancel: () => void;
+}
+
+export interface BoundaryFormData {
+    base_percentage: string;
+    grade_label: string;
+}
+
+export interface GradeSnackbar {
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+    position: {
+        vertical: 'top';
+        horizontal: 'center';
+    };
+}
+
+// Add these interfaces if they don't exist
+export interface SchoolInfo {
+    name: string;
+    address: string;
+    phone: string;
+    email: string;
+    syllabus: string;
+    isActive: boolean;
+    logoUrl?: string;
+    schoolPrefix: string;
+}
+
