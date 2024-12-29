@@ -36,6 +36,10 @@ const StudentList = () => {
         fetchStudents();
     }, [fromClass?.id]);
 
+    useEffect(() => {
+        console.log(selectedStudent);
+    }, [selectedStudent]);
+
     const fetchStudents = async () => {
         try {
             const students = await getStudentsDetails(fromClass?.id);
@@ -75,7 +79,7 @@ const StudentList = () => {
     if (selectedStudent) {
         return (
             <StudentDetails
-                student={selectedStudent}
+                studentId={String(selectedStudent?.id)}
                 onBack={handleBack}
                 onEdit={handleEdit}
                 onDelete={handleDelete}

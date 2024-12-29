@@ -16,4 +16,4 @@ export interface StaffAttendanceData {
         day: number;
         status: "f" | "a" | "m" | "e";
     }> | null;
-} 
+}

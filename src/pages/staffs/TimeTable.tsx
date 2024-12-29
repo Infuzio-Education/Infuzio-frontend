@@ -39,7 +39,7 @@ const TimeTable = ({ onBack, classId }: TimeTableProps) => {
         const day = timetableData?.timetableDays?.find(
             (d: any) => d.weekDay === dayNumber
         );
-        return day?.periods.find((p: Period) => p.periodIndex === periodIndex);
+        return day?.periods?.find((p: Period) => p?.periodIndex === periodIndex);
     };
 
     return (

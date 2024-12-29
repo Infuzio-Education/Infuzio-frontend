@@ -1301,7 +1301,7 @@ const StudentDetails = ({
             {student && (
                 <>
                     {/* Header with Back Button - Sticky on mobile */}
-                    <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm sticky top-0 z-20 lg:relative lg:top-auto">
+                    <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm sticky -top-6  z-20 lg:relative lg:top-auto">
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={onBack}
