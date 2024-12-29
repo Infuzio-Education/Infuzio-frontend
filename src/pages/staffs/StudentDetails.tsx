@@ -27,6 +27,8 @@ import {
     Legend,
     Tooltip,
 } from "recharts";
+import { getStudentAttendanceByMonth } from "../../api/staffs";
+import { CircularProgress } from "@mui/material";
 
 import {
     ExamScore,
@@ -50,14 +52,6 @@ type Exam = {
     CreatedAt: string;
 };
 
-type AttendanceData = {
-    day_wise_attendance: Array<{ [key: string]: string }>;
-    total_a_days: number;
-    total_hd_days: number;
-    total_p_days: number;
-    total_w_days: number;
-};
-
 type ChartData = {
     name: string;
     value: number;
@@ -72,12 +66,27 @@ type ParentInfo = {
     email: string;
 };
 
+interface StudentAttendance {
+    total_w_days: number;
+    total_p_days: number;
+    total_a_days: number;
+    total_hd_days: number;
+    DayWiseAttendance: Array<{
+        day: number;
+        status: "f" | "a" | "m" | "e";
+    }>;
+}
+
 const StudentDetails = ({
     studentId,
     onBack,
     onEdit,
     onDelete,
 }: StudentDetailsProps) => {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1;
+
     const [activeTab, setActiveTab] = useState("details");
     const [examScores] = useState<ExamScore[]>(mockExamScores);
     const [unitTestScores] = useState<UnitTestScore[]>(mockUnitTestScores);
@@ -118,36 +127,67 @@ const StudentDetails = ({
             CreatedAt: "2024-12-15T10:30:00.998151+05:30",
         },
     ]);
-    const [attendanceData] = useState<AttendanceData>({
-        day_wise_attendance: [
-            { "1": "H" },
-            { "2": "P" },
-            { "3": "A" },
-            { "4": "HDN" },
-            { "5": "HDM" },
-            { "6": "P" },
-            { "7": "H" },
-            { "8": "H" },
-            { "9": "SH" },
-            { "10": "P" },
-            { "11": "P" },
-            { "12": "P" },
-            { "13": "P" },
-            { "14": "P" },
-            { "15": "H" },
-            { "16": "P" },
-        ],
-        total_a_days: 2,
-        total_hd_days: 0,
-        total_p_days: 18,
-        total_w_days: 20,
-    });
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [selectedMonth, setSelectedMonth] = useState(
         new Date().getMonth() + 1
     );
     const [overallMonth, setOverallMonth] = useState(new Date().getMonth() + 1);
     const [overallYear, setOverallYear] = useState(new Date().getFullYear());
+
+    const [attendanceLoading, setAttendanceLoading] = useState(false);
+    const [attendanceError, setAttendanceError] = useState<string | null>(null);
+    const [attendanceData, setAttendanceData] = useState<StudentAttendance>({
+        total_w_days: 20,
+        total_p_days: 15,
+        total_a_days: 2,
+        total_hd_days: 3,
+        DayWiseAttendance: [
+            { day: 1, status: "f" },
+            { day: 2, status: "f" },
+            { day: 3, status: "a" },
+            { day: 4, status: "m" },
+            { day: 5, status: "f" },
+            { day: 8, status: "f" },
+            { day: 9, status: "e" },
+            { day: 10, status: "f" },
+            { day: 11, status: "f" },
+            { day: 12, status: "a" },
+            { day: 15, status: "f" },
+            { day: 16, status: "f" },
+            { day: 17, status: "m" },
+            { day: 18, status: "f" },
+            { day: 19, status: "f" },
+            { day: 22, status: "f" },
+            { day: 23, status: "e" },
+            { day: 24, status: "f" },
+            { day: 25, status: "f" },
+            { day: 26, status: "f" },
+        ],
+    });
+
+    useEffect(() => {
+        const fetchAttendance = async () => {
+            try {
+                setAttendanceLoading(true);
+                setAttendanceError(null);
+                const data = await getStudentAttendanceByMonth({
+                    studentId: studentId,
+                    month: String(selectedMonth),
+                    year: String(selectedYear),
+                });
+                setAttendanceData(data);
+            } catch (error) {
+                setAttendanceError("Failed to fetch attendance data");
+                console.error("Error fetching attendance:", error);
+            } finally {
+                setAttendanceLoading(false);
+            }
+        };
+
+        if (activeTab === "attendance") {
+            fetchAttendance();
+        }
+    }, [studentId, selectedMonth, selectedYear, activeTab]);
 
     const tabs = [
         { id: "details", label: "Basic Details", icon: <User size={18} /> },
@@ -166,17 +206,26 @@ const StudentDetails = ({
         { id: "overall", label: "Overall", icon: <ChartLine size={18} /> },
     ];
 
-    const fetchAttendance = async (year: number, month: number) => {
-        try {
-            const response = await fetch(
-                `/student/attendance/monthly?year=${year}&month=${month}`
-            );
-            const data = await response.json();
-            console.log(data);
-            // Update attendance data here
-        } catch (error) {
-            console.error("Error fetching attendance:", error);
+    const getAttendanceColor = (status: string) => {
+        switch (status) {
+            case "f":
+                return "bg-green-100 text-green-800 border-green-200";
+            case "a":
+                return "bg-red-100 text-red-800 border-red-200";
+            case "m":
+            case "e":
+                return "bg-yellow-100 text-yellow-800 border-yellow-200";
+            default:
+                return "bg-gray-100 text-gray-800 border-gray-200";
         }
+    };
+
+    const getDaysInMonth = (year: number, month: number) => {
+        return new Date(year, month, 0).getDate();
+    };
+
+    const getFirstDayOfMonth = (year: number, month: number) => {
+        return new Date(year, month - 1, 1).getDay();
     };
 
     const renderTabContent = () => {
@@ -341,7 +390,7 @@ const StudentDetails = ({
                             Parent Information
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {student?.parentInfos.map((parent: ParentInfo) => (
+                            {student?.parentInfo.map((parent: ParentInfo) => (
                                 <div
                                     key={parent.parentId}
                                     className="bg-gray-50 p-4 rounded-lg"
@@ -612,26 +661,27 @@ const StudentDetails = ({
                 const chartData: ChartData[] = [
                     {
                         name: "Present",
-                        value: attendanceData.total_p_days,
+                        value: attendanceData?.total_p_days || 0,
                         color: "#10B981",
                     },
                     {
                         name: "Absent",
-                        value: attendanceData.total_a_days,
+                        value: attendanceData?.total_a_days || 0,
                         color: "#EF4444",
                     },
                     {
                         name: "Half Day",
-                        value: attendanceData.total_hd_days,
+                        value: attendanceData?.total_hd_days || 0,
                         color: "#F59E0B",
                     },
                     {
                         name: "Holiday",
-                        value:
-                            attendanceData.total_w_days -
-                            (attendanceData.total_p_days +
-                                attendanceData.total_a_days +
-                                attendanceData.total_hd_days),
+                        value: attendanceData
+                            ? attendanceData.total_w_days -
+                              (attendanceData.total_p_days +
+                                  attendanceData.total_a_days +
+                                  attendanceData.total_hd_days)
+                            : 0,
                         color: "#3B82F6",
                     },
                 ];
@@ -942,7 +992,7 @@ const StudentDetails = ({
             case "attendance":
                 return (
                     <div className="space-y-4">
-                        {/* Month/Year Selector and Summary */}
+                        {/* Month/Year Selector and Summary - Always visible */}
                         <div className="bg-white p-4 rounded-xl shadow-sm">
                             <div className="flex flex-wrap justify-between items-center gap-4 mb-4">
                                 {/* Month/Year Controls */}
@@ -960,18 +1010,34 @@ const StudentDetails = ({
                                                 );
                                             }
                                         }}
-                                        className="p-1.5 hover:bg-gray-100 rounded-lg"
+                                        disabled={
+                                            selectedYear === currentYear - 2 &&
+                                            selectedMonth === 1
+                                        }
+                                        className={`p-1.5 rounded-lg ${
+                                            selectedYear === currentYear - 2 &&
+                                            selectedMonth === 1
+                                                ? "text-gray-300 cursor-not-allowed"
+                                                : "hover:bg-gray-100 text-gray-600"
+                                        }`}
                                     >
                                         <ChevronLeft size={18} />
                                     </button>
 
                                     <select
                                         value={selectedMonth}
-                                        onChange={(e) =>
-                                            setSelectedMonth(
-                                                Number(e.target.value)
-                                            )
-                                        }
+                                        onChange={(e) => {
+                                            const newMonth = Number(
+                                                e.target.value
+                                            );
+                                            if (
+                                                selectedYear === currentYear &&
+                                                newMonth > currentMonth
+                                            ) {
+                                                return;
+                                            }
+                                            setSelectedMonth(newMonth);
+                                        }}
                                         className="px-2 py-1.5 border rounded-lg text-sm focus:ring-1 focus:ring-emerald-500"
                                     >
                                         {[
@@ -991,6 +1057,11 @@ const StudentDetails = ({
                                             <option
                                                 key={month}
                                                 value={index + 1}
+                                                disabled={
+                                                    selectedYear ===
+                                                        currentYear &&
+                                                    index + 1 > currentMonth
+                                                }
                                             >
                                                 {month}
                                             </option>
@@ -999,18 +1070,32 @@ const StudentDetails = ({
 
                                     <select
                                         value={selectedYear}
-                                        onChange={(e) =>
-                                            setSelectedYear(
-                                                Number(e.target.value)
-                                            )
-                                        }
+                                        onChange={(e) => {
+                                            const newYear = Number(
+                                                e.target.value
+                                            );
+                                            if (newYear > currentYear) {
+                                                return;
+                                            }
+                                            setSelectedYear(newYear);
+                                            if (
+                                                newYear === currentYear &&
+                                                selectedMonth > currentMonth
+                                            ) {
+                                                setSelectedMonth(currentMonth);
+                                            }
+                                        }}
                                         className="px-2 py-1.5 border rounded-lg text-sm focus:ring-1 focus:ring-emerald-500"
                                     >
                                         {Array.from(
                                             { length: 3 },
-                                            (_, i) => selectedYear - 1 + i
+                                            (_, i) => currentYear - 2 + i
                                         ).map((year) => (
-                                            <option key={year} value={year}>
+                                            <option
+                                                key={year}
+                                                value={year}
+                                                disabled={year > currentYear}
+                                            >
                                                 {year}
                                             </option>
                                         ))}
@@ -1019,142 +1104,191 @@ const StudentDetails = ({
                                     <button
                                         onClick={() => {
                                             if (selectedMonth === 12) {
-                                                setSelectedMonth(1);
-                                                setSelectedYear(
-                                                    (prev) => prev + 1
-                                                );
-                                            } else {
+                                                if (
+                                                    selectedYear + 1 <=
+                                                    currentYear
+                                                ) {
+                                                    setSelectedMonth(1);
+                                                    setSelectedYear(
+                                                        (prev) => prev + 1
+                                                    );
+                                                }
+                                            } else if (
+                                                !(
+                                                    selectedYear ===
+                                                        currentYear &&
+                                                    selectedMonth + 1 >
+                                                        currentMonth
+                                                )
+                                            ) {
                                                 setSelectedMonth(
                                                     (prev) => prev + 1
                                                 );
                                             }
                                         }}
-                                        className="p-1.5 hover:bg-gray-100 rounded-lg"
+                                        disabled={
+                                            selectedYear === currentYear &&
+                                            selectedMonth === currentMonth
+                                        }
+                                        className={`p-1.5 rounded-lg ${
+                                            selectedYear === currentYear &&
+                                            selectedMonth === currentMonth
+                                                ? "text-gray-300 cursor-not-allowed"
+                                                : "hover:bg-gray-100 text-gray-600"
+                                        }`}
                                     >
                                         <ChevronRight size={18} />
                                     </button>
                                 </div>
 
-                                {/* Summary Pills */}
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <span className="px-3 py-1 bg-green-50 text-green-700 text-sm rounded-full border border-green-200">
-                                        Present: {attendanceData.total_p_days}
-                                    </span>
-                                    <span className="px-3 py-1 bg-red-50 text-red-700 text-sm rounded-full border border-red-200">
-                                        Absent: {attendanceData.total_a_days}
-                                    </span>
-                                    <span className="px-3 py-1 bg-yellow-50 text-yellow-700 text-sm rounded-full border border-yellow-200">
-                                        Half: {attendanceData.total_hd_days}
-                                    </span>
-                                    <span className="px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full border border-blue-200">
-                                        Total: {attendanceData.total_w_days}
-                                    </span>
-                                </div>
+                                {/* Summary Pills - Show only when data is available */}
+                                {attendanceData && (
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className="px-3 py-1 bg-green-50 text-green-700 text-sm rounded-full border border-green-200">
+                                            Present:{" "}
+                                            {attendanceData.total_p_days || 0}
+                                        </span>
+                                        <span className="px-3 py-1 bg-red-50 text-red-700 text-sm rounded-full border border-red-200">
+                                            Absent:{" "}
+                                            {attendanceData.total_a_days || 0}
+                                        </span>
+                                        <span className="px-3 py-1 bg-yellow-50 text-yellow-700 text-sm rounded-full border border-yellow-200">
+                                            Half:{" "}
+                                            {attendanceData.total_hd_days || 0}
+                                        </span>
+                                        <span className="px-3 py-1 bg-blue-50 text-blue-700 text-sm rounded-full border border-blue-200">
+                                            Total:{" "}
+                                            {attendanceData.total_w_days || 0}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* Calendar */}
-                        <div className="bg-white p-4 rounded-xl shadow-sm max-w-3xl mx-auto">
-                            <div className="grid grid-cols-7 gap-x-0.5 gap-y-1">
-                                {/* Week days header */}
-                                <div className="col-span-7 grid grid-cols-7">
-                                    {["S", "M", "T", "W", "T", "F", "S"].map(
-                                        (day) => (
-                                            <div
-                                                key={day}
-                                                className="text-center text-sm font-medium text-gray-500 pb-2"
-                                            >
-                                                {day}
-                                            </div>
-                                        )
-                                    )}
-                                </div>
-
-                                {/* Empty cells */}
-                                {Array.from(
-                                    {
-                                        length: getFirstDayOfMonth(
-                                            selectedYear,
-                                            selectedMonth
-                                        ),
-                                    },
-                                    (_, i) => (
-                                        <div
-                                            key={`empty-${i}`}
-                                            className="w-14 h-14"
-                                        />
-                                    )
-                                )}
-
-                                {/* Calendar days */}
-                                {Array.from(
-                                    {
-                                        length: getDaysInMonth(
-                                            selectedYear,
-                                            selectedMonth
-                                        ),
-                                    },
-                                    (_, i) => {
-                                        const day = (i + 1).toString();
-                                        const attendance =
-                                            attendanceData.day_wise_attendance.find(
-                                                (a) => a[day]
-                                            );
-                                        const status = attendance
-                                            ? attendance[day]
-                                            : null;
-
-                                        return (
-                                            <div
-                                                key={i}
-                                                className={`w-14 h-14 rounded border ${
-                                                    status
-                                                        ? getAttendanceColor(
-                                                              status
-                                                          )
-                                                        : "border-gray-200"
-                                                } flex flex-col items-center justify-center mx-auto`}
-                                            >
-                                                <span className="text-sm font-medium leading-none">
+                        {/* Loading, Error, and Calendar Content */}
+                        {attendanceLoading ? (
+                            <div className="flex justify-center p-8">
+                                <CircularProgress />
+                            </div>
+                        ) : attendanceError ? (
+                            <div className="text-red-500 text-center p-8">
+                                {attendanceError}
+                            </div>
+                        ) : attendanceData ? (
+                            <div className="space-y-4">
+                                {/* Calendar */}
+                                <div className="bg-white p-4 rounded-xl shadow-sm max-w-3xl mx-auto">
+                                    <div className="grid grid-cols-7 gap-x-0.5 gap-y-1">
+                                        {/* Week days header */}
+                                        <div className="col-span-7 grid grid-cols-7">
+                                            {[
+                                                "S",
+                                                "M",
+                                                "T",
+                                                "W",
+                                                "T",
+                                                "F",
+                                                "S",
+                                            ].map((day) => (
+                                                <div
+                                                    key={day}
+                                                    className="text-center text-sm font-medium text-gray-500 pb-2"
+                                                >
                                                     {day}
-                                                </span>
-                                                {status && (
-                                                    <span className="text-xs leading-none mt-1.5">
-                                                        {status}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        );
-                                    }
-                                )}
-                            </div>
-                        </div>
+                                                </div>
+                                            ))}
+                                        </div>
 
-                        {/* Legend */}
-                        <div className="bg-white p-4 rounded-xl shadow-sm">
-                            <div className="flex flex-wrap gap-3">
-                                <span className="flex items-center gap-1.5 text-xs">
-                                    <span className="w-3 h-3 rounded-full bg-green-100 border border-green-200"></span>
-                                    Present (P)
-                                </span>
-                                <span className="flex items-center gap-1.5 text-xs">
-                                    <span className="w-3 h-3 rounded-full bg-red-100 border border-red-200"></span>
-                                    Absent (A)
-                                </span>
-                                <span className="flex items-center gap-1.5 text-xs">
-                                    <span className="w-3 h-3 rounded-full bg-blue-100 border border-blue-200"></span>
-                                    Holiday (H)
-                                </span>
-                                <span className="flex items-center gap-1.5 text-xs">
-                                    <span className="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-200"></span>
-                                    Half Day (HD)
-                                </span>
-                                <span className="flex items-center gap-1.5 text-xs">
-                                    <span className="w-3 h-3 rounded-full bg-purple-100 border border-purple-200"></span>
-                                    Special (SH)
-                                </span>
+                                        {/* Empty cells */}
+                                        {Array.from(
+                                            {
+                                                length: getFirstDayOfMonth(
+                                                    selectedYear,
+                                                    selectedMonth
+                                                ),
+                                            },
+                                            (_, i) => (
+                                                <div
+                                                    key={`empty-${i}`}
+                                                    className="w-14 h-14"
+                                                />
+                                            )
+                                        )}
+
+                                        {/* Calendar days */}
+                                        {Array.from(
+                                            {
+                                                length: getDaysInMonth(
+                                                    selectedYear,
+                                                    selectedMonth
+                                                ),
+                                            },
+                                            (_, i) => {
+                                                const day = (i + 1).toString();
+                                                const attendance =
+                                                    attendanceData?.DayWiseAttendance?.find(
+                                                        (a) => a.day === i + 1
+                                                    );
+                                                const status =
+                                                    attendance?.status || null;
+
+                                                return (
+                                                    <div
+                                                        key={i}
+                                                        className={`w-14 h-14 rounded border ${
+                                                            status
+                                                                ? getAttendanceColor(
+                                                                      status
+                                                                  )
+                                                                : "border-gray-200"
+                                                        } flex flex-col items-center justify-center mx-auto`}
+                                                    >
+                                                        <span className="text-sm font-medium leading-none">
+                                                            {day}
+                                                        </span>
+                                                        {status && (
+                                                            <span className="text-xs leading-none mt-1.5">
+                                                                {status ===
+                                                                    "e" ||
+                                                                status === "m"
+                                                                    ? "HD"
+                                                                    : status.toUpperCase()}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                );
+                                            }
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Legend */}
+                                <div className="bg-white p-4 rounded-xl shadow-sm">
+                                    <div className="flex flex-wrap gap-3">
+                                        <span className="flex items-center gap-1.5 text-xs">
+                                            <span className="w-3 h-3 rounded-full bg-green-100 border border-green-200"></span>
+                                            Present (P)
+                                        </span>
+                                        <span className="flex items-center gap-1.5 text-xs">
+                                            <span className="w-3 h-3 rounded-full bg-red-100 border border-red-200"></span>
+                                            Absent (A)
+                                        </span>
+                                        <span className="flex items-center gap-1.5 text-xs">
+                                            <span className="w-3 h-3 rounded-full bg-blue-100 border border-blue-200"></span>
+                                            Holiday (H)
+                                        </span>
+                                        <span className="flex items-center gap-1.5 text-xs">
+                                            <span className="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-200"></span>
+                                            Half Day (HD)
+                                        </span>
+                                        <span className="flex items-center gap-1.5 text-xs">
+                                            <span className="w-3 h-3 rounded-full bg-purple-100 border border-purple-200"></span>
+                                            Special (SH)
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        ) : null}
                     </div>
                 );
             default:
@@ -1162,42 +1296,12 @@ const StudentDetails = ({
         }
     };
 
-    const getAttendanceColor = (status: string) => {
-        switch (status) {
-            case "P":
-                return "bg-green-100 text-green-800 border-green-200";
-            case "A":
-                return "bg-red-100 text-red-800 border-red-200";
-            case "H":
-                return "bg-blue-100 text-blue-800 border-blue-200";
-            case "HDN":
-            case "HDM":
-                return "bg-yellow-100 text-yellow-800 border-yellow-200";
-            case "SH":
-                return "bg-purple-100 text-purple-800 border-purple-200";
-            default:
-                return "bg-gray-100 text-gray-800 border-gray-200";
-        }
-    };
-
-    const getDaysInMonth = (year: number, month: number) => {
-        return new Date(year, month, 0).getDate();
-    };
-
-    const getFirstDayOfMonth = (year: number, month: number) => {
-        return new Date(year, month - 1, 1).getDay();
-    };
-
-    useEffect(() => {
-        fetchAttendance(selectedYear, selectedMonth);
-    }, [selectedYear, selectedMonth]);
-
     return (
         <div className="space-y-6">
             {student && (
                 <>
-                    {/* Header with Back Button */}
-                    <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm">
+                    {/* Header with Back Button - Sticky on mobile */}
+                    <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm sticky top-0 z-20 lg:relative lg:top-auto">
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={onBack}
@@ -1232,7 +1336,7 @@ const StudentDetails = ({
 
                     <div className="grid grid-cols-12 gap-6">
                         {/* Left Column - Make it sticky */}
-                        <div className="col-span-12 lg:col-span-4 sticky top-6 self-start">
+                        <div className="col-span-12 lg:col-span-4 lg:sticky top-6 self-start">
                             <div className="bg-white p-6 rounded-xl shadow-sm">
                                 <div className="flex flex-col items-center pb-6 border-b">
                                     <div className="w-32 h-32 bg-gray-200 rounded-full mb-4 ring-4 ring-emerald-50">

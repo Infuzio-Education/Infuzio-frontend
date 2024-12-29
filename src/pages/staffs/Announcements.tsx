@@ -1,56 +1,56 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Image as ImageIcon, File, Send, X } from 'lucide-react';
-import { Announcement } from '../../types/Types';
+import { CircularProgress } from '@mui/material';
+import { getAnnouncements } from '../../api/staffs';
+import { AnnouncementData } from '../../types/Types';
 
 const Announcements = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
-    // const [selectedFilter, setSelectedFilter] = useState('all');
-    // const [searchQuery, setSearchQuery] = useState('');
-
-    // Mock data for announcements
-    const announcements: Announcement[] = [
-        {
-            id: '1',
-            title: 'Annual Sports Day Schedule',
-            content: 'The annual sports day will be held on 15th March. All teachers are requested to attend and supervise their respective classes.',
-            sender: {
-                name: 'Principal',
-                role: 'Admin',
-                avatar: 'P'
-            },
-            target: {
-                type: 'section',
-                value: 'HSS'
-            },
-            date: '2024-03-01',
-            attachments: [
-                { name: 'schedule.pdf', type: 'pdf', size: '156 KB' }
-            ]
-        },
-        {
-            id: '2',
-            title: 'Staff Meeting Notice',
-            content: 'Important staff meeting tomorrow at 2 PM in the conference room.',
-            sender: {
-                name: 'Vice Principal',
-                role: 'Admin',
-                avatar: 'VP'
-            },
-            target: {
-                type: 'section',
-                value: 'All Sections'
-            },
-            date: '2024-03-05'
-        }
-    ];
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [announcements, setAnnouncements] = useState<AnnouncementData[]>([]);
 
     const sections = ['LP', 'UP', 'HS', 'HSS'];
-    const classes = {
+    const classes: Record<string, string[]> = {
         'LP': ['LKG', 'UKG', '1', '2', '3', '4'],
         'UP': ['5', '6', '7'],
         'HS': ['8', '9', '10'],
         'HSS': ['11', '12']
     };
+
+    useEffect(() => {
+        const fetchAnnouncements = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const data = await getAnnouncements();
+                setAnnouncements(data);
+            } catch (error) {
+                setError('Failed to fetch announcements. Please try again later.');
+                console.error('Error fetching announcements:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAnnouncements();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="h-[calc(100vh-2rem)] flex items-center justify-center">
+                <CircularProgress />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="h-[calc(100vh-2rem)] flex items-center justify-center text-red-500">
+                {error}
+            </div>
+        );
+    }
 
     return (
         <div className="h-[calc(100vh-2rem)] flex flex-col space-y-4">
@@ -67,18 +67,8 @@ const Announcements = () => {
                 </button>
             </div>
 
-            {/* Chat-like Messages Area with background image */}
+            {/* Messages Container */}
             <div className="flex-1 relative rounded-lg overflow-hidden">
-                {/* Background Image */}
-                <div
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                    style={{
-                        backgroundImage: `url('https://ghostcode.in/content/images/size/w2000/wordpress/2016/09/super_hero_whatsapp_background_by_x_ama-d8fr7iz.jpg')`,
-                        opacity: 0.4
-                    }}
-                />
-
-                {/* Messages Container */}
                 <div className="relative h-full overflow-y-auto p-4">
                     <div className="max-w-4xl mx-auto space-y-6">
                         {announcements.map((announcement) => (
@@ -88,11 +78,11 @@ const Announcements = () => {
                                 hover:shadow-md transition-shadow border border-gray-100"
                             >
                                 <div className="flex gap-4">
-                                    {/* Sender Avatar */}
+                                    {/* Author Avatar */}
                                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 
                                     to-emerald-600 flex items-center justify-center text-white 
                                     font-semibold shadow-sm">
-                                        {announcement.sender.avatar}
+                                        {announcement.author[0]}
                                     </div>
 
                                     {/* Content */}
@@ -100,13 +90,10 @@ const Announcements = () => {
                                         <div className="flex justify-between items-start">
                                             <div>
                                                 <h3 className="font-semibold text-gray-800">
-                                                    {announcement.sender.name}
-                                                    <span className="text-sm font-normal text-gray-500 ml-2">
-                                                        {announcement.sender.role}
-                                                    </span>
+                                                    {announcement.author}
                                                 </h3>
                                                 <p className="text-sm text-gray-500">
-                                                    {new Date(announcement.date).toLocaleDateString('en-US', {
+                                                    {new Date(announcement.created_at).toLocaleDateString('en-US', {
                                                         year: 'numeric',
                                                         month: 'long',
                                                         day: 'numeric',
@@ -115,10 +102,6 @@ const Announcements = () => {
                                                     })}
                                                 </p>
                                             </div>
-                                            <span className="px-3 py-1 bg-emerald-50 text-emerald-600 
-                                            rounded-full text-xs font-medium border border-emerald-100">
-                                                {announcement.target.value}
-                                            </span>
                                         </div>
 
                                         <div className="mt-3">
@@ -126,13 +109,13 @@ const Announcements = () => {
                                                 {announcement.title}
                                             </h4>
                                             <p className="text-gray-600 leading-relaxed">
-                                                {announcement.content}
+                                                {announcement.body}
                                             </p>
                                         </div>
 
-                                        {announcement.attachments && (
+                                        {announcement.files && (
                                             <div className="mt-4 space-y-2">
-                                                {announcement.attachments.map((attachment, index) => (
+                                                {announcement.files.map((file, index) => (
                                                     <div
                                                         key={index}
                                                         className="flex items-center gap-2 text-sm text-gray-600 
@@ -140,8 +123,9 @@ const Announcements = () => {
                                                         border border-gray-100 transition-colors"
                                                     >
                                                         <File size={16} className="text-emerald-500" />
-                                                        <span>{attachment.name}</span>
-                                                        <span className="text-gray-400">({attachment.size})</span>
+                                                        <a href={file} target="_blank" rel="noopener noreferrer">
+                                                            View Attachment {index + 1}
+                                                        </a>
                                                     </div>
                                                 ))}
                                             </div>

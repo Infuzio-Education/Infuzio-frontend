@@ -215,3 +215,46 @@ export const getStaffAttendanceByMonth = async (params: {
         console.log(error);
     }
 };
+
+export const getAnnouncements = async () => {
+    try {
+        const response = await Api.get(staffEndpoints.getAnnouncements);
+        if (response?.data && response?.data?.status === true) {
+            return response?.data?.data;
+        }
+        return [];
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("Error fetching announcements:", error.response);
+            throw error;
+        } else {
+            console.error("Unexpected error:", error);
+            throw error;
+        }
+    }
+};
+
+export const getStudentAttendanceByMonth = async (params: {
+    studentId: string;
+    month: string;
+    year: string;
+}) => {
+    try {
+        const response = await Api.get(staffEndpoints.getStudentAttendance, {
+            params,
+        });
+        if (response?.data && response?.data?.status === true) {
+            return response?.data?.data;
+        }
+        return null;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("Error fetching student attendance:", error.response);
+            throw error;
+        } else {
+            console.error("Unexpected error:", error);
+            throw error;
+        }
+    }
+};
+

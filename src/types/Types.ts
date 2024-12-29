@@ -240,7 +240,7 @@ export interface Student {
     reservationCategory: string;
     isPwd: boolean;
     nationality: string;
-    parentsInfos: ParentInfo[];
+    parentInfo: ParentInfo[];
 }
 
 export interface CreateStudentProps {
@@ -773,4 +773,17 @@ export interface TimeTableData {
     lastUpdatedBy: number;
     lastUpdatedStaffName: string;
     timetableDays: TimetableDay[];
+}
+
+export interface AnnouncementData {
+    id: number;
+    title: string;
+    body: string;
+    author: string;
+    author_profile_pic: string;
+    files: string[] | null;
+    created_at: string;
+    authorID: number;
+    deleted_at: null | string;
+    is_deleted: boolean;
 }
