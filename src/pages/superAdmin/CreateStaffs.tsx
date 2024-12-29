@@ -371,8 +371,8 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
             if (staff.isTeachingStaff) {
                 payload = {
                     ...basePayload,
-                    subjectIDs: staff.subjectIDs.filter(id => typeof id === 'number'),
-                    sectionIDs: staff.sectionIDs.filter(id => typeof id === 'number')
+                    subjectIDs: staff.subjectIDs?.filter(id => typeof id === 'number') || [],
+                    sectionIDs: staff.sectionIDs?.filter(id => typeof id === 'number') || []
                 };
             } else {
                 payload = basePayload;
@@ -383,13 +383,7 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
             if (initialData?.id) {
                 response = await updateStaff(initialData.id, payload, schoolPrefix);
             } else {
-                // Ensure payload conforms to CreateStaffPayload by adding missing properties
-                const createPayload = {
-                    ...payload,
-                    subjectIDs: [],
-                    sectionIDs: []
-                };
-                response = await createStaff(createPayload, schoolPrefix);
+                response = await createStaff(payload, schoolPrefix);
             }
 
             // Only show success message if resp_code is CREATED or SUCCESS

@@ -35,6 +35,7 @@ const ListParents: React.FC = () => {
                 throw new Error("School prefix not found");
             }
             const response = await listParents(schoolInfo.schoolPrefix);
+            console.log(response);
             if (response.status && response.resp_code === "SUCCESS") {
                 setParents(response.data.parents);
             } else {

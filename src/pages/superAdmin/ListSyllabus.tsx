@@ -74,10 +74,11 @@ const ListSyllabus: React.FC = () => {
                 // Update existing syllabus
                 const response = await updateSyllabus(syllabuses[editingIndex].id, syllabus.name);
                 if (response.status === true) {
+                    // Update the state immediately with the new data
                     setSyllabuses(prevSyllabuses =>
                         prevSyllabuses.map(s =>
                             s.id === syllabuses[editingIndex].id
-                                ? { ...s, Name: syllabus.name }
+                                ? { ...s, name: syllabus.name }
                                 : s
                         )
                     );
@@ -94,7 +95,7 @@ const ListSyllabus: React.FC = () => {
                 // Create new syllabus
                 const response = await createSyllabus(syllabus.name);
                 if (response.status === 200 || response.status === 201) {
-                    await fetchSyllabuses(); // Refresh the list
+                    await fetchSyllabuses(); // Refresh the list for new creation
                     setSnackbar({
                         open: true,
                         message: 'Syllabus created successfully!',

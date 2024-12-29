@@ -359,16 +359,16 @@ interface BaseStaffProps {
     state: string;
     pincode: string;
     country: string;
-    subjectIDs: number[];
-    sectionIDs: number[];
+    subjectIDs?: number[];
+    sectionIDs?: number[];
 }
 
 // Interface for creating staff
 export interface CreateStaffPayload extends BaseStaffProps {
     regNumber: number;
     idCardNumber: string;
-    subjectIDs: number[];
-    sectionIDs: number[];
+    subjectIDs?: number[];
+    sectionIDs?: number[];
 }
 
 // Interface for staff data from API
