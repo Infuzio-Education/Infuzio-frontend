@@ -3,7 +3,7 @@ import { Checkbox, IconButton, Modal, Box } from "@mui/material";
 import { Trash2, PlusCircle } from "lucide-react";
 import Togglebar from '../../components/Togglebar';
 import SnackbarComponent from '../../components/SnackbarComponent';
-import { getAcademicYears, createAcademicYear, updateAcademicYear, deleteAcademicYear, getTeachingStaff } from '../../api/superAdmin';
+import { getAcademicYears, createAcademicYear, updateAcademicYear, deleteAcademicYear } from '../../api/superAdmin';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import CreateAcademicYear from './CreateAcademicYear';
 
@@ -11,12 +11,6 @@ interface AcademicYear {
     id: number;
     name: string;
     isCurrent: boolean;
-}
-
-interface TeachingStaff {
-    ID: number;
-    name: string;
-    subject: string;
 }
 
 const ListAcademicYears: React.FC = () => {
@@ -36,7 +30,6 @@ const ListAcademicYears: React.FC = () => {
     });
     const [openModal, setOpenModal] = useState<boolean>(false);
     const [editingYear, setEditingYear] = useState<AcademicYear | null>(null);
-    const [teachingStaff, setTeachingStaff] = useState<TeachingStaff[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -46,18 +39,14 @@ const ListAcademicYears: React.FC = () => {
                 if (!schoolInfo.schoolPrefix) {
                     throw new Error('School prefix not found');
                 }
-                const [academicYearsRes, teachingStaffRes] = await Promise.all([
+                const [academicYearsRes] = await Promise.all([
                     getAcademicYears(schoolInfo.schoolPrefix),
-                    getTeachingStaff(schoolInfo.schoolPrefix)
                 ]);
 
                 if (academicYearsRes.status === true) {
                     setAcademicYears(academicYearsRes.data);
                 }
 
-                if (teachingStaffRes.status === true) {
-                    setTeachingStaff(teachingStaffRes.data);
-                }
             } catch (error) {
                 setError('Failed to load data. Please try again.');
             } finally {
@@ -245,8 +234,6 @@ const ListAcademicYears: React.FC = () => {
                                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Sl.No</th>
                                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-3/12">Academic Year</th>
                                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Current</th>
-                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-3/12">Teaching Staff</th>
-                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">Subject</th>
                                 <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Actions</th>
                             </tr>
                         </thead>
@@ -273,16 +260,6 @@ const ListAcademicYears: React.FC = () => {
                                     <td className="text-center">
                                         <div className="text-sm font-medium text-gray-900">
                                             {year.isCurrent ? 'Yes' : 'No'}
-                                        </div>
-                                    </td>
-                                    <td className="text-center">
-                                        <div className="text-sm font-medium text-gray-900">
-                                            {teachingStaff.map(staff => staff.name).join(', ')}
-                                        </div>
-                                    </td>
-                                    <td className="text-center">
-                                        <div className="text-sm font-medium text-gray-900">
-                                            {teachingStaff.map(staff => staff.subject).join(', ')}
                                         </div>
                                     </td>
                                     <td className="text-center">
