@@ -3,16 +3,17 @@ import { ClassItem } from "../../types/Types";
 import { ArrowLeft, PenLine, Sheet, UsersRound } from "lucide-react";
 import ClassInfo from "./ClassInfo";
 import ActionCard from "./ActionCard";
+import { ClassesTabState } from "../../types/StateTypes";
 
 const SelectedClassDetails = ({
     selectedClass,
-    setShowAttendance,
+    updateClassesTabState,
     setShowTimetable,
     navigateToStudents,
     handleBack,
 }: {
     selectedClass: ClassItem;
-    setShowAttendance: (show: boolean) => void;
+    updateClassesTabState: (state: Partial<ClassesTabState>) => void;
     setShowTimetable: (show: boolean) => void;
     navigateToStudents: () => void;
     handleBack: () => void;
@@ -27,7 +28,8 @@ const SelectedClassDetails = ({
                 iconHoverBgColor: "bg-emerald-200",
                 iconTextColor: "text-emerald-600",
                 actionText: "Start Now",
-                onClick: () => setShowAttendance(true),
+                onClick: () =>
+                    updateClassesTabState({ showAttendance: true }),
             },
             {
                 title: "Time Table",
@@ -47,7 +49,10 @@ const SelectedClassDetails = ({
                 iconHoverBgColor: "bg-purple-200",
                 iconTextColor: "text-purple-600",
                 actionText: "View List",
-                onClick: navigateToStudents,
+                locked: !selectedClass?.isClassTeacher, 
+                onClick: selectedClass?.isClassTeacher
+                    ? navigateToStudents
+                    : () => {},
             },
         ],
         [selectedClass]

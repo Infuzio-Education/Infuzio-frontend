@@ -1,3 +1,4 @@
+import { Lock } from "lucide-react";
 import React from "react";
 
 const ActionCard = ({
@@ -9,6 +10,7 @@ const ActionCard = ({
     description,
     actionText,
     Icon,
+    locked = false,
 }: {
     onClick: () => void;
     iconBgColor: string;
@@ -18,11 +20,12 @@ const ActionCard = ({
     description: string;
     actionText: string;
     Icon: React.ElementType;
+    locked?: boolean;
 }) => {
     return (
         <div
             onClick={onClick}
-            className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+            className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer group relative"
         >
             <div className="p-6 space-y-4">
                 <div
@@ -44,6 +47,13 @@ const ActionCard = ({
                     {actionText} →
                 </div>
             </div>
+            {locked && (
+                <div className="absolute inset-0 bg-gray-400/40 rounded-xl flex items-center justify-center cursor-not-allowed">
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
+                        <Lock size={20} className="text-green-500" />
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

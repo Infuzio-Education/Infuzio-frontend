@@ -11,6 +11,8 @@ import {
     Megaphone,
     User
 } from 'lucide-react';
+import { logout } from '../../redux/slices/staffSlice/staffSlice';
+import { useDispatch } from 'react-redux';
 
 interface StaffProfile {
     name: string;
@@ -21,6 +23,7 @@ interface StaffProfile {
 const Sidebar = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const [collapsed, setCollapsed] = useState(false);
     const [profile, setProfile] = useState<StaffProfile | null>(null);
 
@@ -43,6 +46,11 @@ const Sidebar = () => {
             return location.pathname === path || location.pathname === '/staffs/students';
         }
         return location.pathname === path;
+    };
+
+    const handleLogout = () => {
+        dispatch(logout());
+        navigate('/staffs/login');
     };
 
     return (
@@ -166,6 +174,7 @@ const Sidebar = () => {
                     <button
                         className={`w-full p-4 flex items-center text-red-500 hover:bg-gray-100 transition-colors ${collapsed ? 'justify-center' : ''
                             }`}
+                        onClick={handleLogout}
                     >
                         <LogOut size={20} />
                         {!collapsed && <span className="ml-3">Logout</span>}

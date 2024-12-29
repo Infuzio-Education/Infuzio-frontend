@@ -9,14 +9,17 @@ import { ArrowLeft } from "lucide-react";
 import { CircularProgress } from "@mui/material";
 import { ClassesTabState } from "../../types/StateTypes";
 
-const ClassesTab = ({ setShowTimetable }: ClassesTabProps) => {
+const ClassesTab = ({
+    setShowTimetable,
+    setSelectedClass,
+    selectedClass,
+}: ClassesTabProps) => {
     const navigate = useNavigate();
-    const [showAttendance, setShowAttendance] = useState(false);
     const [state, setState] = useState<ClassesTabState>({
         loading: true,
         error: "",
         classes: [],
-        selectedClass: null,
+        showAttendance: false,
     });
 
     const updateClassesTabState = (newState: Partial<ClassesTabState>) => {
@@ -47,10 +50,10 @@ const ClassesTab = ({ setShowTimetable }: ClassesTabProps) => {
 
     // Update the handleBack function
     const handleBack = () => {
-        if (showAttendance) {
-            setShowAttendance(false);
+        if (state.showAttendance) {
+            updateClassesTabState({ showAttendance: false });
         } else {
-            updateClassesTabState({ selectedClass: null });
+            setSelectedClass(null);
         }
     };
 
@@ -58,7 +61,7 @@ const ClassesTab = ({ setShowTimetable }: ClassesTabProps) => {
     const navigateToStudents = () => {
         navigate("/staffs/students", {
             state: {
-                fromClass: state.selectedClass,
+                fromClass: selectedClass,
                 returnTab: "classes",
                 returnToClass: true, // Add this flag
             },
@@ -67,10 +70,10 @@ const ClassesTab = ({ setShowTimetable }: ClassesTabProps) => {
 
     return (
         <div>
-            {state.selectedClass ? (
+            {selectedClass ? (
                 <SelectedClassDetails
-                    selectedClass={state.selectedClass}
-                    setShowAttendance={setShowAttendance}
+                    selectedClass={selectedClass}
+                    updateClassesTabState={updateClassesTabState}
                     setShowTimetable={setShowTimetable}
                     navigateToStudents={navigateToStudents}
                     handleBack={handleBack}
@@ -91,6 +94,7 @@ const ClassesTab = ({ setShowTimetable }: ClassesTabProps) => {
                                 key={classItem.id}
                                 classItem={classItem}
                                 updateClassesTabState={updateClassesTabState}
+                                setSelectedClass={setSelectedClass}
                             />
                         ))
                     ) : (
@@ -101,7 +105,7 @@ const ClassesTab = ({ setShowTimetable }: ClassesTabProps) => {
                 </div>
             )}
 
-            {showAttendance && state.selectedClass && (
+            {state.showAttendance && selectedClass && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
                     <div className="w-full max-w-4xl">
                         <div className="flex items-center gap-4 mb-4">
@@ -114,10 +118,13 @@ const ClassesTab = ({ setShowTimetable }: ClassesTabProps) => {
                         </div>
                         <TakeAttendance
                             classInfo={{
-                                name: state.selectedClass.name,
-                                section: state.selectedClass.section,
+                                name: selectedClass.name,
+                                section: selectedClass.section,
+                                id: selectedClass.id,
                             }}
-                            onClose={() => setShowAttendance(false)}
+                            onClose={() =>
+                                updateClassesTabState({ showAttendance: false })
+                            }
                         />
                     </div>
                 </div>

@@ -240,7 +240,7 @@ export interface Student {
     reservationCategory: string;
     isPwd: boolean;
     nationality: string;
-    parentsInfo: ParentInfo[];
+    parentsInfos: ParentInfo[];
 }
 
 export interface CreateStudentProps {
@@ -416,6 +416,8 @@ export interface ParentResponse {
 
 export interface ClassesTabProps {
     setShowTimetable: (show: boolean) => void;
+    setSelectedClass: (classItem: ClassItem | null) => void;
+    selectedClass: ClassItem | null;
 }
 
 export interface ClassSubject {
@@ -524,14 +526,20 @@ export interface Homework {
 export interface AttendanceStudent {
     id: string;
     name: string;
-    rollNo: string;
-    attendance: "present" | "halfday" | "absent" | null;
+    rollNumber: string;
+    attendance: "a" | "f" | "m" | "e" | null;
+}
+
+export interface AttendanceData {
+    student_id: string;
+    status: "a" | "f" | "m" | "e" | null;
 }
 
 export interface TakeAttendanceProps {
     classInfo: {
         name: string;
         section: string;
+        id: string;
     };
     onClose: () => void;
 }
@@ -550,6 +558,7 @@ export interface TimetableDay {
 
 export interface TimeTableProps {
     onBack: () => void;
+    classId: string;
 }
 
 // Add these interfaces for UnitTests
@@ -573,7 +582,7 @@ export interface UnitTest {
 
 // Add these interfaces for StudentDetails
 export interface StudentDetailsProps {
-    student: Student;
+    studentId: string;
     onBack: () => void;
     onEdit: (student: Student) => void;
     onDelete: (id: number) => void;
@@ -627,7 +636,7 @@ export interface Student {
     isPwd: boolean;
     nationality: string;
     className: string;
-    parentsInfo: ParentInfo[];
+    parentInfos: ParentInfo[];
 }
 
 // Add these interfaces for StudentList
@@ -751,4 +760,17 @@ export interface StudentMark {
     subjectId: number;
     marks: number;
     isAbsent: boolean;
+}
+
+export interface TimeTableData {
+    id: number;
+    classId: number;
+    className: string;
+    activeFrom: string;
+    createdAt: string;
+    updatedAt: string;
+    isActive: boolean;
+    lastUpdatedBy: number;
+    lastUpdatedStaffName: string;
+    timetableDays: TimetableDay[];
 }
