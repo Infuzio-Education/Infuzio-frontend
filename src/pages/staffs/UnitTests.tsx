@@ -82,6 +82,66 @@ const UnitTests = () => {
             is_exam_cancelled: false,
             created_staff_id: 1,
             FKSubjectID: { Name: "Science" }
+        },
+        {
+            id: 3,
+            subject_id: 3,
+            class_id: 2,
+            portion_desc: "Shakespeare's Plays - A Study",
+            date: "2024-04-01T10:00:00Z",
+            is_completed: false,
+            is_postponed_indefinitely: false,
+            max_mark: 100,
+            pass_mark: 50,
+            has_submitted_marks: false,
+            is_exam_cancelled: false,
+            created_staff_id: 2,
+            FKSubjectID: { Name: "English" }
+        },
+        {
+            id: 4,
+            subject_id: 4,
+            class_id: 3,
+            portion_desc: "World History - Ancient Civilizations",
+            date: "2024-04-05T10:00:00Z",
+            is_completed: false,
+            is_postponed_indefinitely: true,
+            max_mark: 100,
+            pass_mark: 50,
+            has_submitted_marks: false,
+            is_exam_cancelled: false,
+            created_staff_id: 3,
+            FKSubjectID: { Name: "History" }
+        },
+        {
+            id: 5,
+            subject_id: 1,
+            class_id: 2,
+            portion_desc: "Geometry Basics - Angles and Shapes",
+            date: "2024-04-10T10:00:00Z",
+            is_completed: false,
+            is_postponed_indefinitely: false,
+            max_mark: 100,
+            pass_mark: 40,
+            has_submitted_marks: false,
+            is_exam_cancelled: false,
+            created_staff_id: 1,
+            FKSubjectID: { Name: "Mathematics" }
+        },
+        {
+            id: 6,
+            subject_id: 2,
+            class_id: 3,
+            portion_desc: "Biology - Cell Structure and Function",
+            date: "2024-04-15T10:00:00Z",
+            is_completed: false,
+            is_postponed_indefinitely: false,
+            max_mark: 100,
+            pass_mark: 40,
+            has_submitted_marks: false,
+            is_exam_cancelled: false,
+            created_staff_id: 2,
+            FKSubjectID: { Name: "Science" }
         }
     ];
 
