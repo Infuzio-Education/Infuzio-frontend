@@ -636,7 +636,7 @@ export interface Student {
     isPwd: boolean;
     nationality: string;
     className: string;
-    parentInfos: ParentInfo[];
+    parentInfo: ParentInfo[];
 }
 
 // Add these interfaces for StudentList
