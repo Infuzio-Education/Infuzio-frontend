@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
-import { Period, TimeTableProps, TimeTableData } from "../../types/Types";
+import { Period, TimeTableProps, TimetableData } from "../../types/Types";
 import { getTimeTable } from "../../api/staffs";
 import { CircularProgress } from "@mui/material";
 
@@ -8,7 +8,7 @@ const TimeTable = ({ onBack, classId }: TimeTableProps) => {
     const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
     const periodNumbers = Array.from({ length: 7 }, (_, i) => i + 1);
 
-    const [timetableData, setTimetableData] = useState<TimeTableData | null>(
+    const [timetableData, setTimetableData] = useState<TimetableData | null>(
         null
     );
     const [loading, setLoading] = useState(false);
@@ -22,7 +22,7 @@ const TimeTable = ({ onBack, classId }: TimeTableProps) => {
 
     const fetchTimetable = async () => {
         try {
-            const timetable = await getTimeTable(classId);
+            const timetable = await getTimeTable(classId.toString());
             console.log(timetable);
             setTimetableData(timetable);
         } catch (error) {
@@ -35,11 +35,11 @@ const TimeTable = ({ onBack, classId }: TimeTableProps) => {
     const getPeriod = (
         dayNumber: number,
         periodIndex: number
-    ): Period | undefined => {
+    ) => {
         const day = timetableData?.timetableDays?.find(
             (d: any) => d.weekDay === dayNumber
         );
-        return day?.periods.find((p) => p.periodIndex === periodIndex);
+        return day?.periods.find((p: Period) => p.periodIndex === periodIndex);
     };
 
     return (

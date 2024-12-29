@@ -33,7 +33,6 @@ export interface Subject {
     id: number;
     name: string;
     code: string;
-    isSubjectTeacher: boolean;
 }
 
 export interface CreateSubjectProps {
@@ -102,12 +101,7 @@ export interface Standard {
 
 export interface CreateStandardProps {
     initialData: Standard | null;
-    onSave: (
-        name: string,
-        hasGroup: boolean,
-        sequence: number,
-        sequenceNumber: number
-    ) => void;
+    onSave: (name: string, hasGroup: boolean, sequence: number, sequenceNumber: number) => void;
     onCancel: () => void;
     sections: Section[];
 }
@@ -118,17 +112,23 @@ export interface Group {
 }
 
 export interface CreateGroupProps {
-    initialData: Group | null;
+    initialData: Group | null
     onSave: (name: string) => void;
     onCancel: () => void;
 }
 
-export interface ListControlsProps {
+export interface TogglebarProps {
     searchTerm: string;
     setSearchTerm: (term: string) => void;
-    viewMode: "grid" | "list";
-    setViewMode: (mode: "grid" | "list") => void;
+    viewMode: 'grid' | 'list';
+    setViewMode: (mode: 'grid' | 'list') => void;
     itemCount: number;
+    onSort?: () => void;
+    onPrint?: () => void;
+    showDeleted?: boolean;
+    setShowDeleted?: (show: boolean) => void;
+    onSelectAll?: () => void;
+    selectedCount?: number;
 }
 
 export interface School {
@@ -143,7 +143,7 @@ export interface School {
 }
 
 export interface Religion {
-    ID: number;
+    ID: number,
     Name: string;
 }
 
@@ -174,28 +174,42 @@ export interface CreateGroupProps {
     onCancel: () => void;
 }
 
+
 export interface CreateStaffProps {
     initialData: Staff | null;
     onSave: (staff: Staff) => void;
     onCancel: () => void;
-    schoolPrefix: string;
+    schoolPrefix: string
 }
 
 export interface ClassSubmitData {
     id?: number;
     name: string;
-    section: string;
     mediumId: number;
     standardId: number;
     classStaffId: number;
-    group_id: number;
+    group_id?: number;
     syllabusId: number;
+    academicYearId: number;
 }
 
 export interface Class {
     id: number;
     name: string;
-    isClassTeacher: boolean;
+    classStaffId: number;
+    classStaffName: string;
+    mediumId: number;
+    mediumName: string;
+    syllabusId: number;
+    syllabus: string;
+    standardId: number;
+    standard: string;
+    groupId?: number;
+    group?: string;
+    academicYearID: number;
+    academicYearName: string;
+    studentCount: number;
+    // Keep these for backward compatibility
     ID?: number;
     Name?: string;
     ClassStaffId?: number;
@@ -203,6 +217,8 @@ export interface Class {
     SyllabusId?: number;
     StandardId?: number;
     GroupID?: number;
+    AcademicYearId?: number;
+    RollNumsLastSetBy?: null;
 }
 
 export interface CreateClassProps {
@@ -211,15 +227,28 @@ export interface CreateClassProps {
     onCancel: () => void;
 }
 
+// First, define the parent info interfaces
+export interface ParentDisplayInfo {
+    parentId: number;
+    relationshipWithStudent: string;
+    name: string;
+    phone: string;
+    email: string;
+}
+
+export interface ParentFormInfo {
+    parentId: number;
+    relationshipWithStudent: string;
+}
+
 export interface Student {
     id: number;
     name: string;
-    rollNumber: string;
-    class_id: number;
-    marks?: StudentMark[];
+    rollNumber: string | null;
+    classID: number;
     className: string;
     profilePic: string;
-    idCardNumber: string;
+    idCardNumber: string | null;
     admissionNumber: string | null;
     dateOfAdmission: string;
     gender: string;
@@ -243,24 +272,12 @@ export interface Student {
     parentInfo: ParentInfo[];
 }
 
-export interface CreateStudentProps {
-    initialData: StudentFormValues | null;
-    onSave: (student: StudentFormValues) => void;
-    onCancel: () => void;
-}
-
-export interface ParentInfo {
-    parentId: number;
-    relationshipWithStudent: string;
-    name: string;
-    phone: string;
-    email: string;
-}
-
+// Keep StudentFormValues with required parentsInfo
 export interface StudentFormValues {
     id?: number;
     name: string;
     dateOfAdmission: string;
+    rollNumber: number | null;
     gender: string;
     dob: string;
     phone: string;
@@ -282,7 +299,7 @@ export interface StudentFormValues {
     reservationCategory: string;
     isPWD: boolean;
     nationality: string;
-    parentsInfo: ParentInfo[];
+    parentsInfo: ParentFormInfo[];
 }
 
 export interface Religion {
@@ -320,42 +337,50 @@ export interface StaffAddress {
 // First, let's define a base interface for common staff properties
 interface BaseStaffProps {
     name: string;
-    gender: "male" | "female" | "other";
+    regNumber: number;
+    gender: 'male' | 'female' | 'other';
     dob: string;
     mobile: string;
     email: string;
-    blood_group: string;
+    bloodGroup: string;
     religion: string;
     caste: string;
-    category: string;
     pwd: boolean;
-    is_teaching_staff: boolean;
+    isTeachingStaff: boolean;
     remarks?: string;
+    category: string;
+    house?: string;
     street1: string;
     street2?: string;
     city: string;
     state: string;
     pincode: string;
     country: string;
-    responsibility?: string;
-    subjects?: string[];
-    section?: string;
+    subjectIDs?: number[];
+    sectionIDs?: number[];
 }
 
 // Interface for creating staff
 export interface CreateStaffPayload extends BaseStaffProps {
-    id_card_number: string;
-    profile_pic?: File;
+    regNumber: number;
+    idCardNumber: string;
+    subjectIDs?: number[];
+    sectionIDs?: number[];
 }
 
 // Interface for staff data from API
 export interface Staff extends BaseStaffProps {
-    id: number;
+    id?: number;
+    regNumber: number;
     staffId: number;
-    id_card_number: string | null;
-    profile_pic_link: string;
-    current_role?: string;
+    idCardNumber: string | null;
+    profilePicLink: string;
+    currentRole?: string;
     privilegeType: string;
+    subjectIDs: number[];
+    subjects: { id: number; name: string }[];
+    sectionIDs: number[];
+    sections: { id: number; name: string }[];
 }
 
 // Interface for privileged staff data
@@ -378,6 +403,7 @@ export interface SyllabusData {
     global: GlobalSyllabus[];
     custom: null;
 }
+
 
 export interface SchoolStats {
     totalStudents: number;
@@ -416,8 +442,8 @@ export interface ParentResponse {
 
 export interface ClassesTabProps {
     setShowTimetable: (show: boolean) => void;
-    setSelectedClass: (classItem: ClassItem | null) => void;
-    selectedClass: ClassItem | null;
+    selectedClass: any;
+    setSelectedClass: (cls: any) => void;
 }
 
 export interface ClassSubject {
@@ -431,7 +457,7 @@ export interface ClassItem {
     section: string;
     studentCount: number;
     isClassTeacher: boolean;
-    subjectsTaught: string[];
+    subjects: ClassSubject[];
 }
 
 // Add these exam and attendance related interfaces
@@ -468,7 +494,7 @@ export const mockExamScores: ExamScore[] = [
         maxMarks: 100,
         marksObtained: 85,
         isPassed: true,
-        date: "2024-03-15",
+        date: "2024-03-15"
     },
     // ... other exam scores
 ];
@@ -480,7 +506,7 @@ export const mockUnitTestScores: UnitTestScore[] = [
         maxMarks: 50,
         marksObtained: 45,
         isPassed: true,
-        date: "2024-02-10",
+        date: "2024-02-10"
     },
     // ... other unit test scores
 ];
@@ -490,7 +516,7 @@ export const mockAttendanceRecords: AttendanceRecord[] = [
         month: "January",
         totalDays: 22,
         presentDays: 20,
-        percentage: 90.9,
+        percentage: 90.9
     },
     // ... other attendance records
 ];
@@ -506,7 +532,7 @@ export interface Announcement {
         avatar?: string;
     };
     target: {
-        type: "section" | "class";
+        type: 'section' | 'class';
         value: string;
     };
     date: string;
@@ -526,20 +552,14 @@ export interface Homework {
 export interface AttendanceStudent {
     id: string;
     name: string;
-    rollNumber: string;
-    attendance: "a" | "f" | "m" | "e" | null;
-}
-
-export interface AttendanceData {
-    student_id: string;
-    status: "a" | "f" | "m" | "e" | null;
+    rollNo: string;
+    attendance: 'present' | 'halfday' | 'absent' | null;
 }
 
 export interface TakeAttendanceProps {
     classInfo: {
         name: string;
         section: string;
-        id: string;
     };
     onClose: () => void;
 }
@@ -558,8 +578,9 @@ export interface TimetableDay {
 
 export interface TimeTableProps {
     onBack: () => void;
-    classId: string;
+    classId: number | string;
 }
+
 
 // Add these interfaces for UnitTests
 export interface UnitTest {
@@ -582,7 +603,7 @@ export interface UnitTest {
 
 // Add these interfaces for StudentDetails
 export interface StudentDetailsProps {
-    studentId: string;
+    student: Student;
     onBack: () => void;
     onEdit: (student: Student) => void;
     onDelete: (id: number) => void;
@@ -619,7 +640,7 @@ export interface TimetableData {
 export interface Student {
     id: number;
     name: string;
-    rollNumber: string;
+    // rollNumber: string;
     class_id: number;
     street1: string;
     street2: string;
@@ -659,9 +680,11 @@ export interface Exam {
 }
 
 export interface GradeSystem {
+    id: number;
     category_id: number;
     base_percentage: number;
     grade_label: string;
+    is_failed?: boolean;
 }
 
 export interface Class {
@@ -670,11 +693,6 @@ export interface Class {
     isClassTeacher: boolean;
 }
 
-export interface Subject {
-    id: number;
-    name: string;
-    isSubjectTeacher: boolean;
-}
 
 export interface SubjectMaxMarks {
     subjectId: number;
@@ -706,16 +724,15 @@ export interface StudentMark {
     isAbsent: boolean;
 }
 
-// Update the Student interface with consistent property modifiers
 export interface Student {
     id: number;
     name: string;
-    rollNumber: string;
     class_id: number;
     marks?: StudentMark[];
+    rollNumber: string | null;
     className: string;
     profilePic: string;
-    idCardNumber: string;
+    idCardNumber: string | null;
     admissionNumber: string | null;
     dateOfAdmission: string;
     gender: string;
@@ -736,7 +753,7 @@ export interface Student {
     reservationCategory: string;
     isPwd: boolean;
     nationality: string;
-    parentsInfo: ParentInfo[];
+    parentsInfo: ParentDisplayInfo[];
 }
 
 // Update ParentInfo interface
@@ -762,17 +779,74 @@ export interface StudentMark {
     isAbsent: boolean;
 }
 
-export interface TimeTableData {
+// Add this interface for CreateStudents component
+export interface CreateStudentProps {
+    initialData: StudentFormValues | null;
+    onSave: (student: StudentFormValues) => void;
+    onCancel: () => void;
+}
+
+export interface CreateGradeProps {
+    initialData?: { id?: number; name: string };
+    onSave: (name: string) => void;
+    onSaveBoundary?: (data: { category_id: number; base_percentage: number; grade_label: string }) => void;
+    onCancel: () => void;
+}
+
+// Add these interfaces for grade management
+export interface Grade {
     id: number;
-    classId: number;
-    className: string;
-    activeFrom: string;
-    createdAt: string;
-    updatedAt: string;
+    name: string;
+}
+
+export interface GradeSystem {
+    id: number;
+    grade_label: string;
+    base_percentage: number;
+    category_id: number;
+}
+
+export interface CreateBoundaryProps {
+    gradeId: number;
+    initialData?: {
+        id: number;
+        base_percentage: number;
+        grade_label: string;
+    };
+    onSave: (data: {
+        id?: number;
+        category_id: number;
+        base_percentage: number;
+        grade_label: string
+    }) => void;
+    onCancel: () => void;
+}
+
+export interface BoundaryFormData {
+    base_percentage: string;
+    grade_label: string;
+}
+
+export interface GradeSnackbar {
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+    position: {
+        vertical: 'top';
+        horizontal: 'center';
+    };
+}
+
+// Add these interfaces if they don't exist
+export interface SchoolInfo {
+    name: string;
+    address: string;
+    phone: string;
+    email: string;
+    syllabus: string;
     isActive: boolean;
-    lastUpdatedBy: number;
-    lastUpdatedStaffName: string;
-    timetableDays: TimetableDay[];
+    logoUrl?: string;
+    schoolPrefix: string;
 }
 
 export interface AnnouncementData {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
-import ListControls from '../../components/ListControls';
+import Togglebar from '../../components/Togglebar';
 import CreateSyllabus from './CreateSyllubus';
 import { Syllabus } from '../../types/Types';
 import { getSyllabus, createSyllabus, deleteSyllabus, updateSyllabus } from '../../api/superAdmin';
@@ -74,10 +74,11 @@ const ListSyllabus: React.FC = () => {
                 // Update existing syllabus
                 const response = await updateSyllabus(syllabuses[editingIndex].id, syllabus.name);
                 if (response.status === true) {
+                    // Update the state immediately with the new data
                     setSyllabuses(prevSyllabuses =>
                         prevSyllabuses.map(s =>
                             s.id === syllabuses[editingIndex].id
-                                ? { ...s, Name: syllabus.name }
+                                ? { ...s, name: syllabus.name }
                                 : s
                         )
                     );
@@ -94,7 +95,7 @@ const ListSyllabus: React.FC = () => {
                 // Create new syllabus
                 const response = await createSyllabus(syllabus.name);
                 if (response.status === 200 || response.status === 201) {
-                    await fetchSyllabuses(); // Refresh the list
+                    await fetchSyllabuses(); // Refresh the list for new creation
                     setSnackbar({
                         open: true,
                         message: 'Syllabus created successfully!',
@@ -171,7 +172,7 @@ const ListSyllabus: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">
-            <ListControls
+            <Togglebar
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}

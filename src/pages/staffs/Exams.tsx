@@ -50,7 +50,7 @@ const Exams = () => {
         }
     ]);
 
-    const [classes] = useState<Class[]>([
+    const [classes] = useState<any[]>([
         {
             id: 1,
             name: "Class 1A",
@@ -61,7 +61,13 @@ const Exams = () => {
             MediumId: 1,
             SyllabusId: 1,
             StandardId: 1,
-            GroupID: 1
+            GroupID: 1,
+            classStaffId: 1,
+            classStaffName: "John Doe",
+            mediumId: 1,
+            syllabusId: 1,
+            standardId: 1,
+            groupId: 1
         },
         {
             id: 2,
@@ -73,11 +79,17 @@ const Exams = () => {
             MediumId: 1,
             SyllabusId: 1,
             StandardId: 1,
-            GroupID: 1
+            GroupID: 1,
+            classStaffId: 2,
+            classStaffName: "Jane Smith",
+            mediumId: 1,
+            syllabusId: 1,
+            standardId: 1,
+            groupId: 1
         }
     ]);
 
-    const [subjects] = useState<Subject[]>([
+    const [subjects] = useState<any[]>([
         { id: 1, name: "Mathematics", code: "MATH", isSubjectTeacher: true },
         { id: 2, name: "Science", code: "SCI", isSubjectTeacher: false },
         { id: 3, name: "English", code: "ENG", isSubjectTeacher: false },
@@ -150,7 +162,7 @@ const Exams = () => {
     const [selectedClass, setSelectedClass] = useState<Class | null>(null);
     const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
 
-    const [grades] = useState<GradeSystem[]>([
+    const [grades] = useState<any[]>([
         { category_id: 1, base_percentage: 90, grade_label: "A+" },
         { category_id: 2, base_percentage: 85, grade_label: "A" },
         { category_id: 3, base_percentage: 80, grade_label: "B+" },

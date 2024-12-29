@@ -75,7 +75,7 @@ const StudentList = () => {
     if (selectedStudent) {
         return (
             <StudentDetails
-                studentId={String(selectedStudent?.id)}
+                student={selectedStudent}
                 onBack={handleBack}
                 onEdit={handleEdit}
                 onDelete={handleDelete}

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
-import ListControls from '../../components/ListControls';
+import Togglebar from '../../components/Togglebar';
 import CreateStaffs from './CreateStaffs';
 import { Staff } from '../../types/Types';
-import { listStaff, deleteStaff } from '../../api/superAdmin';
+import { listStaff, deleteStaff, getStaffById } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import GridView from '../../components/GridView';
@@ -25,6 +25,7 @@ const ListStaffs: React.FC = () => {
         severity: 'success' as 'success' | 'error',
         position: { vertical: 'top' as const, horizontal: 'center' as const }
     });
+    const [showDeleted, setShowDeleted] = useState<boolean>(false);
 
     const { schoolInfo } = useSchoolContext();
 
@@ -37,12 +38,13 @@ const ListStaffs: React.FC = () => {
             }
             const response = await listStaff(schoolInfo.schoolPrefix);
             if (response.status && response.resp_code === "SUCCESS") {
-                setStaffs(response.data);
+                setStaffs(response.data || []);
             } else {
                 throw new Error("Failed to fetch staff data");
             }
         } catch (err: any) {
             setError(err.response?.data?.message || 'An error occurred while fetching staff data');
+            setStaffs([]);
         } finally {
             setLoading(false);
         }
@@ -56,9 +58,33 @@ const ListStaffs: React.FC = () => {
         setSnackbar(prev => ({ ...prev, open: false }));
     };
 
-    const handleOpenModal = (staff: Staff | null) => {
-        setEditingStaff(staff);
-        setOpenModal(true);
+    const handleOpenModal = async (staff: Staff | null) => {
+        try {
+            if (staff && staff.id && schoolInfo.schoolPrefix) {
+                setLoading(true);
+                const response = await getStaffById(staff.id, schoolInfo.schoolPrefix);
+                console.log("response", response);
+
+                if (response.status && response.resp_code === "SUCCESS") {
+                    setEditingStaff(response.data);
+                } else {
+                    throw new Error("Failed to fetch staff details");
+                }
+            } else {
+                setEditingStaff(null);
+            }
+            setOpenModal(true);
+        } catch (error: any) {
+            console.error('Error fetching staff details:', error);
+            setSnackbar({
+                open: true,
+                message: error.response?.data?.message || 'Failed to fetch staff details',
+                severity: 'error',
+                position: { vertical: 'top', horizontal: 'center' }
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleCloseModal = () => {
@@ -88,7 +114,12 @@ const ListStaffs: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            const response = await deleteStaff(id, schoolInfo.schoolPrefix || '');
+            if (!schoolInfo.schoolPrefix) {
+                throw new Error("School prefix not found");
+            }
+
+            const response = await deleteStaff(id, schoolInfo.schoolPrefix);
+
             if (response.status === true) {
                 setStaffs(staffs.filter(staff => staff.id !== id));
                 setSelectedStaffs(selectedStaffs.filter(staffId => staffId !== id));
@@ -126,7 +157,7 @@ const ListStaffs: React.FC = () => {
         if (selectAll) {
             setSelectedStaffs([]);
         } else {
-            setSelectedStaffs(staffs.map(staff => staff.id));
+            setSelectedStaffs(staffs.map(staff => staff.id).filter(id => id !== undefined));
         }
         setSelectAll(!selectAll);
     };
@@ -139,18 +170,18 @@ const ListStaffs: React.FC = () => {
         }
     };
 
-    const filteredStaffs = staffs.filter(staff =>
-        staff.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredStaffs = staffs?.filter(staff =>
+        staff?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false
+    ) || [];
 
     const getStaffContent = (staff: Staff) => ({
         title: staff.name,
-        subtitle: staff.id_card_number || undefined,
+        subtitle: staff.regNumber || undefined,
         email: staff.email,
         phone: staff.mobile,
         status: {
-            label: staff.is_teaching_staff ? 'Teaching Staff' : 'Non-Teaching Staff',
-            color: staff.is_teaching_staff ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+            label: staff.isTeachingStaff ? 'Teaching Staff' : 'Non-Teaching Staff',
+            color: staff.isTeachingStaff ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
         },
         avatar: {
             letter: staff.name.charAt(0).toUpperCase()
@@ -159,12 +190,24 @@ const ListStaffs: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">
-            <ListControls
+            <Togglebar
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
-                itemCount={staffs.length}
+                itemCount={staffs?.length || 0}
+                showDeleted={showDeleted}
+                setShowDeleted={setShowDeleted}
+                onSelectAll={handleSelectAll}
+                selectedCount={selectedStaffs.length}
+                onPrint={() => {
+                    if (selectedStaffs.length > 0) {
+                        const selectedStaffData = staffs.filter(staff =>
+                            selectedStaffs.includes(staff.id || 0)
+                        );
+                        console.log('Printing selected staff:', selectedStaffData);
+                    }
+                }}
             />
 
             {loading ? (
@@ -175,7 +218,7 @@ const ListStaffs: React.FC = () => {
                 <div className="rounded-lg p-8 text-center">
                     <p className="text-xl font-semibold text-red-500">{error}</p>
                 </div>
-            ) : staffs.length === 0 ? (
+            ) : !staffs || staffs.length === 0 ? (
                 <div className="rounded-lg p-8 text-center">
                     <p className="text-xl font-semibold mb-4">No staffs found.</p>
                     <p className="text-gray-600">Click the "+" button to create a new staff.</p>
@@ -216,8 +259,8 @@ const ListStaffs: React.FC = () => {
                                 <tr key={staff.id} className="cursor-pointer">
                                     <td className="text-center">
                                         <Checkbox
-                                            checked={selectedStaffs.includes(staff.id)}
-                                            onChange={() => handleSelectStaff(staff.id)}
+                                            checked={selectedStaffs.includes(staff.id || 0)}
+                                            onChange={() => handleSelectStaff(staff.id || 0)}
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                     </td>
@@ -228,7 +271,7 @@ const ListStaffs: React.FC = () => {
                                         <div className="text-sm font-medium text-gray-900">{staff.name}</div>
                                     </td>
                                     <td className="text-center" onClick={() => handleOpenModal(staff)}>
-                                        <div className="text-sm font-medium text-gray-900">{staff.is_teaching_staff ? "Teaching" : "Non-Teaching"}</div>
+                                        <div className="text-sm font-medium text-gray-900">{staff.isTeachingStaff ? "Teaching" : "Non-Teaching"}</div>
                                     </td>
                                     <td className="text-center" onClick={() => handleOpenModal(staff)}>
                                         <div className="text-sm font-medium text-gray-900">{staff.email}</div>
@@ -236,7 +279,7 @@ const ListStaffs: React.FC = () => {
                                     <td className="text-center">
                                         <IconButton
                                             aria-label="delete"
-                                            onClick={() => handleDelete(staff.id)}
+                                            onClick={() => handleDelete(staff.id || 0)}
                                         >
                                             <Trash2 size={20} className="text-red-500" />
                                         </IconButton>

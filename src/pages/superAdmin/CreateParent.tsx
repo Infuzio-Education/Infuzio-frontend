@@ -1,9 +1,9 @@
 import React from 'react';
 import { TextField, Button } from '@mui/material';
 import { Formik, Form, Field } from 'formik';
-import { createParent } from '../../api/superAdmin';
+import { createParent, updateParent } from '../../api/superAdmin';
 import { useSchoolContext } from '../../contexts/SchoolContext';
-import { parentValidationSchema } from '../../validations/parentFormValidationSchema';
+import * as Yup from 'yup';
 import { Parent } from '../../types/Types';
 
 interface CreateParentProps {
@@ -11,6 +11,31 @@ interface CreateParentProps {
     onSave: (values: Parent) => void;
     onCancel: () => void;
 }
+
+const validationSchema = Yup.object().shape({
+    name: Yup.string()
+        .required('Name is required')
+        .matches(
+            /^[a-zA-Z\s.]+$/,
+            'Name can only contain alphabets, spaces, and dots'
+        )
+        .min(2, 'Name must be at least 2 characters')
+        .max(50, 'Name must not exceed 50 characters'),
+    phone: Yup.string()
+        .required('Phone number is required')
+        .matches(
+            /^\+[1-9]\d{9,14}$/,
+            'Invalid phone number. Must be in E.164 format (e.g., +919876543210)'
+        ),
+    email: Yup.string()
+        .required('Email is required')
+        .email('Invalid email format')
+        .matches(
+            /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+            'Invalid email format'
+        )
+        .transform(value => value.toLowerCase())
+});
 
 const CreateParent: React.FC<CreateParentProps> = ({ initialData, onSave, onCancel }) => {
     const { schoolInfo } = useSchoolContext();
@@ -20,7 +45,20 @@ const CreateParent: React.FC<CreateParentProps> = ({ initialData, onSave, onCanc
             if (!schoolInfo.schoolPrefix) {
                 throw new Error("School prefix not found");
             }
-            const response = await createParent(values, schoolInfo.schoolPrefix);
+
+            let response;
+            if (initialData?.id) {
+                response = await updateParent(
+                    initialData.id,
+                    values,
+                    schoolInfo.schoolPrefix
+                );
+            } else {
+                response = await createParent(
+                    values,
+                    schoolInfo.schoolPrefix
+                );
+            }
 
             if (response.status === false) {
                 // Handle specific error cases
@@ -70,28 +108,45 @@ const CreateParent: React.FC<CreateParentProps> = ({ initialData, onSave, onCanc
                     phone: '',
                     email: ''
                 }}
-                validationSchema={parentValidationSchema}
+                validationSchema={validationSchema}
                 onSubmit={handleSubmit}
             >
-                {({ errors, touched, isSubmitting }) => (
+                {({ errors, touched, isSubmitting, handleChange, values }) => (
                     <Form className="space-y-4">
                         <Field
                             as={TextField}
                             name="name"
                             label="Name"
                             fullWidth
-                            required
+
                             error={touched.name && !!errors.name}
                             helperText={touched.name && errors.name}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                const value = e.target.value;
+                                if (/^[a-zA-Z\s.]*$/.test(value)) {
+                                    handleChange(e);
+                                }
+                            }}
                         />
                         <Field
                             as={TextField}
                             name="phone"
                             label="Phone"
                             fullWidth
-                            required
+
                             error={touched.phone && !!errors.phone}
-                            helperText={touched.phone && errors.phone}
+                            helperText={(touched.phone && errors.phone) || 'Format: +919876543210'}
+
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                const value = e.target.value;
+                                if (
+                                    value === '' ||
+                                    (value === '+' && !values.phone) ||
+                                    (/^\+?[0-9]*$/.test(value) && value.length <= 15)
+                                ) {
+                                    handleChange(e);
+                                }
+                            }}
                         />
                         <Field
                             as={TextField}
@@ -102,6 +157,9 @@ const CreateParent: React.FC<CreateParentProps> = ({ initialData, onSave, onCanc
                             required
                             error={touched.email && !!errors.email}
                             helperText={touched.email && errors.email}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                handleChange(e);
+                            }}
                         />
                         <div className="flex justify-end space-x-2">
                             <Button

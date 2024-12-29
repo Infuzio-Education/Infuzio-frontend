@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
-import ListControls from '../../components/ListControls';
+import Togglebar from '../../components/Togglebar';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { Caste } from '../../types/Types';
 import { createCaste, getCastes, updateCaste, deleteCaste } from '../../api/superAdmin';
@@ -88,11 +88,13 @@ const ListCastes: React.FC = () => {
                 }
             } else {
                 const response = await createCaste({ Name: name, ReligionID: religion_id });
-                console.log('Create caste response:', response);
-
                 if (response.status === true) {
-                    await fetchCastes();
-
+                    const newCaste = {
+                        ID: response.data.id,
+                        Name: name,
+                        ReligionID: religion_id
+                    };
+                    setCastes(prevCastes => [...prevCastes, newCaste]);
                     setSnackbar({
                         open: true,
                         message: 'Caste created successfully!',
@@ -103,6 +105,7 @@ const ListCastes: React.FC = () => {
                     throw new Error(response.data);
                 }
             }
+            handleCloseModal();
         } catch (error: any) {
             console.error('Error creating/updating caste:', error);
             setSnackbar({
@@ -112,7 +115,6 @@ const ListCastes: React.FC = () => {
                 position: { vertical: 'top', horizontal: 'center' }
             });
         }
-        handleCloseModal();
     };
 
     const handleDelete = async (id: number) => {
@@ -168,12 +170,14 @@ const ListCastes: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">
-            <ListControls
+            <Togglebar
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
                 itemCount={castes.length}
+                onSelectAll={handleSelectAll}
+                selectedCount={selectedCastes.length}
             />
 
             {loading ? (

@@ -10,7 +10,7 @@ interface GridViewProps {
     onItemClick: (item: any) => void;
     getItemContent: (item: any) => {
         title: string;
-        subtitle?: string;
+        subtitle?: string | number;
         email?: string;
         phone?: string;
         status?: {

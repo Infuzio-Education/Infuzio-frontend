@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2, Mail, Phone, UserCircle2 } from "lucide-react";
-import ListControls from '../../components/ListControls';
+import Togglebar from '../../components/Togglebar';
 import CreateStudents from './CreateStudents';
 import { Student, StudentFormValues } from '../../types/Types';
 import { useSchoolContext } from '../../contexts/SchoolContext';
-import { listStudents, deleteStudent } from '../../api/superAdmin';
+import { listStudents, deleteStudent, getStudentById } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 
 const ListStudents: React.FC = () => {
@@ -36,24 +36,20 @@ const ListStudents: React.FC = () => {
                 throw new Error("School prefix not found");
             }
             const response = await listStudents(schoolInfo.schoolPrefix);
-            console.log('liststudents', response)
             if (response.status && response.resp_code === "SUCCESS") {
-                setStudents(response.data.students);
+                setStudents(response.data.students || []);
             } else {
-                throw new Error("Failed to fetch students");
+                throw new Error("Failed to fetch student data");
             }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'An error occurred while fetching students');
-            setSnackbar({
-                open: true,
-                message: err.response?.data?.message || 'Failed to fetch students',
-                severity: 'error',
-                position: { vertical: 'top', horizontal: 'center' },
-            });
+            setError(err.response?.data?.message || 'An error occurred while fetching student data');
+            setStudents([]);
         } finally {
             setLoading(false);
         }
     };
+
+    console.log("Students:", students);
 
     useEffect(() => {
         fetchStudents();
@@ -63,38 +59,77 @@ const ListStudents: React.FC = () => {
         setSnackbar(prev => ({ ...prev, open: false }));
     };
 
-    const mapStudentToFormValues = (student: Student): StudentFormValues => ({
-        id: student.id,
-        name: student.name,
-        dateOfAdmission: student.dateOfAdmission,
-        gender: student.gender,
-        dob: student.dob,
-        phone: student.phone,
-        email: student.email,
-        street1: student.street1,
-        city: student.city,
-        state: student.state,
-        pincode: student.pincode,
-        country: student.country,
-        classID: student.class_id,
-        idCardNumber: student.idCardNumber,
-        admissionNumber: student.admissionNumber,
-        house: student.house,
-        street2: student.street2,
-        bloodGroup: student.bloodGroup,
-        remarks: student.remarks,
-        religion: student.religion,
-        caste: student.caste,
-        reservationCategory: student.reservationCategory,
-        isPWD: student.isPwd,
-        nationality: student.nationality,
-        parentsInfo: student.parentsInfo
-    });
+    const mapStudentToFormValues = (student: any): StudentFormValues => {
+        // Handle both parentInfo and parentsInfo from the API response
+        const parentData = student.parentInfo || student.parentsInfo || [];
 
-    const handleOpenModal = (student: Student | null) => {
-        setEditingStudent(student);
-        setEditingFormValues(student ? mapStudentToFormValues(student) : null);
-        setOpenModal(true);
+        return {
+            id: student.id,
+            name: student.name,
+            dateOfAdmission: student.dateOfAdmission,
+            rollNumber: student.rollNumber,
+            gender: student.gender,
+            dob: student.dob,
+            phone: student.phone,
+            email: student.email,
+            street1: student.street1,
+            city: student.city,
+            state: student.state,
+            pincode: student.pincode,
+            country: student.country,
+            classID: student.classID || 0,
+            idCardNumber: student.idCardNumber,
+            admissionNumber: student.admissionNumber,
+            house: student.house || '',
+            street2: student.street2,
+            bloodGroup: student.bloodGroup,
+            remarks: student.remarks,
+            religion: student.religion,
+            caste: student.caste,
+            reservationCategory: student.reservationCategory,
+            isPWD: student.isPwd,
+            nationality: student.nationality,
+            // Map the parent data to the expected format
+            parentsInfo: parentData.map((parent: any) => ({
+                parentId: parent.parentId,
+                relationshipWithStudent: parent.relationshipWithStudent
+            }))
+        };
+    };
+
+    const handleOpenModal = async (student: Student | null) => {
+        try {
+            if (student) {
+                if (!schoolInfo.schoolPrefix) {
+                    throw new Error("School prefix not found");
+                }
+
+                // Fetch detailed student data
+                const response = await getStudentById(student.id, schoolInfo.schoolPrefix);
+
+                if (response.status && response.resp_code === "SUCCESS") {
+                    const detailedStudent = response.data;
+                    const mappedValues = mapStudentToFormValues(detailedStudent);
+                    console.log("Mapped form values:", mappedValues);
+                    setEditingFormValues(mappedValues);
+                    setEditingStudent(detailedStudent);
+                } else {
+                    throw new Error("Failed to fetch student details");
+                }
+            } else {
+                setEditingFormValues(null);
+                setEditingStudent(null);
+            }
+            setOpenModal(true);
+        } catch (error: any) {
+            console.error('Error fetching student details:', error);
+            setSnackbar({
+                open: true,
+                message: error.message || 'Failed to fetch student details',
+                severity: 'error',
+                position: { vertical: 'top', horizontal: 'center' },
+            });
+        }
     };
 
     const handleCloseModal = () => {
@@ -125,18 +160,29 @@ const ListStudents: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            await deleteStudent(id, schoolInfo.schoolPrefix || '');
-            setStudents(students.filter(student => student.id !== id));
-            setSnackbar({
-                open: true,
-                message: "Student deleted successfully!",
-                severity: "success",
-                position: { vertical: "top", horizontal: "center" },
-            });
+            if (!schoolInfo.schoolPrefix) {
+                throw new Error("School prefix not found");
+            }
+
+            const response = await deleteStudent(id, schoolInfo.schoolPrefix);
+
+            if (response.status && response.resp_code === "SUCCESS") {
+                setStudents(prevStudents => prevStudents.filter(student => student.id !== id));
+
+                setSnackbar({
+                    open: true,
+                    message: "Student deleted successfully!",
+                    severity: "success",
+                    position: { vertical: "top", horizontal: "center" },
+                });
+            } else {
+                throw new Error(response.message || "Failed to delete student");
+            }
         } catch (error: any) {
+            console.error('Error deleting student:', error);
             setSnackbar({
                 open: true,
-                message: error.message || "Failed to delete student",
+                message: error.response?.data?.message || error.message || "Failed to delete student",
                 severity: "error",
                 position: { vertical: "top", horizontal: "center" },
             });
@@ -160,18 +206,22 @@ const ListStudents: React.FC = () => {
         }
     };
 
-    const filteredStudents = students.filter(student =>
-        student?.name?.toLowerCase()?.includes(searchTerm.toLowerCase())
-    );
+
+
+    const filteredStudents = Array.isArray(students)
+        ? students.filter(student =>
+            student?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || false
+        )
+        : [];
 
     return (
         <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">
-            <ListControls
+            <Togglebar
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
-                itemCount={students.length}
+                itemCount={Array.isArray(students) ? students.length : 0}
             />
 
             {loading ? (
@@ -182,13 +232,13 @@ const ListStudents: React.FC = () => {
                 <div className="rounded-lg p-8 text-center">
                     <p className="text-xl font-semibold text-red-500">{error}</p>
                 </div>
-            ) : students.length === 0 ? (
-                <div className="rounded-lg p-8 text-center">
+            ) : !Array.isArray(students) || students.length === 0 ? (
+                <div className=" rounded-lg p-8 text-center">
                     <p className="text-xl font-semibold mb-4">No students found.</p>
                     <p className="text-gray-600">Click the "+" button to create a new student.</p>
                 </div>
-            ) : filteredStudents.length === 0 ? (
-                <div className="rounded-lg p-8 text-center">
+            ) : filteredStudents.length === 0 && searchTerm ? (
+                <div className=" rounded-lg p-8 text-center">
                     <p className="text-lg font-semibold">No students match your search criteria.</p>
                 </div>
             ) : viewMode === 'grid' ? (
@@ -233,7 +283,7 @@ const ListStudents: React.FC = () => {
                                 <div className="mt-4 pt-4 border-t border-gray-200">
                                     <div className="flex items-center justify-between">
                                         <span className="px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                                            Class {student.class_id}
+                                            Class {student.className}
                                         </span>
                                         <IconButton
                                             aria-label="delete"
@@ -290,7 +340,7 @@ const ListStudents: React.FC = () => {
                                         <div className="text-sm font-medium text-gray-900">{student.idCardNumber}</div>
                                     </td>
                                     <td className="text-center" onClick={() => handleOpenModal(student)}>
-                                        <div className="text-sm font-medium text-gray-900">Class {student.class_id}</div>
+                                        <div className="text-sm font-medium text-gray-900">Class {student.className}</div>
                                     </td>
                                     <td className="text-center" onClick={() => handleOpenModal(student)}>
                                         <div className="text-sm font-medium text-gray-900">{student.phone}</div>
@@ -298,7 +348,10 @@ const ListStudents: React.FC = () => {
                                     <td className="text-center">
                                         <IconButton
                                             aria-label="delete"
-                                            onClick={() => handleDelete(student.id)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDelete(student.id);
+                                            }}
                                         >
                                             <Trash2 size={20} className="text-red-500" />
                                         </IconButton>

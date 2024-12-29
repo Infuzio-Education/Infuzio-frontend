@@ -1,12 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
-import ListControls from '../../components/ListControls';
+import Togglebar from '../../components/Togglebar';
 import CreateClass from './CreateClass';
 import { Class, ClassSubmitData } from '../../types/Types';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import { getClasses, createClass, updateClass, deleteClass } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
+
+interface GroupedClasses {
+    [standardId: string]: {
+        standardName: string;
+        classes: Class[];
+    };
+}
 
 const ListClasses: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -17,7 +24,7 @@ const ListClasses: React.FC = () => {
     const [selectedClasses, setSelectedClasses] = useState<number[]>([]);
     const [selectAll, setSelectAll] = useState<boolean>(false);
     const [searchTerm, setSearchTerm] = useState<string>('');
-    const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
@@ -34,17 +41,17 @@ const ListClasses: React.FC = () => {
             if (!schoolInfo.schoolPrefix) {
                 throw new Error("School prefix not found");
             }
-            const response = await getClasses(schoolInfo.schoolPrefix);
-            if (response.status && response.resp_code === "SUCCESS") {
-                setClasses(response.data);
-            } else {
-                throw new Error("Failed to fetch classes");
+            const classesResponse = await getClasses(schoolInfo.schoolPrefix);
+
+            if (classesResponse.status && classesResponse.resp_code === "SUCCESS") {
+                console.log("classesResponse", classesResponse.data);
+                setClasses(classesResponse.data);
             }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'An error occurred while fetching classes');
+            setError(err.response?.data?.message || 'An error occurred while fetching data');
             setSnackbar({
                 open: true,
-                message: err.response?.data?.message || 'Failed to fetch classes',
+                message: err.response?.data?.message || 'Failed to fetch data',
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'center' },
             });
@@ -73,24 +80,33 @@ const ListClasses: React.FC = () => {
 
     const handleSave = async (classData: ClassSubmitData) => {
         try {
-            if (!schoolInfo.schoolPrefix) {
-                throw new Error("School prefix not found");
+            const hasLetter = /[a-zA-Z]/.test(classData.name);
+            if (!hasLetter) {
+                setSnackbar({
+                    open: true,
+                    message: "Class name must contain at least one letter",
+                    severity: "error",
+                    position: { vertical: "top", horizontal: "center" },
+                });
+                return;
             }
-
-            classData = classData.group_id ? { ...classData } : { ...classData, group_id: 0 };
 
             if (editingClass) {
                 const updateData = {
-                    id: editingClass.ID,
+                    id: editingClass.id,
                     name: classData.name,
                     mediumId: classData.mediumId,
                     standardId: classData.standardId,
                     syllabusId: classData.syllabusId,
                     classStaffId: classData.classStaffId,
-                    group_id: classData.group_id
+                    academicYearId: classData.academicYearId
                 };
 
-                const response = await updateClass(updateData, schoolInfo.schoolPrefix);
+                if (classData.group_id) {
+                    Object.assign(updateData, { group_id: classData.group_id });
+                }
+
+                const response = await updateClass(updateData, schoolInfo.schoolPrefix || '');
 
                 if (response.status && response.resp_code === "SUCCESS") {
                     await fetchClasses();
@@ -100,14 +116,33 @@ const ListClasses: React.FC = () => {
                         severity: "success",
                         position: { vertical: "top", horizontal: "center" },
                     });
+                    handleCloseModal();
+                } else if (response.resp_code === "DATA ALREADY_EXIST") {
+                    setSnackbar({
+                        open: true,
+                        message: "A class with this name already exists",
+                        severity: "error",
+                        position: { vertical: "top", horizontal: "center" },
+                    });
                 } else {
                     throw new Error(response.data || "Failed to update class");
                 }
             } else {
-                const response = await createClass(classData, schoolInfo.schoolPrefix);
-                console.log(response)
+                const createData = {
+                    name: classData.name,
+                    mediumId: classData.mediumId,
+                    standardId: classData.standardId,
+                    syllabusId: classData.syllabusId,
+                    classStaffId: classData.classStaffId,
+                    academicYearId: classData.academicYearId
+                };
 
-                if (response.status && response.resp_code === "CREATED") {
+                if (classData.group_id) {
+                    Object.assign(createData, { group_id: classData.group_id });
+                }
+                const response = await createClass(createData, schoolInfo.schoolPrefix || '');
+                console.log("response", response);
+                if (response.status && response.data.resp_code === "CREATED") {
                     await fetchClasses();
                     setSnackbar({
                         open: true,
@@ -115,13 +150,19 @@ const ListClasses: React.FC = () => {
                         severity: "success",
                         position: { vertical: "top", horizontal: "center" },
                     });
+                    handleCloseModal();
+                } else if (response.resp_code === "DATA ALREADY_EXIST") {
+                    setSnackbar({
+                        open: true,
+                        message: "A class with this name already exists",
+                        severity: "error",
+                        position: { vertical: "top", horizontal: "center" },
+                    });
                 } else {
-                    throw new Error(response.data || "Failed to create class");
+                    throw new Error(response.error || "Failed to create class");
                 }
             }
-            handleCloseModal();
         } catch (error: any) {
-            console.error("Error saving class:", error);
             setSnackbar({
                 open: true,
                 message: error.message || "Failed to save class",
@@ -135,7 +176,7 @@ const ListClasses: React.FC = () => {
         try {
             const response = await deleteClass(id, schoolInfo.schoolPrefix || '');
             if (response.status === true) {
-                setClasses(classes.filter(c => c.ID !== id));
+                setClasses(classes.filter(c => c.id !== id));
                 setSelectedClasses(selectedClasses.filter(classId => classId !== id));
                 setSnackbar({
                     open: true,
@@ -172,7 +213,7 @@ const ListClasses: React.FC = () => {
             setSelectedClasses([]);
         } else {
             const validIds = classes
-                .map(c => c.ID)
+                .map(c => c.id)
                 .filter((id): id is number => id !== undefined);
             setSelectedClasses(validIds);
         }
@@ -187,18 +228,83 @@ const ListClasses: React.FC = () => {
         }
     };
 
-    const filteredClasses = classes.filter(classData =>
-        classData.Name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false
+    const filteredClasses = (classes || []).filter(classData =>
+        classData?.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const groupClassesByStandard = (classes: Class[]) => {
+        const grouped: GroupedClasses = {};
+
+        classes.forEach((classData) => {
+            if (classData?.standardId && classData?.standard) {
+                const standardId = classData.standardId.toString();
+                if (!grouped[standardId]) {
+                    grouped[standardId] = {
+                        standardName: classData.standard,
+                        classes: []
+                    };
+                }
+                grouped[standardId].classes.push(classData);
+            }
+        });
+
+        return grouped;
+    };
+
+    const ClassCard = ({ classData }: { classData: Class }) => {
+        return (
+            <div
+                className="bg-white rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer border border-gray-200 w-full"
+                onClick={() => handleOpenModal(classData)}
+            >
+                <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-gray-800 truncate">{classData.name}</h3>
+                        <p className="text-xs text-gray-600">
+                            {classData.group ? `${classData.group}` : `${classData.mediumName}`}
+                        </p>
+                    </div>
+                    <Checkbox
+                        checked={selectedClasses.includes(classData.id)}
+                        onChange={() => handleSelectClass(classData.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        size="small"
+                    />
+                </div>
+                <div className="space-y-1">
+                    <div className="flex items-center text-xs text-gray-600">
+                        <span className="font-medium">Teacher:</span>
+                        <span className="ml-1 truncate">{classData.classStaffName || 'Not Assigned'}</span>
+                    </div>
+                    <div className="flex items-center text-xs text-gray-600">
+                        <span className="font-medium">Students:</span>
+                        <span className="ml-1">{classData.studentCount || 0}</span>
+                    </div>
+                </div>
+                <div className="mt-2 flex justify-end">
+                    <IconButton
+                        aria-label="delete"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(classData.id);
+                        }}
+                        size="small"
+                    >
+                        <Trash2 size={16} className="text-red-500" />
+                    </IconButton>
+                </div>
+            </div>
+        );
+    };
 
     return (
         <div className="min-h-screen bg-gray-200 p-8 relative">
-            <ListControls
+            <Togglebar
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
-                itemCount={classes.length}
+                itemCount={(classes || []).length}
             />
 
             {loading ? (
@@ -209,7 +315,7 @@ const ListClasses: React.FC = () => {
                 <div className="rounded-lg p-8 text-center">
                     <p className="text-xl font-semibold text-red-500">{error}</p>
                 </div>
-            ) : classes.length === 0 ? (
+            ) : !classes || classes.length === 0 ? (
                 <div className="rounded-lg p-8 text-center">
                     <p className="text-xl font-semibold mb-4">No classes found.</p>
                     <p className="text-gray-600">Click the "+" button to create a new class.</p>
@@ -217,6 +323,35 @@ const ListClasses: React.FC = () => {
             ) : filteredClasses.length === 0 ? (
                 <div className="rounded-lg p-8 text-center">
                     <p className="text-lg font-semibold">No classes match your search criteria.</p>
+                </div>
+            ) : viewMode === 'grid' ? (
+                <div className="flex gap-2 p-1 overflow-x-auto relative">
+                    {Object.entries(groupClassesByStandard(filteredClasses))
+                        .sort(([, a], [, b]) => a.standardName.localeCompare(b.standardName))
+                        .map(([standardId, { standardName, classes }], index, array) => (
+                            <React.Fragment key={standardId}>
+                                <div className="min-w-[280px]">
+                                    <h3 className="text-lg font-semibold mb-3 text-gray-700 flex items-center justify-between">
+                                        <span>{standardName}</span>
+                                        <span className="text-sm text-gray-500">({classes.length})</span>
+                                    </h3>
+                                    <div className="flex flex-col gap-2">
+                                        {classes.length > 0 ? (
+                                            classes.map((classData) => (
+                                                <ClassCard key={classData.id} classData={classData} />
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+                                                <p className="text-sm text-gray-500">No classes</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                                {index < array.length - 1 && (
+                                    <div className="min-h-[calc(100vh-200px)] border-r border-gray-300 mx-1" />
+                                )}
+                            </React.Fragment>
+                        ))}
                 </div>
             ) : (
                 <div className="bg-white shadow-md rounded-lg overflow-hidden">
@@ -238,11 +373,11 @@ const ListClasses: React.FC = () => {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {classes.map((classData, index) => (
-                                <tr key={classData.ID} className="cursor-pointer">
+                                <tr key={classData.id} className="cursor-pointer">
                                     <td className="text-center">
                                         <Checkbox
-                                            checked={classData.ID !== undefined && selectedClasses.includes(classData.ID)}
-                                            onChange={() => classData.ID !== undefined && handleSelectClass(classData.ID)}
+                                            checked={classData.id !== undefined && selectedClasses.includes(classData.id)}
+                                            onChange={() => classData.id !== undefined && handleSelectClass(classData.id)}
                                             onClick={(e) => e.stopPropagation()}
                                         />
                                     </td>
@@ -250,18 +385,18 @@ const ListClasses: React.FC = () => {
                                         <div className="text-sm font-medium text-gray-900">{index + 1}</div>
                                     </td>
                                     <td className="text-center" onClick={() => handleOpenModal(classData)}>
-                                        <div className="text-sm font-medium text-gray-900">{classData.Name}</div>
+                                        <div className="text-sm font-medium text-gray-900">{classData.name}</div>
                                     </td>
                                     <td className="text-center" onClick={() => handleOpenModal(classData)}>
-                                        <div className="text-sm font-medium text-gray-900">{classData.MediumId}</div>
+                                        <div className="text-sm font-medium text-gray-900">{classData.mediumName}</div>
                                     </td>
                                     <td className="text-center" onClick={() => handleOpenModal(classData)}>
-                                        <div className="text-sm font-medium text-gray-900">{classData.StandardId}</div>
+                                        <div className="text-sm font-medium text-gray-900">{classData.standard}</div>
                                     </td>
                                     <td className="text-center">
                                         <IconButton
                                             aria-label="delete"
-                                            onClick={() => classData.ID !== undefined && handleDelete(classData.ID)}
+                                            onClick={() => classData.id !== undefined && handleDelete(classData.id)}
                                         >
                                             <Trash2 size={20} className="text-red-500" />
                                         </IconButton>
@@ -295,9 +430,9 @@ const ListClasses: React.FC = () => {
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: 1000,
+                    width: 700,
                     maxWidth: '90%',
-                    height: 900,
+                    height: 490,
                     maxHeight: '90%',
                     bgcolor: 'background.paper',
                     boxShadow: 24,

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowRight, PlusCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Checkbox from '@mui/material/Checkbox';
-import ListControls from '../../components/ListControls';
+import Togglebar from '../../components/Togglebar';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import { getSchools } from '../../api/superAdmin';
 import { School } from '../../types/Types';
@@ -65,7 +65,7 @@ const ListSchools: React.FC = () => {
             schoolPrefix: school.code
         });
 
-        navigate(`/superAdmin/schools/${school.code}/students`);
+        navigate(`/superAdmin/schools/${school.code}`);
     };
 
     // const handleDelete = async (id: number) => {
@@ -112,7 +112,7 @@ const ListSchools: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-200 p-8 relative">
-            <ListControls
+            <Togglebar
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}
