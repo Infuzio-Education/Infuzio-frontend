@@ -71,69 +71,75 @@ const Announcements = () => {
             <div className="flex-1 relative rounded-lg overflow-hidden">
                 <div className="relative h-full overflow-y-auto p-4">
                     <div className="max-w-4xl mx-auto space-y-6">
-                        {announcements.map((announcement) => (
-                            <div
-                                key={announcement.id}
-                                className="bg-white rounded-lg shadow-sm p-4 
-                                hover:shadow-md transition-shadow border border-gray-100"
-                            >
-                                <div className="flex gap-4">
-                                    {/* Author Avatar */}
-                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 
-                                    to-emerald-600 flex items-center justify-center text-white 
-                                    font-semibold shadow-sm">
-                                        {announcement.author[0]}
-                                    </div>
+                        {announcements && announcements.length > 0 ? (
+                            announcements.map((announcement) => (
+                                <div
+                                    key={announcement.id}
+                                    className="bg-white rounded-lg shadow-sm p-4 
+                                    hover:shadow-md transition-shadow border border-gray-100"
+                                >
+                                    <div className="flex gap-4">
+                                        {/* Author Avatar */}
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 
+                                        to-emerald-600 flex items-center justify-center text-white 
+                                        font-semibold shadow-sm">
+                                            {announcement.author[0]}
+                                        </div>
 
-                                    {/* Content */}
-                                    <div className="flex-1">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <h3 className="font-semibold text-gray-800">
-                                                    {announcement.author}
-                                                </h3>
-                                                <p className="text-sm text-gray-500">
-                                                    {new Date(announcement.created_at).toLocaleDateString('en-US', {
-                                                        year: 'numeric',
-                                                        month: 'long',
-                                                        day: 'numeric',
-                                                        hour: '2-digit',
-                                                        minute: '2-digit'
-                                                    })}
+                                        {/* Content */}
+                                        <div className="flex-1">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h3 className="font-semibold text-gray-800">
+                                                        {announcement.author}
+                                                    </h3>
+                                                    <p className="text-sm text-gray-500">
+                                                        {new Date(announcement.created_at).toLocaleDateString('en-US', {
+                                                            year: 'numeric',
+                                                            month: 'long',
+                                                            day: 'numeric',
+                                                            hour: '2-digit',
+                                                            minute: '2-digit'
+                                                        })}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-3">
+                                                <h4 className="font-medium text-gray-800 mb-2">
+                                                    {announcement.title}
+                                                </h4>
+                                                <p className="text-gray-600 leading-relaxed">
+                                                    {announcement.body}
                                                 </p>
                                             </div>
-                                        </div>
 
-                                        <div className="mt-3">
-                                            <h4 className="font-medium text-gray-800 mb-2">
-                                                {announcement.title}
-                                            </h4>
-                                            <p className="text-gray-600 leading-relaxed">
-                                                {announcement.body}
-                                            </p>
+                                            {announcement.files && (
+                                                <div className="mt-4 space-y-2">
+                                                    {announcement.files.map((file, index) => (
+                                                        <div
+                                                            key={index}
+                                                            className="flex items-center gap-2 text-sm text-gray-600 
+                                                            bg-gray-50 p-3 rounded-lg cursor-pointer hover:bg-gray-100
+                                                            border border-gray-100 transition-colors"
+                                                        >
+                                                            <File size={16} className="text-emerald-500" />
+                                                            <a href={file} target="_blank" rel="noopener noreferrer">
+                                                                View Attachment {index + 1}
+                                                            </a>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
-
-                                        {announcement.files && (
-                                            <div className="mt-4 space-y-2">
-                                                {announcement.files.map((file, index) => (
-                                                    <div
-                                                        key={index}
-                                                        className="flex items-center gap-2 text-sm text-gray-600 
-                                                        bg-gray-50 p-3 rounded-lg cursor-pointer hover:bg-gray-100
-                                                        border border-gray-100 transition-colors"
-                                                    >
-                                                        <File size={16} className="text-emerald-500" />
-                                                        <a href={file} target="_blank" rel="noopener noreferrer">
-                                                            View Attachment {index + 1}
-                                                        </a>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
+                            ))
+                        ) : (
+                            <div className="text-center py-8">
+                                <p className="text-gray-500">No announcements available</p>
                             </div>
-                        ))}
+                        )}
                     </div>
                 </div>
             </div>

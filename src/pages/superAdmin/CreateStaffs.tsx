@@ -576,11 +576,17 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                                             onChange={handleSelectChange}
                                             label="Section"
                                         >
-                                            {sections.map((section: Section) => (
-                                                <MenuItem key={section.ID} value={section.ID}>
-                                                    {section.Name}
+                                            {sections.length === 0 ? (
+                                                <MenuItem disabled>
+                                                    <em>No sections found</em>
                                                 </MenuItem>
-                                            ))}
+                                            ) : (
+                                                sections.map((section: Section) => (
+                                                    <MenuItem key={section.ID} value={section.ID}>
+                                                        {section.Name}
+                                                    </MenuItem>
+                                                ))
+                                            )}
                                         </Select>
                                         {validationErrors.sectionIDs && (
                                             <span className="text-red-500 text-sm mt-1">
@@ -607,11 +613,17 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                                             onChange={handleSelectChange}
                                             label="Subjects"
                                         >
-                                            {subjects.map((subject) => (
-                                                <MenuItem key={subject.id} value={subject.id}>
-                                                    {subject.name}
+                                            {subjects.length === 0 ? (
+                                                <MenuItem disabled>
+                                                    <em>No subjects found</em>
                                                 </MenuItem>
-                                            ))}
+                                            ) : (
+                                                subjects.map((subject) => (
+                                                    <MenuItem key={subject.id} value={subject.id}>
+                                                        {subject.name}
+                                                    </MenuItem>
+                                                ))
+                                            )}
                                         </Select>
                                         {validationErrors.subjectIDs && (
                                             <span className="text-red-500 text-sm mt-1">

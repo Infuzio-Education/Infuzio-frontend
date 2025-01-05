@@ -28,11 +28,13 @@ const superAdminEndpoints = {
     parent: 'school/parent',
     classes: 'school/class',
     specialPrivilege: 'school/special-privilege',
-    // gradeCategory: 'school/grade/category',
 
     // Manage school
     school: 'manage-school',
     schoolLogo: 'manage-school/logo',
+    schoolStatus: 'manage-school/status',
+    studentLimit: 'manage-school/student-limit',
+    syllabusConnection: 'manage-school/syllabus-connection',
 
     academicYear: 'school/academic-year',
 };

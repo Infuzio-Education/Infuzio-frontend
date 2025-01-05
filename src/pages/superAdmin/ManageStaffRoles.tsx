@@ -74,7 +74,6 @@ const ManageStaffRoles: React.FC = () => {
             }
 
             const response = await getPrivilegedStaff(schoolInfo.schoolPrefix);
-            console.log("Privileged staff response:", response);
 
             if (response.status === true) {
                 const privilegedStaffList = response.data.map((staff: any) => ({

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, PlusCircle } from 'lucide-react';
+import { ArrowRight, PlusCircle, X, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Checkbox from '@mui/material/Checkbox';
 import Togglebar from '../../components/Togglebar';
 import { useSchoolContext } from '../../contexts/SchoolContext';
-import { getSchools } from '../../api/superAdmin';
+import { getSchools, undoDeleteSchool } from '../../api/superAdmin';
 import { School } from '../../types/Types';
+import { Dialog, DialogTitle, DialogContent } from '@mui/material';
 
 const ListSchools: React.FC = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -15,6 +16,8 @@ const ListSchools: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const { setSchoolInfo } = useSchoolContext();
     const navigate = useNavigate();
+    const [showDeletedModal, setShowDeletedModal] = useState(false);
+    const [deletedSchools, setDeletedSchools] = useState<School[]>([]);
 
     console.log(schools, selectedSchools);
 
@@ -68,41 +71,34 @@ const ListSchools: React.FC = () => {
         navigate(`/superAdmin/schools/${school.code}`);
     };
 
-    // const handleDelete = async (id: number) => {
-    //     try {
-    //         const response = await deleteSchool(id);
-    //         if (response.status === true) {
-    //             setSchools(schools.filter(school => school.id !== id));
-    //             setSelectedSchools(selectedSchools.filter(schoolId => schoolId !== id));
-    //             setSnackbar({
-    //                 open: true,
-    //                 message: 'School deleted successfully!',
-    //                 severity: 'success',
-    //                 position: { vertical: 'top', horizontal: 'center' }
-    //             });
-    //         } else {
-    //             throw new Error(response.message || 'Failed to delete school');
-    //         }
-    //     } catch (error: any) {
-    //         console.error('Error deleting school:', error);
+    const fetchDeletedSchools = async () => {
+        try {
+            const response = await getSchools(true);
+            if (response.status && response.resp_code === "SUCCESS") {
+                const deletedSchoolsList = response.data.filter((school: School) => school.isDeleted);
+                setDeletedSchools(deletedSchoolsList);
+            }
+        } catch (error) {
+            console.error('Error fetching deleted schools:', error);
+            console.error('Failed to fetch deleted schools');
+        }
+    };
 
-    //         if (error.response?.status === 409 && error.response?.data?.resp_code === 'RECORD_IN_USE') {
-    //             setSnackbar({
-    //                 open: true,
-    //                 message: 'Cannot delete school as it has active records',
-    //                 severity: 'error',
-    //                 position: { vertical: 'top', horizontal: 'center' }
-    //             });
-    //         } else {
-    //             setSnackbar({
-    //                 open: true,
-    //                 message: error.response?.data?.error || 'Failed to delete school',
-    //                 severity: 'error',
-    //                 position: { vertical: 'top', horizontal: 'center' }
-    //             });
-    //         }
-    //     }
-    // };
+    const handleRevertDeletion = async (schoolCode: string) => {
+        try {
+            const response = await undoDeleteSchool(schoolCode);
+            if (response.resp_code === "SUCCESS") {
+                // Refresh the deleted schools list
+                await fetchDeletedSchools();
+                // Refresh the main schools list
+                const schoolsResponse = await getSchools();
+                setSchools(schoolsResponse.data || []);
+
+            }
+        } catch (error) {
+            console.error('Error reverting school deletion:', error);
+        }
+    };
 
     if (isLoading) {
         return <div className="min-h-screen bg-gray-200 p-8 flex items-center justify-center">
@@ -111,14 +107,110 @@ const ListSchools: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-200 p-8 relative">
+        <div className="min-h-screen bg-gray-100 p-8">
             <Togglebar
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
+                showDeleted={false}
+                setShowDeleted={() => {
+                    fetchDeletedSchools();
+                    setShowDeletedModal(true);
+                }}
+                selectedCount={selectedSchools.length}
                 itemCount={schools.length}
             />
+
+            <Dialog
+                open={showDeletedModal}
+                onClose={() => setShowDeletedModal(false)}
+                maxWidth="md"
+                fullWidth
+            >
+                <DialogTitle className="flex justify-between items-center">
+                    <span>Deleted Schools</span>
+                    <button
+                        onClick={() => setShowDeletedModal(false)}
+                        className="text-gray-500 hover:text-gray-700"
+                    >
+                        <X size={20} />
+                    </button>
+                </DialogTitle>
+                <DialogContent>
+                    {deletedSchools.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                            No deleted schools found
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 gap-4 mt-4">
+                            {deletedSchools.map((school) => (
+                                <div
+                                    key={school.ID}
+                                    className="border rounded-lg p-4 bg-white shadow-sm"
+                                >
+                                    <div className="flex items-start space-x-4">
+                                        <div className="flex-shrink-0">
+                                            {school.logo ? (
+                                                <img
+                                                    src={school.logo}
+                                                    alt={`${school.name} logo`}
+                                                    className="w-16 h-16 rounded-lg object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                                                    <span className="text-gray-400 text-xs font-medium">No Logo</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="flex-grow">
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h3 className="text-lg font-semibold">{school.name}</h3>
+                                                    <p className="text-sm text-gray-600">{school.code}</p>
+                                                    <div className="mt-2 flex items-center gap-2">
+                                                        <span className="text-sm text-gray-500">Syllabus:</span>
+                                                        <div className="flex gap-2">
+                                                            {Array.isArray(school.syllabus) ? (
+                                                                school.syllabus.map((syl, index) => (
+                                                                    <span
+                                                                        key={index}
+                                                                        className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full"
+                                                                    >
+                                                                        {syl}
+                                                                    </span>
+                                                                ))
+                                                            ) : (
+                                                                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                                                                    {school.syllabus}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-sm text-gray-500 mt-2">
+                                                        <span className="font-medium">Location:</span> {school.city}
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleRevertDeletion(school.code);
+                                                    }}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors"
+                                                >
+                                                    <RotateCcw size={16} />
+                                                    <span className="text-sm font-medium">Restore</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
 
             {schools.length === 0 ? (
                 <div className=" rounded-lg p-8 text-center">

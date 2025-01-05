@@ -451,7 +451,13 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
                                     error={!!validationErrors.nationality}
                                     helperText={validationErrors.nationality}
                                     value={student.nationality}
-                                    onChange={handleChange}
+                                    onChange={(e) => {
+                                        // Only allow alphabets and spaces
+                                        const value = e.target.value;
+                                        if (/^[a-zA-Z\s]*$/.test(value)) {
+                                            handleChange(e);
+                                        }
+                                    }}
                                 />
                             </Grid>
                             <Grid item xs={12} md={6}>
