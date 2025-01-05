@@ -85,7 +85,7 @@ export const getSchools = async (includeDeleted: boolean = false) => {
     try {
         const endpoint = includeDeleted
             ? `${superAdminEndpoints.school}?includeDeleted=true`
-            : superAdminEndpoints.school;
+            : `${superAdminEndpoints.school}?includeInactive=true`;
 
         const response = await Api.get(endpoint);
         return response.data;
