@@ -81,13 +81,17 @@ export const createSyllabus = async (name: string) => {
     }
 };
 
-export const getSchools = async () => {
+export const getSchools = async (includeDeleted: boolean = false) => {
     try {
-        const response = await Api.get(superAdminEndpoints.school);
+        const endpoint = includeDeleted
+            ? `${superAdminEndpoints.school}?includeDeleted=true`
+            : superAdminEndpoints.school;
+
+        const response = await Api.get(endpoint);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
-            console.error('Error fetching syllabus:', error.response);
+            console.error('Error fetching schools:', error.response);
             throw error;
         } else {
             console.error('Unexpected error:', error);
@@ -1512,6 +1516,33 @@ export const activateSchool = async (schoolPrefix: string) => {
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error('Error activating school:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+// Add this new function for permanent school deletion
+export const DeleteSchool = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.delete(`${superAdminEndpoints.school}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error permanently deleting school:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const undoDeleteSchool = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.patch(`${superAdminEndpoints.school}/undo-delete?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error reverting school deletion:', error.response);
             throw error;
         }
         throw error;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-// import { useSchoolContext } from '../../contexts/SchoolContext';
+
 import {
     Button,
     Box,
@@ -22,7 +22,7 @@ import {
 } from '@mui/material';
 import { X } from 'lucide-react';
 import SnackbarComponent from '../../components/SnackbarComponent';
-import { getSyllabus, getSchoolDetails, updateSchoolDetails, updateSchoolLogo, deleteSchoolLogo, connectSchoolSyllabus, disconnectSchoolSyllabus, updateSchoolLimits, deactivateSchool, activateSchool } from '../../api/superAdmin';
+import { getSyllabus, getSchoolDetails, updateSchoolDetails, updateSchoolLogo, deleteSchoolLogo, connectSchoolSyllabus, disconnectSchoolSyllabus, updateSchoolLimits, deactivateSchool, activateSchool, DeleteSchool } from '../../api/superAdmin';
 import { AlertTriangle } from 'lucide-react';
 import { useFormik } from 'formik';
 import { schoolUpdationFormValidationSchema } from '../../validations/schoolUpdationFormValidationSchema';
@@ -361,6 +361,21 @@ const ManageSchool: React.FC = () => {
         try {
             let response;
             switch (confirmationType) {
+                case 'deactivate':
+                    response = await DeleteSchool(prefix);
+                    if (response.resp_code === 'SUCCESS') {
+                        setSnackbar({
+                            open: true,
+                            message: 'School deleted successfully!',
+                            severity: 'success',
+                            position: { vertical: 'top', horizontal: 'right' }
+                        });
+                        // Navigate back to schools list after successful deletion
+                        navigate('/superadmin/schools');
+                    } else {
+                        throw new Error('Failed to delete school');
+                    }
+                    break;
                 case 'block':
                     response = await deactivateSchool(prefix);
                     if (response.resp_code === 'SUCCESS') {
@@ -371,8 +386,6 @@ const ManageSchool: React.FC = () => {
                             severity: 'success',
                             position: { vertical: 'top', horizontal: 'right' }
                         });
-                    } else {
-                        throw new Error('Failed to block school operations');
                     }
                     break;
                 case 'unblock':
@@ -385,8 +398,6 @@ const ManageSchool: React.FC = () => {
                             severity: 'success',
                             position: { vertical: 'top', horizontal: 'right' }
                         });
-                    } else {
-                        throw new Error('Failed to allow school operations');
                     }
                     break;
             }
@@ -394,7 +405,7 @@ const ManageSchool: React.FC = () => {
             console.error(`Error ${confirmationType}ing school:`, error);
             setSnackbar({
                 open: true,
-                message: `Failed to ${confirmationType} school operations`,
+                message: `Failed to ${confirmationType} school`,
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'right' }
             });
@@ -815,46 +826,36 @@ const ManageSchool: React.FC = () => {
                             borderRadius: 1,
                             mb: 3,
                             transition: 'all 0.3s ease',
-                            bgcolor: !schoolStatus.isDeleted
-                                ? 'rgba(211, 47, 47, 0.04)'
-                                : 'rgba(48, 131, 105, 0.04)',
+                            bgcolor: 'rgba(211, 47, 47, 0.04)',
                             '&:hover': {
-                                bgcolor: !schoolStatus.isDeleted
-                                    ? 'rgba(211, 47, 47, 0.08)'
-                                    : 'rgba(48, 131, 105, 0.08)'
+                                bgcolor: 'rgba(211, 47, 47, 0.08)'
                             }
                         }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Box>
                                     <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
-                                        {!schoolStatus.isDeleted ? 'Remove School from System' : 'Restore School Access'}
+                                        Remove School from System
                                     </Typography>
                                     <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
-                                        {!schoolStatus.isDeleted
-                                            ? "What will happen:\n• School will disappear from the system\n• All users (staff, students, parents) will lose access\n• No one can log in or view school data\n• School won't appear in any lists or searches"
-                                            : "What will happen:\n• School will be visible in the system again\n• All users can log in normally\n• All previous data will be accessible\n• School operations can resume as normal"}
+                                        What will happen:
+                                        • School will disappear from the system
+                                        • All users (staff, students, parents) will lose access
+                                        • No one can log in or view school data
+                                        • School won't appear in any lists or searches
                                     </Typography>
                                 </Box>
                                 <Button
                                     variant="outlined"
-                                    color={!schoolStatus.isDeleted ? "error" : "success"}
-                                    onClick={() => setConfirmationType(!schoolStatus.isDeleted ? 'deactivate' : 'activate')}
-                                    sx={schoolStatus.isDeleted ? {
-                                        borderColor: '#308369',
-                                        color: '#308369',
-                                        bgcolor: 'rgba(48, 131, 105, 0.12)',
-                                        '&:hover': {
-                                            borderColor: '#2a725c',
-                                            bgcolor: 'rgba(48, 131, 105, 0.16)'
-                                        }
-                                    } : {
+                                    color="error"
+                                    onClick={() => setConfirmationType('deactivate')}
+                                    sx={{
                                         bgcolor: 'rgba(211, 47, 47, 0.12)',
                                         '&:hover': {
                                             bgcolor: 'rgba(211, 47, 47, 0.16)'
                                         }
                                     }}
                                 >
-                                    {!schoolStatus.isDeleted ? 'Deactivate' : 'Activate'}
+                                    Deactivate
                                 </Button>
                             </Box>
                         </Box>
