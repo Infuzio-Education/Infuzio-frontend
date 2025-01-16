@@ -459,8 +459,8 @@ export interface ClassItem {
 
 export interface ClassesTabProps {
     setShowTimetable: (show: boolean) => void;
-    selectedClass: ClassItem;
-    setSelectedClass: (cls: any) => void;
+    selectedClass: ClassItem | null;
+    setSelectedClass: (cls: ClassItem | null) => void;
 }
 
 // Add these exam and attendance related interfaces

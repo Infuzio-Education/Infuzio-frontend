@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-// import { useParams, useNavigate } from 'react-router-dom';
-// import { useSchoolContext } from '../../contexts/SchoolContext';
+import { useParams, useNavigate } from 'react-router-dom';
+
 import {
     Button,
     Box,
@@ -10,8 +10,6 @@ import {
     FormControl,
     InputLabel,
     OutlinedInput,
-    Checkbox,
-    ListItemText,
     Dialog,
     DialogTitle,
     DialogContent,
@@ -19,13 +17,15 @@ import {
     Tab,
     Tabs,
     Paper,
-    Typography
+    Typography,
+    CircularProgress
 } from '@mui/material';
 import { X } from 'lucide-react';
 import SnackbarComponent from '../../components/SnackbarComponent';
-import { getSyllabus } from '../../api/superAdmin';
+import { getSyllabus, getSchoolDetails, updateSchoolDetails, updateSchoolLogo, deleteSchoolLogo, connectSchoolSyllabus, disconnectSchoolSyllabus, updateSchoolLimits, deactivateSchool, activateSchool, DeleteSchool } from '../../api/superAdmin';
 import { AlertTriangle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useFormik } from 'formik';
+import { schoolUpdationFormValidationSchema } from '../../validations/schoolUpdationFormValidationSchema';
 
 interface SchoolAddress {
     street1: string;
@@ -42,6 +42,7 @@ interface SchoolDetails {
     googleMapsLink: string;
     phone: string;
     email: string;
+    logo: string;
     syllabus: string[];
     schoolCode: string;
 }
@@ -81,12 +82,12 @@ interface SchoolLimits {
 }
 
 interface SchoolStatus {
-    isActive: boolean;
+    isDeleted: boolean;
     isBlocked: boolean;
 }
 
 const ManageSchool: React.FC = () => {
-    // const { prefix } = useParams();
+    const { prefix } = useParams();
     const navigate = useNavigate();
     // const { schoolInfo } = useSchoolContext();
     const [tabValue, setTabValue] = useState(0);
@@ -113,6 +114,7 @@ const ManageSchool: React.FC = () => {
             pincode: '',
             country: ''
         },
+        logo: '',
         googleMapsLink: '',
         phone: '',
         email: '',
@@ -126,26 +128,125 @@ const ManageSchool: React.FC = () => {
     });
 
     const [schoolStatus, setSchoolStatus] = useState<SchoolStatus>({
-        isActive: true,
+        isDeleted: false,
         isBlocked: false
     });
     const [confirmationType, setConfirmationType] = useState<'activate' | 'deactivate' | 'block' | 'unblock' | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const formik = useFormik({
+        initialValues: schoolDetails,
+        validationSchema: schoolUpdationFormValidationSchema,
+        enableReinitialize: true,
+        validateOnChange: true,
+        validateOnMount: true,
+        onSubmit: async (values) => {
+            if (!prefix) return;
+
+            try {
+                const formData = new FormData();
+
+                // Add basic fields
+                formData.append('name', values.name);
+                formData.append('phone', values.phone);
+                formData.append('email', values.email);
+                formData.append('googleMapsLink', values.googleMapsLink || '');
+
+                // Add address fields in the required format
+                formData.append('address[street1]', values.address.street1);
+                formData.append('address[street2]', values.address.street2 || '');
+                formData.append('address[city]', values.address.city);
+                formData.append('address[state]', values.address.state);
+                formData.append('address[pincode]', values.address.pincode);
+                formData.append('address[country]', values.address.country);
+
+                // Make the API call
+                await updateSchoolDetails(prefix, formData);
+
+                setSnackbar({
+                    open: true,
+                    message: 'School updated successfully!',
+                    severity: 'success',
+                    position: { vertical: 'top', horizontal: 'right' }
+                });
+            } catch (error) {
+                console.error('Error updating school:', error);
+                setSnackbar({
+                    open: true,
+                    message: 'Failed to update school',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'right' }
+                });
+            }
+        }
+    });
 
     useEffect(() => {
-        const fetchSyllabus = async () => {
+        const fetchData = async () => {
+            if (!prefix) return;
+
             try {
-                const response = await getSyllabus();
-                if (response?.global && Array.isArray(response.global)) {
-                    setSyllabusList(response.global);
+                setIsLoading(true);
+                const [schoolResponse, syllabusResponse] = await Promise.all([
+                    getSchoolDetails(prefix),
+                    getSyllabus()
+                ]);
+
+                console.log(schoolResponse);
+
+                if (schoolResponse?.data) {
+                    const schoolData = schoolResponse.data;
+                    setSchoolDetails({
+                        name: schoolData.name,
+                        schoolCode: schoolData.code,
+                        address: {
+                            street1: schoolData.street1,
+                            street2: schoolData.street2,
+                            city: schoolData.city,
+                            state: schoolData.state,
+                            pincode: schoolData.pin_code,
+                            country: schoolData.country
+                        },
+                        logo: schoolData.logo,
+                        googleMapsLink: schoolData.googleMapsLink || '',
+                        phone: schoolData.phone,
+                        email: schoolData.email,
+                        syllabus: schoolData.syllabuses ? schoolData.syllabuses.map((s: any) => s.name) : []
+                    });
+
+                    setLimits({
+                        studentLimit: schoolData.studentLimit
+                    });
+
+                    setSchoolStatus({
+                        isDeleted: schoolData.isDeleted,
+                        isBlocked: !schoolData.isActive
+                    });
+
+                    // Set logo preview if available
+                    if (schoolData.logo) {
+                        setPreviewLogo(schoolData.logo);
+                    }
+                }
+
+                if (syllabusResponse?.global && Array.isArray(syllabusResponse.global)) {
+                    setSyllabusList(syllabusResponse.global);
                 }
             } catch (error) {
-                console.error('Failed to fetch syllabus:', error);
-                setSyllabusList([]);
+                console.error('Error fetching school details:', error);
+                setSnackbar({
+                    open: true,
+                    message: 'Failed to load school details',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'right' }
+                });
+            } finally {
+                setIsLoading(false);
             }
         };
 
-        fetchSyllabus();
-    }, []);
+        fetchData();
+    }, [prefix]);
 
     const handleLogoClick = () => {
         if (fileInputRef.current) {
@@ -153,41 +254,78 @@ const ManageSchool: React.FC = () => {
         }
     };
 
-    const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        if (file) {
-            setLogoFile(file);
-            setPreviewLogo(URL.createObjectURL(file));
+        if (file && prefix) {
+            try {
+                setLogoFile(file);
+                setPreviewLogo(URL.createObjectURL(file));
+
+                // Upload logo immediately
+                await updateSchoolLogo(prefix, file);
+
+                setSnackbar({
+                    open: true,
+                    message: 'Logo updated successfully!',
+                    severity: 'success',
+                    position: { vertical: 'top', horizontal: 'right' }
+                });
+            } catch (error) {
+                console.error('Error uploading logo:', error);
+                // Reset logo state on error
+                setLogoFile(null);
+                setPreviewLogo(null);
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
+
+                setSnackbar({
+                    open: true,
+                    message: 'Failed to update logo',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'right' }
+                });
+            }
         }
     };
 
-    const handleLogoRemove = (e: React.MouseEvent) => {
+    const handleLogoRemove = async (e: React.MouseEvent) => {
         e.stopPropagation();
-        setLogoFile(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
-    };
+        if (!prefix) return;
 
-    const handleUpdateSchool = async (e: React.FormEvent) => {
-        e.preventDefault();
         try {
-            // API call here
+            await deleteSchoolLogo(prefix);
+
+            // Clear logo states
+            setLogoFile(null);
+            setPreviewLogo(null);
+            setSchoolDetails(prev => ({
+                ...prev,
+                logo: ''
+            }));
+
+            if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+            }
+
             setSnackbar({
                 open: true,
-                message: 'School updated successfully!',
+                message: 'Logo removed successfully!',
                 severity: 'success',
                 position: { vertical: 'top', horizontal: 'right' }
             });
         } catch (error) {
+            console.error('Error removing logo:', error);
             setSnackbar({
                 open: true,
-                message: 'Failed to update school',
+                message: 'Failed to remove logo',
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'right' }
             });
         }
     };
+
+
 
     const handleCloseSnackbar = () => {
         setSnackbar({ ...snackbar, open: false });
@@ -195,9 +333,11 @@ const ManageSchool: React.FC = () => {
 
     const handleUpdateLimits = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!prefix) return;
+
         try {
-            // API call to update limits
-            // await updateSchoolLimits(prefix, limits);
+            await updateSchoolLimits(prefix, limits.studentLimit);
+
             setSnackbar({
                 open: true,
                 message: 'School limits updated successfully!',
@@ -205,6 +345,7 @@ const ManageSchool: React.FC = () => {
                 position: { vertical: 'top', horizontal: 'right' }
             });
         } catch (error) {
+            console.error('Error updating limits:', error);
             setSnackbar({
                 open: true,
                 message: 'Failed to update school limits',
@@ -215,36 +356,53 @@ const ManageSchool: React.FC = () => {
     };
 
     const handleStatusChange = async () => {
-        try {
-            if (confirmationType) {
-                // API call based on confirmation type
-                switch (confirmationType) {
-                    case 'activate':
-                        // await activateSchool(prefix);
-                        setSchoolStatus({ ...schoolStatus, isActive: true });
-                        break;
-                    case 'deactivate':
-                        // await deactivateSchool(prefix);
-                        setSchoolStatus({ ...schoolStatus, isActive: false });
-                        break;
-                    case 'block':
-                        // await blockSchool(prefix);
-                        setSchoolStatus({ ...schoolStatus, isBlocked: true });
-                        break;
-                    case 'unblock':
-                        // await unblockSchool(prefix);
-                        setSchoolStatus({ ...schoolStatus, isBlocked: false });
-                        break;
-                }
+        if (!prefix || !confirmationType) return;
 
-                setSnackbar({
-                    open: true,
-                    message: `School ${confirmationType}d successfully!`,
-                    severity: 'success',
-                    position: { vertical: 'top', horizontal: 'right' }
-                });
+        try {
+            let response;
+            switch (confirmationType) {
+                case 'deactivate':
+                    response = await DeleteSchool(prefix);
+                    if (response.resp_code === 'SUCCESS') {
+                        setSnackbar({
+                            open: true,
+                            message: 'School deleted successfully!',
+                            severity: 'success',
+                            position: { vertical: 'top', horizontal: 'right' }
+                        });
+                        // Navigate back to schools list after successful deletion
+                        navigate('/superadmin/schools');
+                    } else {
+                        throw new Error('Failed to delete school');
+                    }
+                    break;
+                case 'block':
+                    response = await deactivateSchool(prefix);
+                    if (response.resp_code === 'SUCCESS') {
+                        setSchoolStatus(prev => ({ ...prev, isBlocked: true }));
+                        setSnackbar({
+                            open: true,
+                            message: 'School operations blocked successfully!',
+                            severity: 'success',
+                            position: { vertical: 'top', horizontal: 'right' }
+                        });
+                    }
+                    break;
+                case 'unblock':
+                    response = await activateSchool(prefix);
+                    if (response.resp_code === 'SUCCESS') {
+                        setSchoolStatus(prev => ({ ...prev, isBlocked: false }));
+                        setSnackbar({
+                            open: true,
+                            message: 'School operations allowed successfully!',
+                            severity: 'success',
+                            position: { vertical: 'top', horizontal: 'right' }
+                        });
+                    }
+                    break;
             }
         } catch (error) {
+            console.error(`Error ${confirmationType}ing school:`, error);
             setSnackbar({
                 open: true,
                 message: `Failed to ${confirmationType} school`,
@@ -255,6 +413,14 @@ const ManageSchool: React.FC = () => {
             setConfirmationType(null);
         }
     };
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-gray-200 p-8 flex items-center justify-center">
+                <CircularProgress />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-200 p-8">
@@ -280,68 +446,78 @@ const ManageSchool: React.FC = () => {
                     </Tabs>
 
                     <TabPanel value={tabValue} index={0}>
-                        <form onSubmit={handleUpdateSchool} className="space-y-4">
+                        <form onSubmit={formik.handleSubmit} className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <TextField
                                     fullWidth
                                     label="School Name"
-                                    value={schoolDetails.name}
-                                    onChange={(e) => setSchoolDetails({ ...schoolDetails, name: e.target.value })}
+                                    name="name"
+                                    value={formik.values.name}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    error={formik.touched.name && Boolean(formik.errors.name)}
+                                    helperText={formik.touched.name && formik.errors.name}
                                 />
                                 <TextField
                                     fullWidth
                                     label="School Code"
-                                    value={schoolDetails.schoolCode}
-                                    onChange={(e) => setSchoolDetails({ ...schoolDetails, schoolCode: e.target.value })}
+                                    name="schoolCode"
+                                    disabled
+                                    value={formik.values.schoolCode}
                                 />
                             </div>
 
                             <TextField
                                 fullWidth
                                 label="Address Line 1"
-                                value={schoolDetails.address.street1}
-                                onChange={(e) => setSchoolDetails({
-                                    ...schoolDetails,
-                                    address: { ...schoolDetails.address, street1: e.target.value }
-                                })}
+                                name="address.street1"
+                                value={formik.values.address.street1}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.address?.street1 && Boolean(formik.errors.address?.street1)}
+                                helperText={formik.touched.address?.street1 && formik.errors.address?.street1}
                             />
                             <TextField
                                 fullWidth
                                 label="Address Line 2"
-                                value={schoolDetails.address.street2}
-                                onChange={(e) => setSchoolDetails({
-                                    ...schoolDetails,
-                                    address: { ...schoolDetails.address, street2: e.target.value }
-                                })}
+                                name="address.street2"
+                                value={formik.values.address.street2}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                error={formik.touched.address?.street2 && Boolean(formik.errors.address?.street2)}
+                                helperText={formik.touched.address?.street2 && formik.errors.address?.street2}
                             />
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <TextField
                                     fullWidth
                                     label="City"
-                                    value={schoolDetails.address.city}
-                                    onChange={(e) => setSchoolDetails({
-                                        ...schoolDetails,
-                                        address: { ...schoolDetails.address, city: e.target.value }
-                                    })}
+                                    name="address.city"
+                                    value={formik.values.address.city}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    error={formik.touched.address?.city && Boolean(formik.errors.address?.city)}
+                                    helperText={formik.touched.address?.city && formik.errors.address?.city}
                                 />
                                 <TextField
                                     fullWidth
                                     label="State"
-                                    value={schoolDetails.address.state}
-                                    onChange={(e) => setSchoolDetails({
-                                        ...schoolDetails,
-                                        address: { ...schoolDetails.address, state: e.target.value }
-                                    })}
+                                    name="address.state"
+                                    value={formik.values.address.state}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    error={formik.touched.address?.state && Boolean(formik.errors.address?.state)}
+                                    helperText={formik.touched.address?.state && formik.errors.address?.state}
                                 />
                                 <TextField
                                     fullWidth
                                     label="Country"
-                                    value={schoolDetails.address.country}
-                                    onChange={(e) => setSchoolDetails({
-                                        ...schoolDetails,
-                                        address: { ...schoolDetails.address, country: e.target.value }
-                                    })}
+                                    name="address.country"
+                                    value={formik.values.address.country}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    error={formik.touched.address?.country && Boolean(formik.errors.address?.country)}
+                                    helperText={formik.touched.address?.country && formik.errors.address?.country}
                                 />
                             </div>
 
@@ -349,17 +525,22 @@ const ManageSchool: React.FC = () => {
                                 <TextField
                                     fullWidth
                                     label="Pin Code"
-                                    value={schoolDetails.address.pincode}
-                                    onChange={(e) => setSchoolDetails({
-                                        ...schoolDetails,
-                                        address: { ...schoolDetails.address, pincode: e.target.value }
-                                    })}
+                                    name="address.pincode"
+                                    value={formik.values.address.pincode}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    error={formik.touched.address?.pincode && Boolean(formik.errors.address?.pincode)}
+                                    helperText={formik.touched.address?.pincode && formik.errors.address?.pincode}
                                 />
                                 <TextField
                                     fullWidth
                                     label="Google Maps Link"
-                                    value={schoolDetails.googleMapsLink}
-                                    onChange={(e) => setSchoolDetails({ ...schoolDetails, googleMapsLink: e.target.value })}
+                                    name="googleMapsLink"
+                                    value={formik.values.googleMapsLink}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    error={formik.touched.googleMapsLink && Boolean(formik.errors.googleMapsLink)}
+                                    helperText={formik.touched.googleMapsLink && formik.errors.googleMapsLink}
                                 />
                             </div>
 
@@ -367,19 +548,32 @@ const ManageSchool: React.FC = () => {
                                 <TextField
                                     fullWidth
                                     label="Phone"
-                                    value={schoolDetails.phone}
-                                    onChange={(e) => setSchoolDetails({ ...schoolDetails, phone: e.target.value })}
+                                    name="phone"
+                                    value={formik.values.phone}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    error={formik.touched.phone && Boolean(formik.errors.phone)}
+                                    helperText={formik.touched.phone && formik.errors.phone}
                                 />
                                 <TextField
                                     fullWidth
                                     label="Email"
-                                    value={schoolDetails.email}
-                                    onChange={(e) => setSchoolDetails({ ...schoolDetails, email: e.target.value })}
+                                    name="email"
+                                    value={formik.values.email}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    error={formik.touched.email && Boolean(formik.errors.email)}
+                                    helperText={formik.touched.email && formik.errors.email}
                                 />
                             </div>
 
                             <Box display="flex" justifyContent="flex-end" mt={2}>
-                                <Button variant="contained" color="primary" type="submit">
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    type="submit"
+                                    disabled={formik.isSubmitting}
+                                >
                                     Save Changes
                                 </Button>
                             </Box>
@@ -387,80 +581,168 @@ const ManageSchool: React.FC = () => {
                     </TabPanel>
 
                     <TabPanel value={tabValue} index={1}>
-                        <div
-                            className="relative flex items-center justify-center bg-gray-50 border border-dashed border-gray-400 h-36 w-36 cursor-pointer mx-auto"
-                            onClick={handleLogoClick}
-                        >
-                            {logoFile ? (
-                                <>
+                        <div className="flex flex-col items-center gap-4">
+                            <div
+                                className="relative flex items-center justify-center bg-gray-50 border border-dashed border-gray-400 h-36 w-36 cursor-pointer"
+                                onClick={handleLogoClick}
+                            >
+                                {logoFile || schoolDetails.logo ? (
                                     <img
-                                        src={previewLogo || ''}
+                                        src={previewLogo || schoolDetails.logo || ''}
                                         alt="School logo"
                                         className="w-full h-full object-contain"
                                     />
-                                    <button
-                                        onClick={handleLogoRemove}
-                                        className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
-                                    >
-                                        <X size={20} color="gray" />
-                                    </button>
-                                </>
-                            ) : (
-                                <div className="text-center">
-                                    <p className="text-sm text-gray-500">Click to upload logo</p>
-                                </div>
+                                ) : (
+                                    <div className="text-center">
+                                        <p className="text-sm text-gray-500">Click to upload logo</p>
+                                    </div>
+                                )}
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleLogoUpload}
+                                    className="hidden"
+                                />
+                            </div>
+
+                            {(logoFile || schoolDetails.logo) && (
+                                <Button
+                                    variant="outlined"
+                                    color="error"
+                                    onClick={handleLogoRemove}
+                                    startIcon={<X size={20} />}
+                                >
+                                    Remove Logo
+                                </Button>
                             )}
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handleLogoUpload}
-                                className="hidden"
-                            />
                         </div>
                     </TabPanel>
 
                     <TabPanel value={tabValue} index={2}>
-                        <form className="space-y-4">
+                        <div className="space-y-4">
                             <FormControl fullWidth>
-                                <InputLabel id="syllabus-label">Syllabus</InputLabel>
+                                <InputLabel id="syllabus-label">Add Syllabus</InputLabel>
                                 <Select
                                     labelId="syllabus-label"
                                     id="syllabusIDs"
-                                    multiple
-                                    value={schoolDetails.syllabus}
-                                    onChange={(e) => setSchoolDetails({
-                                        ...schoolDetails,
-                                        syllabus: e.target.value as string[]
-                                    })}
-                                    input={<OutlinedInput label="Syllabus" />}
-                                    renderValue={(selected) => selected.join(', ')}
+                                    value=""
+                                    input={<OutlinedInput label="Add Syllabus" />}
                                 >
                                     {syllabusList.length === 0 ? (
                                         <MenuItem disabled>No syllabuses available</MenuItem>
                                     ) : (
-                                        syllabusList.map((syllabus) => (
-                                            <MenuItem key={syllabus.id} value={syllabus.name}>
-                                                <Checkbox
-                                                    checked={schoolDetails.syllabus.indexOf(syllabus.name) > -1}
-                                                />
-                                                <ListItemText primary={syllabus.name} />
-                                            </MenuItem>
-                                        ))
+                                        syllabusList.map((syllabus) => {
+                                            const isSelected = schoolDetails.syllabus.includes(syllabus.name);
+                                            return (
+                                                <MenuItem
+                                                    key={syllabus.id}
+                                                    value={syllabus.id}
+                                                    disabled={isSelected}
+                                                    sx={{
+                                                        display: 'flex',
+                                                        justifyContent: 'space-between',
+                                                        alignItems: 'center'
+                                                    }}
+                                                >
+                                                    <span>{syllabus.name}</span>
+                                                    {!isSelected && (
+                                                        <Button
+                                                            variant="outlined"
+                                                            size="small"
+                                                            onClick={async (e) => {
+                                                                e.stopPropagation();
+                                                                if (!prefix) return;
+
+                                                                try {
+                                                                    await connectSchoolSyllabus(prefix, syllabus.id);
+
+                                                                    // Update local state
+                                                                    setSchoolDetails(prev => ({
+                                                                        ...prev,
+                                                                        syllabus: [...prev.syllabus, syllabus.name]
+                                                                    }));
+
+                                                                    setSnackbar({
+                                                                        open: true,
+                                                                        message: 'Syllabus added successfully!',
+                                                                        severity: 'success',
+                                                                        position: { vertical: 'top', horizontal: 'right' }
+                                                                    });
+                                                                } catch (error) {
+                                                                    console.error('Error adding syllabus:', error);
+                                                                    setSnackbar({
+                                                                        open: true,
+                                                                        message: 'Failed to add syllabus',
+                                                                        severity: 'error',
+                                                                        position: { vertical: 'top', horizontal: 'right' }
+                                                                    });
+                                                                }
+                                                            }}
+                                                            sx={{ minWidth: 'auto', p: '4px 8px' }}
+                                                        >
+                                                            <span>Add</span>
+                                                        </Button>
+                                                    )}
+                                                </MenuItem>
+                                            );
+                                        })
                                     )}
                                 </Select>
                             </FormControl>
 
-                            <Box display="flex" justifyContent="flex-end" mt={2}>
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    onClick={handleUpdateSchool}
-                                >
-                                    Update Syllabus
-                                </Button>
-                            </Box>
-                        </form>
+                            {/* Display selected syllabuses in rows */}
+                            <div className="mt-4 space-y-2">
+                                {schoolDetails.syllabus.map((syllabusName) => {
+                                    // Find the syllabus ID from syllabusList
+                                    const syllabus = syllabusList.find(s => s.name === syllabusName);
+
+                                    return (
+                                        <div
+                                            key={syllabusName}
+                                            className="flex items-center justify-between p-3 bg-gray-50 rounded-md border border-gray-200"
+                                        >
+                                            <span>{syllabusName}</span>
+                                            <Button
+                                                variant="text"
+                                                color="error"
+                                                onClick={async () => {
+                                                    if (!prefix || !syllabus) return;
+
+                                                    try {
+                                                        await disconnectSchoolSyllabus(prefix, syllabus.id);
+
+                                                        // Update local state
+                                                        setSchoolDetails(prev => ({
+                                                            ...prev,
+                                                            syllabus: prev.syllabus.filter(s => s !== syllabusName)
+                                                        }));
+
+                                                        setSnackbar({
+                                                            open: true,
+                                                            message: 'Syllabus removed successfully!',
+                                                            severity: 'success',
+                                                            position: { vertical: 'top', horizontal: 'right' }
+                                                        });
+                                                    } catch (error) {
+                                                        console.error('Error removing syllabus:', error);
+                                                        setSnackbar({
+                                                            open: true,
+                                                            message: 'Failed to remove syllabus',
+                                                            severity: 'error',
+                                                            position: { vertical: 'top', horizontal: 'right' }
+                                                        });
+                                                    }
+                                                }}
+                                                startIcon={<X size={20} />}
+                                            >
+                                                Remove
+                                            </Button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </TabPanel>
 
                     <TabPanel value={tabValue} index={3}>
@@ -519,7 +801,6 @@ const ManageSchool: React.FC = () => {
                     </TabPanel>
 
                     <TabPanel value={tabValue} index={4}>
-
                         <Box sx={{ mb: 4 }}>
                             <Typography
                                 variant="h6"
@@ -532,10 +813,10 @@ const ManageSchool: React.FC = () => {
                                 }}
                             >
                                 <AlertTriangle size={20} />
-                                Danger Zone
+                                Critical Actions
                             </Typography>
                             <Typography variant="body2" sx={{ mb: 3, color: 'text.secondary' }}>
-                                These actions are destructive and should be used with caution
+                                Please read carefully before taking any action. These changes will significantly affect how users can access and use the school system.
                             </Typography>
                         </Box>
 
@@ -545,46 +826,36 @@ const ManageSchool: React.FC = () => {
                             borderRadius: 1,
                             mb: 3,
                             transition: 'all 0.3s ease',
-                            bgcolor: schoolStatus.isActive
-                                ? 'rgba(211, 47, 47, 0.04)'
-                                : 'rgba(48, 131, 105, 0.04)',
+                            bgcolor: 'rgba(211, 47, 47, 0.04)',
                             '&:hover': {
-                                bgcolor: schoolStatus.isActive
-                                    ? 'rgba(211, 47, 47, 0.08)'
-                                    : 'rgba(48, 131, 105, 0.08)'
+                                bgcolor: 'rgba(211, 47, 47, 0.08)'
                             }
                         }}>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Box>
                                     <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
-                                        {schoolStatus.isActive ? 'Deactivate School' : 'Activate School'}
+                                        Remove School from System
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                                        {schoolStatus.isActive
-                                            ? "Temporarily disable access to this school"
-                                            : "Re-enable access to this school"}
+                                    <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
+                                        What will happen:
+                                        • School will disappear from the system
+                                        • All users (staff, students, parents) will lose access
+                                        • No one can log in or view school data
+                                        • School won't appear in any lists or searches
                                     </Typography>
                                 </Box>
                                 <Button
                                     variant="outlined"
-                                    color={schoolStatus.isActive ? "error" : "success"}
-                                    onClick={() => setConfirmationType(schoolStatus.isActive ? 'deactivate' : 'activate')}
-                                    sx={!schoolStatus.isActive ? {
-                                        borderColor: '#308369',
-                                        color: '#308369',
-                                        bgcolor: 'rgba(48, 131, 105, 0.12)',
-                                        '&:hover': {
-                                            borderColor: '#2a725c',
-                                            bgcolor: 'rgba(48, 131, 105, 0.16)'
-                                        }
-                                    } : {
+                                    color="error"
+                                    onClick={() => setConfirmationType('deactivate')}
+                                    sx={{
                                         bgcolor: 'rgba(211, 47, 47, 0.12)',
                                         '&:hover': {
                                             bgcolor: 'rgba(211, 47, 47, 0.16)'
                                         }
                                     }}
                                 >
-                                    {schoolStatus.isActive ? 'Deactivate' : 'Activate'}
+                                    Deactivate
                                 </Button>
                             </Box>
                         </Box>
@@ -606,12 +877,12 @@ const ManageSchool: React.FC = () => {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Box>
                                     <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
-                                        {schoolStatus.isBlocked ? 'Unblock Operations' : 'Block Operations'}
+                                        {schoolStatus.isBlocked ? 'Allow Operations' : 'Block Operations'}
                                     </Typography>
-                                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                                    <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
                                         {schoolStatus.isBlocked
-                                            ? "Resume all operations for this school"
-                                            : "Prevent all operations for this school"}
+                                            ? "What will happen:\n• Users can add and update information again\n• Normal operations can resume\n• All features will be fully functional"
+                                            : "What will happen:\n• Users can only view existing information\n• No one can add or update any data\n• Useful during audits or system maintenance\n• School data remains visible but unchangeable"}
                                     </Typography>
                                 </Box>
                                 <Button
@@ -630,11 +901,10 @@ const ManageSchool: React.FC = () => {
                                         }
                                     }}
                                 >
-                                    {schoolStatus.isBlocked ? 'Unblock' : 'Block'}
+                                    {schoolStatus.isBlocked ? 'ALLOW' : 'BLOCK'}
                                 </Button>
                             </Box>
                         </Box>
-
                     </TabPanel>
                 </Paper>
             </Box>

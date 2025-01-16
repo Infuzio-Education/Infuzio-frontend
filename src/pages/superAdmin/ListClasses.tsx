@@ -273,7 +273,7 @@ const ListClasses: React.FC = () => {
                 </div>
                 <div className="space-y-1">
                     <div className="flex items-center text-xs text-gray-600">
-                        <span className="font-medium">Teacher:</span>
+                        <span className="font-medium">Class teacher:</span>
                         <span className="ml-1 truncate">{classData.classStaffName || 'Not Assigned'}</span>
                     </div>
                     <div className="flex items-center text-xs text-gray-600">

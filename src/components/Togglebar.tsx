@@ -29,7 +29,7 @@ const Togglebar: React.FC<TogglebarProps> = ({
                     <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
                 </div>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center gap-4">
                 {/* Print Button - Only show when items are selected */}
                 {selectedCount > 0 && (
                     <button
@@ -64,15 +64,15 @@ const Togglebar: React.FC<TogglebarProps> = ({
                     <span className="text-sm">Sort</span>
                 </button>
 
-                {/* Show Deleted Toggle */}
+                {/* Show Deleted Button */}
                 {setShowDeleted && (
                     <button
                         onClick={() => setShowDeleted(!showDeleted)}
-                        className={`p-2 rounded flex items-center gap-2 mr-4 ${showDeleted ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                        title="Show deleted items"
+                        className="px-3 py-2 rounded-md flex items-center gap-2 bg-gray-100 hover:bg-gray-200 transition-colors text-gray-700 border border-gray-300"
+                        title="View deleted items"
                     >
-                        <Archive size={20} />
-                        <span className="text-sm">{showDeleted ? 'Hide Deleted' : 'Show Deleted'}</span>
+                        <Archive size={18} />
+                        <span className="text-sm font-medium">View Deleted</span>
                     </button>
                 )}
 
