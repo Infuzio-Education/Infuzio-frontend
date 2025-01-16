@@ -17,3 +17,12 @@ export interface StaffAttendanceData {
         status: "f" | "a" | "m" | "e";
     }> | null;
 }
+
+export interface UnitTestData {
+    subject_id: string;
+    class_id: string;
+    portion_desc: string;
+    date: string;
+    max_mark: string;
+    pass_mark: string;
+}

@@ -3,16 +3,18 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 interface StaffInfo {
     username: string;
     token: string;
+    staffID: number;
+    name: string;
 }
 
 interface StaffState {
     staffInfo: StaffInfo | null;
 }
 
-const storedStaffInfo = localStorage.getItem('staffInfo');
+const storedStaffInfo = localStorage.getItem("staffInfo");
 
 const initialState: StaffState = {
-    staffInfo: storedStaffInfo ? JSON.parse(storedStaffInfo) : null
+    staffInfo: storedStaffInfo ? JSON.parse(storedStaffInfo) : null,
 };
 
 const staffSlice = createSlice({
@@ -21,13 +23,13 @@ const staffSlice = createSlice({
     reducers: {
         setStaffInfo: (state, action: PayloadAction<StaffInfo>) => {
             state.staffInfo = action.payload;
-            localStorage.setItem('staffInfo', JSON.stringify(action.payload));
+            localStorage.setItem("staffInfo", JSON.stringify(action.payload));
         },
         logout: (state) => {
             state.staffInfo = null;
-            localStorage.removeItem('staffInfo')
-        }
-    }
+            localStorage.removeItem("staffInfo");
+        },
+    },
 });
 
 export const { setStaffInfo, logout } = staffSlice.actions;

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface SchoolAddress {
     street1: string;
     street2: string;
@@ -459,7 +460,7 @@ export interface ClassItem {
 
 export interface ClassesTabProps {
     setShowTimetable: (show: boolean) => void;
-    selectedClass: ClassItem;
+    selectedClass: ClassItem | null;
     setSelectedClass: (cls: any) => void;
 }
 
@@ -614,10 +615,10 @@ export interface StudentDetailsProps {
 
 // Add these interfaces for UnitTests
 export interface TestMark {
-    student_id: number;
-    test_id: number;
-    marks: number;
-    is_absent: boolean;
+    student_id: string;
+    unit_test_id: number;
+    mark: number;
+    isAbsent: boolean;
 }
 
 export interface PublishStatus {
