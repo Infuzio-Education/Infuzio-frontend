@@ -1,4 +1,5 @@
 import * as Yup from 'yup';
+import { addressValidationSchema } from './addressValidationSchema';
 
 // Custom error messages
 const VALIDATION_MESSAGES = {
@@ -22,7 +23,6 @@ const VALIDATION_MESSAGES = {
 const PATTERNS = {
     PHONE: /^\+[1-9]\d{6,14}$/,
     SCHOOL_CODE: /^[a-zA-Z]+$/,
-    PINCODE: /^[1-9][0-9]{5}$/
 };
 
 // Allowed file types
@@ -47,28 +47,6 @@ export const validationSchema = Yup.object({
         .min(1, 'At least one syllabus must be selected')
         .required('Syllabus selection is required'),
 
-    address: Yup.object({
-        street1: Yup.string()
-            .required('Street 1 is required')
-            .trim(),
-        street2: Yup.string()
-            .notRequired()
-            .trim(),
-        city: Yup.string()
-            .required('City is required')
-            .trim(),
-        state: Yup.string()
-            .required('State is required')
-            .trim(),
-        pincode: Yup.string()
-            .matches(PATTERNS.PINCODE, 'Invalid pincode')
-            .required('Pincode is required')
-            .trim(),
-        country: Yup.string()
-            .required('Country is required')
-            .trim(),
-    }),
-
     googleMapsLink: Yup.string()
         .url('Must be a valid URL')
         .notRequired()
@@ -84,6 +62,9 @@ export const validationSchema = Yup.object({
         .required('Email is required')
         .trim(),
 
+    // Add address validation
+    address: addressValidationSchema,
+
     schoolLogo: Yup.mixed()
         .test('fileSize', VALIDATION_MESSAGES.FILE.SIZE, (value) => {
             if (!value) return true;
@@ -94,7 +75,6 @@ export const validationSchema = Yup.object({
             return value instanceof File && ALLOWED_FILE_TYPES.includes(value.type);
         })
         .test('backendValidation', 'Backend validation failed', function () {
-            // This test can be used to handle backend-specific validation errors
             return true;
         })
         .notRequired(),

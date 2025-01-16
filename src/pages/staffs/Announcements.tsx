@@ -119,14 +119,14 @@ const Announcements = () => {
                                             </div>
                                         </div>
 
-                                        <div className="mt-3">
-                                            <h4 className="font-medium text-gray-800 mb-2">
-                                                {announcement.title}
-                                            </h4>
-                                            <p className="text-gray-600 leading-relaxed">
-                                                {announcement.body}
-                                            </p>
-                                        </div>
+                                            <div className="mt-3">
+                                                <h4 className="font-medium text-gray-800 mb-2">
+                                                    {announcement.title}
+                                                </h4>
+                                                <p className="text-gray-600 leading-relaxed">
+                                                    {announcement.body}
+                                                </p>
+                                            </div>
 
                                         {announcement.files && (
                                             <div className="mt-4 space-y-2">

@@ -81,13 +81,17 @@ export const createSyllabus = async (name: string) => {
     }
 };
 
-export const getSchools = async () => {
+export const getSchools = async (includeDeleted: boolean = false) => {
     try {
-        const response = await Api.get(superAdminEndpoints.school);
+        const endpoint = includeDeleted
+            ? `${superAdminEndpoints.school}?includeDeleted=true`
+            : superAdminEndpoints.school;
+
+        const response = await Api.get(endpoint);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
-            console.error('Error fetching syllabus:', error.response);
+            console.error('Error fetching schools:', error.response);
             throw error;
         } else {
             console.error('Unexpected error:', error);
@@ -918,18 +922,26 @@ export const removeStaffRole = async (data: {
 export const getPrivilegedStaff = async (schoolPrefix: string) => {
     try {
         const response = await Api.get(`${superAdminEndpoints.specialPrivilege}?school_prefix=${schoolPrefix}`);
-        console.log("response", response);
         if (response.data && response.data.resp_code === "SUCCESS") {
-            return {
-                status: true,
-                data: response.data.data.map((staff: any) => ({
-                    staffId: staff.staffId,
-                    name: staff.name,
-                    idCardNumber: staff.idCardNumber,
-                    mobile: staff.mobile,
-                    privilegeType: staff.privilegeType
-                }))
-            };
+            // Check if data exists and is not null/undefined
+            if (response.data.data && Array.isArray(response.data.data)) {
+                return {
+                    status: true,
+                    data: response.data.data.map((staff: any) => ({
+                        staffId: staff.staffId,
+                        name: staff.name,
+                        idCardNumber: staff.idCardNumber,
+                        mobile: staff.mobile,
+                        privilegeType: staff.privilegeType
+                    }))
+                };
+            } else {
+                // Return empty array if no data
+                return {
+                    status: true,
+                    data: []
+                };
+            }
         }
         throw new Error('Failed to fetch privileged staff');
     } catch (error) {
@@ -1348,6 +1360,191 @@ export const getStudentById = async (studentId: number, schoolPrefix: string) =>
             throw error;
         }
         console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+// Add this new function
+export const getSchoolDetails = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.school}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching school details:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+// Add this function to update school details
+export const updateSchoolDetails = async (schoolPrefix: string, formData: FormData) => {
+    try {
+        const response = await Api.patch(
+            `${superAdminEndpoints.school}?school_prefix=${schoolPrefix}`,
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating school details:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+// Add this function to handle logo upload
+export const updateSchoolLogo = async (schoolPrefix: string, logoFile: File) => {
+    try {
+        const formData = new FormData();
+        formData.append('schoolLogo', logoFile);
+
+        const response = await Api.put(
+            `${superAdminEndpoints.schoolLogo}?school_prefix=${schoolPrefix}`,
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating school logo:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+// Add this function to handle logo deletion
+export const deleteSchoolLogo = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.delete(
+            `${superAdminEndpoints.schoolLogo}?school_prefix=${schoolPrefix}`
+        );
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error deleting school logo:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+// Add this function to connect syllabus to school
+export const connectSchoolSyllabus = async (schoolPrefix: string, syllabusID: number) => {
+    try {
+        const response = await Api.post(
+            `${superAdminEndpoints.syllabusConnection}?school_prefix=${schoolPrefix}`,
+            { syllabusID }
+        );
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error connecting syllabus:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+// Add this function to disconnect syllabus from school
+export const disconnectSchoolSyllabus = async (schoolPrefix: string, syllabusID: number) => {
+    try {
+        const response = await Api.delete(
+            `${superAdminEndpoints.syllabusConnection}/${syllabusID}?school_prefix=${schoolPrefix}`
+        );
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error disconnecting syllabus:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+// Add this function to update school student limits
+export const updateSchoolLimits = async (schoolPrefix: string, studentLimit: number) => {
+    try {
+        const response = await Api.put(
+            `${superAdminEndpoints.studentLimit}?school_prefix=${schoolPrefix}`,
+            { studentLimit }
+        );
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating school limits:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+// Add these functions for block/allow operations
+export const deactivateSchool = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.patch(
+            `${superAdminEndpoints.school}/deactivate?school_prefix=${schoolPrefix}`
+        );
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error deactivating school:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const activateSchool = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.patch(
+            `${superAdminEndpoints.school}/activate?school_prefix=${schoolPrefix}`
+        );
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error activating school:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+// Add this new function for permanent school deletion
+export const DeleteSchool = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.delete(`${superAdminEndpoints.school}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error permanently deleting school:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const undoDeleteSchool = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.patch(`${superAdminEndpoints.school}/undo-delete?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error reverting school deletion:', error.response);
+            throw error;
+        }
         throw error;
     }
 };
