@@ -136,6 +136,11 @@ const Navbar: React.FC = () => {
                                                     </Link>
                                                 </li>
                                                 <li>
+                                                    <Link to={`/superAdmin/schools/${schoolId}/subjectAllocation`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                        Subject allocation
+                                                    </Link>
+                                                </li>
+                                                <li>
                                                     <Link to={`/superAdmin/schools/${schoolInfo.schoolPrefix}/academicYears`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
                                                         Academic years
                                                     </Link>

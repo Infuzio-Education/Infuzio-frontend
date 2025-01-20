@@ -1,12 +1,13 @@
 import Api from './axiosConfig';
 import superAdminEndpoints from '../endpoints/superAdmin';
 import axios from 'axios';
-import { CreateStaffPayload } from '../types/Types';
+import { CreateStaffPayload, SubjectAllocationResponse, SubjectAllocationRequest } from '../types/Types';
 import { SyllabusData } from '../types/Types';
 
 interface SuperAdminInfo {
     token: string;
 }
+
 
 Api.interceptors.request.use(
     (config) => {
@@ -85,7 +86,7 @@ export const getSchools = async (includeDeleted: boolean = false) => {
     try {
         const endpoint = includeDeleted
             ? `${superAdminEndpoints.school}?includeDeleted=true`
-            : superAdminEndpoints.school;
+            : `${superAdminEndpoints.school}?includeInactive=true`;
 
         const response = await Api.get(endpoint);
         return response.data;
@@ -1548,6 +1549,107 @@ export const undoDeleteSchool = async (schoolPrefix: string) => {
         throw error;
     }
 };
+
+export const getSubjectAllocation = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get<SubjectAllocationResponse>(
+            `${superAdminEndpoints.subjectAllocation}?school_prefix=${schoolPrefix}`
+        );
+        console.log("Response", response);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching subject allocation:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+interface RemoveSubjectAllocationParams {
+    subjectId: number;
+    standardId: number;
+    syllabusId: number;
+    groupId: number | null;
+}
+
+export const removeSubjectAllocation = async (
+    schoolPrefix: string,
+    params: RemoveSubjectAllocationParams
+) => {
+    try {
+        const queryParams = new URLSearchParams({
+            school_prefix: schoolPrefix,
+            subjectId: params.subjectId.toString(),
+            standardId: params.standardId.toString(),
+            syllabusId: params.syllabusId.toString(),
+            ...(params.groupId && { groupId: params.groupId.toString() })
+        });
+
+        const response = await Api.delete(
+            `${superAdminEndpoints.subjectAllocation}?${queryParams.toString()}`
+        );
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error removing subject allocation:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+export const getSchoolGroups = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.schoolGroups}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching school groups:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const saveSubjectAllocations = async (schoolPrefix: string, data: any) => {
+    try {
+        const response = await Api.post(
+            `${superAdminEndpoints.subjectAllocation}/multiple?school_prefix=${schoolPrefix}`,
+            data
+        );
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error saving subject allocations:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+
+
+export const updateSubjectAllocation = async (schoolPrefix: string, data: SubjectAllocationRequest) => {
+    try {
+        const response = await Api.put(
+            `${superAdminEndpoints.subjectAllocation}/multiple?school_prefix=${schoolPrefix}`,
+            data
+        );
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating subject allocation:', error.response);
+            throw error;
+        }
+        console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+
 
 
 

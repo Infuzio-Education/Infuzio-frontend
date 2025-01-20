@@ -7,6 +7,8 @@ const CreateSubject: React.FC<CreateSubjectProps> = ({ initialData, onSave, onCa
         id: initialData?.id || 0,
         name: initialData?.name || '',
         code: initialData?.code || '',
+        defaultMaxMarks: initialData?.defaultMaxMarks || 0,
+        hasTermExam: initialData?.hasTermExam || false
     });
 
     const [errors, setErrors] = useState({
@@ -39,7 +41,7 @@ const CreateSubject: React.FC<CreateSubjectProps> = ({ initialData, onSave, onCa
         if (!subject.name.trim()) {
             newErrors.name = 'Subject name is required';
         }
-        if (!subject.code.trim()) {
+        if (!subject.code?.trim()) {
             newErrors.code = 'Subject code is required';
         }
 
@@ -49,7 +51,7 @@ const CreateSubject: React.FC<CreateSubjectProps> = ({ initialData, onSave, onCa
             onSave({
                 ...subject,
                 name: subject.name.trim(),
-                code: subject.code.trim()
+                code: subject.code?.trim() || ''
             });
         }
     };

@@ -240,14 +240,39 @@ const ListSchools: React.FC = () => {
                                     <span className="text-3xl font-bold text-gray-400">No Logo</span>
                                 </div>
                             )}
-                            <div className="p-2 bg-gray-300 flex-grow flex flex-row items-center transition duration-300 group-hover:bg-gray-400">
-                                <div className="flex-grow min-w-0 mr-2">
-                                    <h2 className="text-lg font-semibold break-words">{school.name}</h2>
-                                    <p className="text-sm text-gray-600">
-                                        {Array.isArray(school.syllabus) ? school.syllabus.join(', ') : school.syllabus}
-                                    </p>
+                            <div className="p-2 bg-gray-300 flex-grow flex flex-col transition duration-300 group-hover:bg-gray-400">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex-grow min-w-0 mr-2">
+                                        <h2 className="text-lg font-semibold break-words">{school.name}</h2>
+                                        <p className="text-sm text-gray-600">
+                                            {Array.isArray(school.syllabus) ? school.syllabus.join(', ') : school.syllabus}
+                                        </p>
+
+
+                                    </div>
                                 </div>
-                                <ArrowRight className="text-gray-600 flex-shrink-0 transition duration-300 group-hover:translate-x-1" size={20} />
+                                <div className="flex justify-between items-center mt-2">
+                                    <ArrowRight className="text-gray-600 flex-shrink-0 transition duration-300 group-hover:translate-x-1" size={20} />
+                                    <div className="relative group/status">
+                                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium cursor-help ${school.isActive
+                                            ? 'bg-green-100 text-green-800'
+                                            : 'bg-red-100 text-red-800'
+                                            }`}>
+                                            {school.isActive ? 'Active' : 'Inactive'}
+                                        </span>
+
+                                        {/* Tooltip that appears on hover for inactive schools */}
+                                        {!school.isActive && (
+                                            <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover/status:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                                                <div className="bg-red-50 text-red-600 text-xs p-2 rounded-md border border-red-200 shadow-sm whitespace-nowrap">
+                                                    This school can't perform any operations while inactive
+                                                </div>
+                                                {/* Arrow */}
+                                                <div className="absolute bottom-[-4px] right-4 w-2 h-2 bg-red-50 border-r border-b border-red-200 transform rotate-45"></div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -267,15 +292,16 @@ const ListSchools: React.FC = () => {
                                 <th className="p-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">School Name</th>
                                 <th className="p-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Syllabus</th>
                                 <th className="p-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                                <th className="p-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th className="p-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {schools.map((school) => (
+                            {filteredSchools.map((school) => (
                                 <tr
                                     key={school.ID}
-                                    className="cursor-pointer"
                                     onClick={() => handleSchoolClick(school)}
+                                    className="hover:bg-gray-50 cursor-pointer"
                                 >
                                     <td className="p-2 whitespace-nowrap">
                                         <Checkbox
@@ -296,8 +322,29 @@ const ListSchools: React.FC = () => {
                                     <td className="p-2 whitespace-nowrap">
                                         <div className="text-sm text-gray-500">Kerala</div>
                                     </td>
-                                    <td className="p-2 whitespace-nowrap text-right text-sm font-medium">
-                                        <ArrowRight className="text-gray-600 inline" size={20} />
+                                    <td className="p-2">
+                                        <div className="relative group/status">
+                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium cursor-help ${school.isActive
+                                                ? 'bg-green-100 text-green-800'
+                                                : 'bg-red-100 text-red-800'
+                                                }`}>
+                                                {school.isActive ? 'Active' : 'Inactive'}
+                                            </span>
+
+                                            {/* Tooltip that appears on hover for inactive schools */}
+                                            {!school.isActive && (
+                                                <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover/status:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                                                    <div className="bg-red-50 text-red-600 text-xs p-2 rounded-md border border-red-200 shadow-sm whitespace-nowrap">
+                                                        This school can't perform any operations while inactive
+                                                    </div>
+                                                    {/* Arrow */}
+                                                    <div className="absolute bottom-[-4px] right-4 w-2 h-2 bg-red-50 border-r border-b border-red-200 transform rotate-45"></div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="p-2">
+                                        <ArrowRight className="text-gray-400" size={20} />
                                     </td>
                                 </tr>
                             ))}

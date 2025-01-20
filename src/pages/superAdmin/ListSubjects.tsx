@@ -67,7 +67,7 @@ const ListSubjects: React.FC = () => {
         try {
             if (editingSubject) {
                 // Update existing subject
-                const response = await updateSubject(editingSubject.id, updatedSubject.name, updatedSubject.code);
+                const response = await updateSubject(editingSubject.id, updatedSubject.name, updatedSubject.code || '');
                 if (response.status === true) {
                     setSubjects(prevSubjects =>
                         prevSubjects.map(subject =>
@@ -91,7 +91,7 @@ const ListSubjects: React.FC = () => {
                 }
             } else {
                 // Create new subject - now sending both name and code
-                const response = await createSubject(updatedSubject.name, updatedSubject.code);
+                const response = await createSubject(updatedSubject.name, updatedSubject.code || '');
                 if (response.status === true) {
                     await fetchSubjects();
                     setSnackbar({
@@ -169,7 +169,8 @@ const ListSubjects: React.FC = () => {
 
     const filteredSubjects = subjects.filter(subject =>
         subject.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        subject.code.toLowerCase().includes(searchTerm.toLowerCase())
+        subject.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        subject.code === ''
     );
 
     return (

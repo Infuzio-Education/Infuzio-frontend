@@ -22,12 +22,14 @@ const superAdminEndpoints = {
     schoolCastes: 'school/caste',
     schoolSubjects: 'school/subjects',
     schoolReligions: 'school/religion',
+    schoolGroups: 'school/groups',
     schoolSyllabus: 'school/syllabus',
     staff: 'school/staff',
     student: 'school/student',
     parent: 'school/parent',
     classes: 'school/class',
     specialPrivilege: 'school/special-privilege',
+    subjectAllocation: 'school/subjectallocation',
 
     // Manage school
     school: 'manage-school',
