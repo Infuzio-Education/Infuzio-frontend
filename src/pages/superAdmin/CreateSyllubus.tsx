@@ -21,7 +21,8 @@ const CreateSyllabus: React.FC<CreateSyllabusProps> = ({ initialData, onSave, on
         try {
             const syllabus: Syllabus = {
                 id: initialData?.id || 0,
-                name: name
+                name: name,
+                standards: []
             };
             await onSave(syllabus);
         } catch (error) {
