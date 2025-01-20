@@ -8,7 +8,17 @@ const staffEndpoints = {
     getStudentsDetails: "/school/student",
     getStaffAttendance: "/staff/myAttendance/monthly",
     getAnnouncements: "/staff/announcement",
+    getSubjectsOfStaff: "/staff/subjects/my-subjects",
     getStudentAttendance: "/staff/attendance/student",
+    getSections: "/global/sections",
+    getClassesGeneral: "/staff/class/list",
+    createUnitTest: "/staff/exam/unitExam",
+    getAllUnitTests: "/staff/exam/unitExam",
+    updateUnitTest: "/staff/exam/unitExam/update",
+    cancelUnitTest: "/school/exam/unitExam/cancel",
+    completeUnitTest: "/staff/exam/unitExam/completed",
+    postponeUnitTest: "/staff/exam/unitExam/postponed/indefinitely",
+    publishUnitTestMark:"/staff/exam/unitExam/mark"
 };
 
 export default staffEndpoints;

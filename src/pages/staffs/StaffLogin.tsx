@@ -47,7 +47,7 @@ const StaffLogin = () => {
                         dispatch(
                             setStaffInfo({
                                 username: values.username,
-                                token: response.data.data.token,
+                                ...response?.data?.data,
                             })
                         );
 
