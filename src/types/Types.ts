@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface SchoolAddress {
     street1: string;
     street2: string;
@@ -466,7 +465,7 @@ export interface ClassItem {
 export interface ClassesTabProps {
     setShowTimetable: (show: boolean) => void;
     selectedClass: ClassItem | null;
-    setSelectedClass: (cls: any) => void;
+    setSelectedClass: (cls: ClassItem | null) => void;
 }
 
 // Add these exam and attendance related interfaces
