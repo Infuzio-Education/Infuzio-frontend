@@ -546,10 +546,12 @@ export interface Announcement {
 // Add these interfaces for HomeWorkouts
 export interface Homework {
     id: number;
-    subjectId: number;
-    classId: number;
+    subjectID: number;
+    classID: number;
     homeworkDesc: string;
     dueDate: string;
+    subjectId: number;
+    classId: number;
 }
 
 // Add these interfaces for TakeAttendance
