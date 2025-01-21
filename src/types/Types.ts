@@ -33,7 +33,9 @@ export interface CreateSectionProps {
 export interface Subject {
     id: number;
     name: string;
-    code: string;
+    code?: string;
+    defaultMaxMarks: number;
+    hasTermExam: boolean;
 }
 
 export interface CreateSubjectProps {
@@ -72,6 +74,8 @@ export interface DynamicListsProps {
 export interface Syllabus {
     id: number;
     name: string;
+    standards: AllocationStandard[];
+    totalSubjects?: number;
 }
 
 export interface CreateSyllabusProps {
@@ -113,8 +117,9 @@ export interface CreateStandardProps {
 }
 
 export interface Group {
-    ID: number;
-    Name: string;
+    id: number | null;
+    name: string | null;
+    subjects: Subject[];
 }
 
 export interface CreateGroupProps {
@@ -869,4 +874,96 @@ export interface AnnouncementData {
     authorID: number;
     deleted_at: null | string;
     is_deleted: boolean;
+}
+
+export interface SubjectAllocationResponse {
+    status: boolean;
+    data: {
+        syllabuses: Syllabus[];
+    };
+}
+
+export interface SubjectAllocationRequest {
+    syllabusId: number;
+    standardId: number;
+    groupId: number | null;
+    subjectAllocations: {
+        subjectId: number;
+        isElective: boolean;
+        hasTermExam: boolean;
+        defaultMaxMarks: number;
+    }[];
+}
+
+export interface AllocationStandard {
+    id: number;
+    name: string;
+    groups: Group[];
+    totalSubjects?: number;
+}
+
+export interface RemoveSubjectAllocationParams {
+    subjectId: number;
+    standardId: number;
+    syllabusId: number;
+    groupId?: number | null;
+}
+
+// Modal Props Types
+export interface SubjectSelectionModalProps {
+    open: boolean;
+    onClose: () => void;
+    availableSubjects: SchoolSubject[];
+    onSubjectSelect: (subject: Subject) => void;
+}
+
+export interface GroupSelectionModalProps {
+    open: boolean;
+    onClose: () => void;
+    groups: SchoolGroup[];
+    onGroupSelect: (group: Group) => void;
+}
+
+// Add these if they don't exist already
+export interface SchoolGroup {
+    ID: number;
+    Name: string;
+}
+
+export interface SchoolSubject {
+    id: number;
+    name: string;
+    code: string;
+}
+
+// Update the existing Subject interface if needed
+export interface Subject {
+    id: number;
+    name: string;
+    code?: string;
+    defaultMaxMarks: number;
+    hasTermExam: boolean;
+}
+
+// Update the existing Group interface if needed
+export interface Group {
+    id: number | null;
+    name: string | null;
+    subjects: Subject[];
+}
+
+// Update the existing AllocationStandard interface if needed
+export interface AllocationStandard {
+    id: number;
+    name: string;
+    groups: Group[];
+    totalSubjects?: number;
+}
+
+// Update the existing Syllabus interface if needed
+export interface Syllabus {
+    id: number;
+    name: string;
+    standards: AllocationStandard[];
+    totalSubjects?: number;
 }

@@ -51,7 +51,8 @@ const CreateSchool: React.FC = () => {
                     const formattedSyllabusList = response.global.map((syllabus: GlobalSyllabus) => ({
                         id: syllabus.id,
                         name: syllabus.name,
-                        value: syllabus.id
+                        value: syllabus.id,
+                        standards: []
                     }));
                     console.log('Formatted Syllabus List:', formattedSyllabusList);
                     setSyllabusList(formattedSyllabusList);

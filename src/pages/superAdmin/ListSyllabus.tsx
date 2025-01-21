@@ -39,7 +39,9 @@ const ListSyllabus: React.FC = () => {
                     id: syllabus.id,
                     name: syllabus.name,
                     isCustomSyllabus: syllabus.isCustomSyllabus,
-                    creatorSchoolCode: syllabus.creatorSchoolCode
+                    creatorSchoolCode: syllabus.creatorSchoolCode,
+                    standards: [],
+                    totalSubjects: 0
                 }));
                 setSyllabuses(formattedSyllabuses);
             } else {
