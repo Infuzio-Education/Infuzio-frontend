@@ -879,15 +879,15 @@ export const deleteWorkingDays = async (id: number) => {
 
 export const updateStaffRole = async (data: {
     staffID: number;
-    privilegeType: string;
+    specialPrivileges: string[];
     school_prefix: string;
 }) => {
     try {
-        const response = await Api.post(
+        const response = await Api.put(
             `${superAdminEndpoints.specialPrivilege}?school_prefix=${data.school_prefix}`,
             {
                 staffID: data.staffID,
-                privilegeType: data.privilegeType
+                specialPrivileges: data.specialPrivileges
             }
         );
         return response.data;
@@ -902,12 +902,12 @@ export const updateStaffRole = async (data: {
 
 export const removeStaffRole = async (data: {
     staffID: number;
-    privilegeType: string;
+    specialPrivileges: string[];
     school_prefix: string;
 }) => {
     try {
         const response = await Api.delete(
-            `${superAdminEndpoints.specialPrivilege}/${data.staffID}/${data.privilegeType}?school_prefix=${data.school_prefix}`
+            `${superAdminEndpoints.specialPrivilege}/${data.staffID}/${data.specialPrivileges.join(',')}/?school_prefix=${data.school_prefix}`
         );
         return response.data;
     } catch (error) {
@@ -933,7 +933,7 @@ export const getPrivilegedStaff = async (schoolPrefix: string) => {
                         name: staff.name,
                         idCardNumber: staff.idCardNumber,
                         mobile: staff.mobile,
-                        privilegeType: staff.privilegeType
+                        specialPrivileges: staff.specialPrivileges
                     }))
                 };
             } else {

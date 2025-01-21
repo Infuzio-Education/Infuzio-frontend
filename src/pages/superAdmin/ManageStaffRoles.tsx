@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSchoolContext } from '../../contexts/SchoolContext';
-import { Radio, RadioGroup, FormControlLabel, Button, Modal, Box, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { FormControlLabel, Button, Modal, Box, TextField, FormGroup, Checkbox } from '@mui/material';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { PlusCircle, Check } from 'lucide-react';
-import { listStaff, updateStaffRole, getPrivilegedStaff, removeStaffRole } from '../../api/superAdmin';
+import { listStaff, updateStaffRole, getPrivilegedStaff } from '../../api/superAdmin';
 import GridView from '../../components/GridView';
 
 interface PrivilegedStaffResponse {
@@ -11,7 +11,7 @@ interface PrivilegedStaffResponse {
     name: string;
     idCardNumber: string;
     mobile: string;
-    privilegeType: string;
+    specialPrivileges: string[];
 }
 
 interface Staff {
@@ -37,6 +37,7 @@ interface Staff {
     house: string;
     profile_pic_link: string;
     current_role?: string;
+    specialPrivileges: string[];
 }
 
 
@@ -47,19 +48,13 @@ const ManageStaffRoles: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [openModal, setOpenModal] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
-    const [selectedRole, setSelectedRole] = useState<string>('');
+    const [selectedRole, setSelectedRole] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
         severity: 'success' as 'success' | 'error',
         position: { vertical: 'top' as const, horizontal: 'center' as const }
-    });
-    const [confirmDialog, setConfirmDialog] = useState({
-        open: false,
-        staffId: null as number | null,
-        staffName: '',
-        role: ''
     });
 
     useEffect(() => {
@@ -81,7 +76,7 @@ const ManageStaffRoles: React.FC = () => {
                     name: staff.name,
                     idCardNumber: staff.idCardNumber,
                     mobile: staff.mobile,
-                    privilegeType: staff.privilegeType
+                    specialPrivileges: staff.specialPrivileges
                 }));
 
                 setPrivilegedStaffList(privilegedStaffList);
@@ -136,13 +131,16 @@ const ManageStaffRoles: React.FC = () => {
 
     const handleAssignRole = async () => {
         try {
-            if (!selectedStaff || !selectedRole || !schoolInfo?.schoolPrefix) {
+            if (!selectedStaff || !schoolInfo?.schoolPrefix) {
                 throw new Error('Missing required information');
             }
 
+            const staffId = selectedStaff instanceof Object && 'staffId' in selectedStaff
+                ? selectedStaff.staffId
+                : selectedStaff.id;
             const response = await updateStaffRole({
-                staffID: selectedStaff.id,
-                privilegeType: selectedRole,
+                staffID: staffId as number,
+                specialPrivileges: selectedRole,
                 school_prefix: schoolInfo.schoolPrefix
             });
 
@@ -150,17 +148,21 @@ const ManageStaffRoles: React.FC = () => {
                 await fetchPrivilegedStaff();
                 setSnackbar({
                     open: true,
-                    message: 'Role assigned successfully',
+                    message: selectedStaff instanceof Object && 'staffId' in selectedStaff
+                        ? selectedRole.length === 0
+                            ? 'All roles removed successfully'
+                            : 'Roles updated successfully'
+                        : 'Roles assigned successfully',
                     severity: 'success',
                     position: { vertical: 'top', horizontal: 'center' }
                 });
                 handleCloseModal();
             }
         } catch (error: any) {
-            console.error('Error assigning role:', error);
+            console.error('Error managing roles:', error);
             setSnackbar({
                 open: true,
-                message: error.response?.data?.error || 'Failed to assign role',
+                message: error.response?.data?.error || 'Failed to manage roles',
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'center' }
             });
@@ -170,94 +172,60 @@ const ManageStaffRoles: React.FC = () => {
     const handleCloseModal = () => {
         setOpenModal(false);
         setSelectedStaff(null);
-        setSelectedRole('');
+        setSelectedRole([]);
         setSearchTerm('');
     };
 
-    const getRoleLabel = (role: string) => {
-        switch (role) {
-            case 'schoolAdmin':
-                return 'School Admin';
-            case 'schoolHead':
-                return 'School Head';
-            case 'schoolDeputyHead':
-                return 'Deputy Head';
-            default:
-                return role;
-        }
+    const handleRoleChange = (role: string) => {
+        setSelectedRole(prev => {
+            if (prev.includes(role)) {
+                return prev.filter(r => r !== role);
+            } else {
+                return [...prev, role];
+            }
+        });
     };
 
-    const handleRemoveRole = async (staffId: number) => {
-        const staff = privilegedStaffList.find(s => s.staffId === staffId);
-        if (staff) {
-            setConfirmDialog({
-                open: true,
-                staffId: staffId,
-                staffName: staff.name,
-                role: getRoleLabel(staff.privilegeType || '')
-            });
-        }
+    const getRoleLabel = (roles: string[] | string) => {
+        if (!roles) return '';
+
+        const roleArray = Array.isArray(roles) ? roles : [roles];
+
+        return roleArray.map(role => {
+            switch (role) {
+                case 'schoolAdmin':
+                    return 'School Admin';
+                case 'schoolHead':
+                    return 'School Head';
+                case 'schoolDeputyHead':
+                    return 'Deputy Head';
+                default:
+                    return role;
+            }
+        }).join(', ');
     };
 
-    const handleConfirmRemove = async () => {
-        try {
-            if (!confirmDialog.staffId || !schoolInfo?.schoolPrefix) {
-                throw new Error('Missing required information');
-            }
 
-            const staff = privilegedStaffList.find(s => s.staffId === confirmDialog.staffId);
-            if (!staff) {
-                throw new Error('Staff not found');
-            }
-
-            const response = await removeStaffRole({
-                staffID: confirmDialog.staffId,
-                privilegeType: staff.privilegeType,
-                school_prefix: schoolInfo.schoolPrefix
-            });
-
-            if (response.status === true) {
-                await fetchPrivilegedStaff();
-                setSnackbar({
-                    open: true,
-                    message: 'Role removed successfully',
-                    severity: 'success',
-                    position: { vertical: 'top', horizontal: 'center' }
-                });
-            }
-        } catch (error) {
-            console.error('Error removing role:', error);
-            setSnackbar({
-                open: true,
-                message: 'Failed to remove role',
-                severity: 'error',
-                position: { vertical: 'top', horizontal: 'center' }
-            });
-        } finally {
-            setConfirmDialog(prev => ({ ...prev, open: false }));
-        }
-    };
 
     const getStaffContent = (staff: PrivilegedStaffResponse) => ({
         title: staff.name,
         subtitle: staff.idCardNumber || '',
         email: staff.mobile || '',
         status: {
-            label: getRoleLabel(staff.privilegeType || ''),
-            color: getStatusColor(staff.privilegeType || '')
+            label: getRoleLabel(staff.specialPrivileges),
+            color: getStatusColor(staff.specialPrivileges)
         },
         avatar: {
             letter: staff.name.charAt(0).toUpperCase()
         },
-        action: {
-            label: 'Remove Role',
-            onClick: () => handleRemoveRole(staff.staffId),
-            color: 'text-red-600 hover:text-red-700 active:text-red-800'
-        }
     });
 
-    const getStatusColor = (role: string) => {
-        switch (role) {
+    const getStatusColor = (roles: string[] | string) => {
+        if (!roles) return 'bg-gray-100 text-gray-800';
+
+        const roleArray = Array.isArray(roles) ? roles : [roles];
+
+        switch (roleArray[0]) {
             case 'schoolAdmin':
                 return 'bg-blue-100 text-blue-800';
             case 'schoolHead':
@@ -285,7 +253,11 @@ const ManageStaffRoles: React.FC = () => {
                     selectedItems={[]}
                     onSelect={() => { }}
                     onDelete={() => { }}
-                    onItemClick={() => { }}
+                    onItemClick={(staff: Staff) => {
+                        setSelectedStaff(staff);
+                        setSelectedRole(staff.specialPrivileges);
+                        setOpenModal(true);
+                    }}
                     getItemContent={getStaffContent}
                     showDeleteIcon={false}
                 />
@@ -311,85 +283,103 @@ const ManageStaffRoles: React.FC = () => {
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: 600,
-                    maxHeight: '90vh',
+                    width: 400,
                     bgcolor: 'background.paper',
                     boxShadow: 24,
                     p: 4,
-                    borderRadius: 2,
-                    overflow: 'auto'
+                    borderRadius: 2
                 }}>
-                    <h2 className="text-xl font-bold mb-4">Assign Role to Staff</h2>
+                    <h2 className="text-xl font-bold mb-4">
+                        {selectedStaff instanceof Object && 'staffId' in selectedStaff
+                            ? `Edit Roles for ${selectedStaff.name}`
+                            : 'Assign Role to Staff'
+                        }
+                    </h2>
 
-                    <div className="mb-6">
-                        <h3 className="text-sm font-medium text-gray-700 mb-2">Select Staff</h3>
-                        <TextField
-                            placeholder="Search staff by name or ID..."
-                            variant="outlined"
-                            fullWidth
-                            size="small"
-                            className="mb-3"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                        <div className="max-h-60 overflow-y-auto border rounded-lg divide-y">
-                            {loading ? (
-                                <div className="p-4 text-center text-gray-500">Loading staff...</div>
-                            ) : filteredStaff.length === 0 ? (
-                                <div className="p-4 text-center text-gray-500">No staff found</div>
-                            ) : (
-                                filteredStaff.map((staff) => (
-                                    <div
-                                        key={staff.id}
-                                        className={`p-3 cursor-pointer hover:bg-gray-50 transition-colors
-                                            ${selectedStaff?.id === staff.id ? 'bg-emerald-50' : ''}
-                                        `}
-                                        onClick={() => setSelectedStaff(staff)}
-                                    >
-                                        <div className="flex justify-between items-center">
-                                            <div>
-                                                <p className="font-medium text-gray-900">{staff.name}</p>
-                                                {staff.id_card_number && (
-                                                    <p className="text-sm text-gray-500">
-                                                        {staff.id_card_number}
-                                                    </p>
+                    {/* Show staff selection only for new assignments */}
+                    {!(selectedStaff instanceof Object && 'staffId' in selectedStaff) && (
+                        <div className="mb-6">
+                            <h3 className="text-sm font-medium text-gray-700 mb-2">Select Staff</h3>
+                            <TextField
+                                placeholder="Search staff by name or ID..."
+                                variant="outlined"
+                                fullWidth
+                                size="small"
+                                className="mb-3"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                            <div className="max-h-60 overflow-y-auto border rounded-lg divide-y">
+                                {loading ? (
+                                    <div className="p-4 text-center text-gray-500">Loading staff...</div>
+                                ) : filteredStaff.length === 0 ? (
+                                    <div className="p-4 text-center text-gray-500">No staff found</div>
+                                ) : (
+                                    filteredStaff.map((staff) => (
+                                        <div
+                                            key={staff.id}
+                                            className={`p-3 cursor-pointer hover:bg-gray-50 transition-colors
+                                                ${selectedStaff?.id === staff.id ? 'bg-emerald-50' : ''}
+                                            `}
+                                            onClick={() => setSelectedStaff(staff)}
+                                        >
+                                            <div className="flex justify-between items-center">
+                                                <div>
+                                                    <p className="font-medium text-gray-900">{staff.name}</p>
+                                                    {staff.id_card_number && (
+                                                        <p className="text-sm text-gray-500">
+                                                            {staff.id_card_number}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                {selectedStaff?.id === staff.id && (
+                                                    <div className="text-emerald-500">
+                                                        <Check size={20} />
+                                                    </div>
                                                 )}
                                             </div>
-                                            {selectedStaff?.id === staff.id && (
-                                                <div className="text-emerald-500">
-                                                    <Check size={20} />
-                                                </div>
-                                            )}
                                         </div>
-                                    </div>
-                                ))
-                            )}
+                                    ))
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
+                    {/* Show role selection for both edit and new */}
                     {selectedStaff && (
                         <div className="mb-4">
-                            <h3 className="text-sm font-medium text-gray-700 mb-2">Select Role for {selectedStaff.name}</h3>
-                            <RadioGroup
-                                value={selectedRole}
-                                onChange={(e) => setSelectedRole(e.target.value)}
-                            >
+                            <h3 className="text-sm font-medium text-gray-700 mb-2">
+                                Select Roles for {selectedStaff.name}
+                            </h3>
+                            <FormGroup>
                                 <FormControlLabel
-                                    value="schoolAdmin"
-                                    control={<Radio />}
+                                    control={
+                                        <Checkbox
+                                            checked={selectedRole.includes('schoolAdmin')}
+                                            onChange={() => handleRoleChange('schoolAdmin')}
+                                        />
+                                    }
                                     label="School Admin"
                                 />
                                 <FormControlLabel
-                                    value="schoolHead"
-                                    control={<Radio />}
+                                    control={
+                                        <Checkbox
+                                            checked={selectedRole.includes('schoolHead')}
+                                            onChange={() => handleRoleChange('schoolHead')}
+                                        />
+                                    }
                                     label="School Head"
                                 />
                                 <FormControlLabel
-                                    value="schoolDeputyHead"
-                                    control={<Radio />}
+                                    control={
+                                        <Checkbox
+                                            checked={selectedRole.includes('schoolDeputyHead')}
+                                            onChange={() => handleRoleChange('schoolDeputyHead')}
+                                        />
+                                    }
                                     label="Deputy Head"
                                 />
-                            </RadioGroup>
+                            </FormGroup>
                         </div>
                     )}
 
@@ -400,42 +390,20 @@ const ManageStaffRoles: React.FC = () => {
                         <Button
                             onClick={handleAssignRole}
                             variant="contained"
-                            color="success"
-                            disabled={!selectedStaff || !selectedRole}
+                            color={selectedStaff instanceof Object && 'staffId' in selectedStaff ? 'primary' : 'success'}
+                            disabled={!(selectedStaff instanceof Object && 'staffId' in selectedStaff) && !selectedStaff}
                         >
-                            Assign Role
+                            {selectedStaff instanceof Object && 'staffId' in selectedStaff
+                                ? selectedRole.length === 0
+                                    ? 'Remove All Roles'
+                                    : 'Save Changes'
+                                : 'Assign Roles'
+                            }
                         </Button>
                     </div>
                 </Box>
             </Modal>
 
-            {/* Confirmation Dialog */}
-            <Dialog
-                open={confirmDialog.open}
-                onClose={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
-            >
-                <DialogTitle>Remove Role</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        Are you sure you want to remove the role of <strong>{confirmDialog.role}</strong> from <strong>{confirmDialog.staffName}</strong>?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button
-                        onClick={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
-                        color="inherit"
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        onClick={handleConfirmRemove}
-                        color="error"
-                        variant="contained"
-                    >
-                        Remove Role
-                    </Button>
-                </DialogActions>
-            </Dialog>
 
             <SnackbarComponent
                 open={snackbar.open}
