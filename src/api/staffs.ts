@@ -282,7 +282,6 @@ export const getSections = async () => {
 export const getSubjectsOfStaff = async () => {
     try {
         const response = await Api.get(staffEndpoints.getSubjectsOfStaff);
-        console.log(response);
 
         if (response?.data && response?.data?.status === true) {
             return response?.data?.data;
@@ -484,6 +483,19 @@ export const deleteHomework = async (id: number) => {
         }
     } catch (error) {
         console.error("Error deleting homework:", error);
+        throw error;
+    }
+};
+
+export const getProfileInfo = async () => {
+    try {
+        const response = await Api.get(staffEndpoints?.getProfileInfo);
+        if (response?.data && response?.data?.status === true) {
+            return response?.data?.data;
+        }
+        return null;
+    } catch (error) {
+        console.error("Error getting profile info:", error);
         throw error;
     }
 };

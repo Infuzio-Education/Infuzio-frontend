@@ -21,6 +21,8 @@ const staffEndpoints = {
     publishUnitTestMark: "/staff/exam/unitExam/mark",
     getTeacherHomework: "/staff/homework/teacher",
     manageHomework: "/staff/homework",
+    getProfileInfo: "/staff/profile",
+    updateProfilePic:"/staff/profile-pic"
 };
 
 export default staffEndpoints;
