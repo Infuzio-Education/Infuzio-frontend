@@ -1,9 +1,21 @@
-import { useState, useEffect } from 'react';
-import { User, Phone, Mail, MapPin, Calendar, Droplet, BookOpen, Upload, X } from 'lucide-react';
+import { useState, useEffect } from "react";
+import {
+    User,
+    Phone,
+    Mail,
+    MapPin,
+    Calendar,
+    Droplet,
+    BookOpen,
+    Upload,
+    X,
+} from "lucide-react";
+import { getProfileInfo } from "../../api/staffs";
+import { message } from "antd";
 
 interface StaffProfile {
     id: number;
-    id_card_number: string;
+    idCardNumber: string;
     name: string;
     gender: string;
     dob: string;
@@ -16,51 +28,46 @@ interface StaffProfile {
     state: string;
     pincode: string;
     country: string;
-    blood_group: string;
-    profile_pic_link: string;
+    bloodGroup: string;
+    profilePicLink: string;
     remarks: string;
     religion: string;
     caste: string;
     pwd: boolean;
-    is_teaching_staff: boolean;
+    isTeachingStaff: boolean;
 }
 
 const StaffProfile = () => {
     const [profile, setProfile] = useState<StaffProfile | null>(null);
     const [
+        ,
         // isEditing
-        , setIsEditing] = useState(false);
+        setIsEditing,
+    ] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
 
     useEffect(() => {
         // TODO: Fetch staff profile from API
         // For now using mock data
-        setProfile({
-            id: 1,
-            id_card_number: "GVH-STAFF-001",
-            name: "David Wilson",
-            gender: "Male",
-            dob: "1985-03-15T00:00:00Z",
-            mobile: "+1-555-0140",
-            email: "david.w@gvh.edu",
-            house: "",
-            street1: "123 Teacher Lane",
-            street2: "",
-            city: "Springfield",
-            state: "IL",
-            pincode: "62701",
-            country: "USA",
-            blood_group: "A+",
-            profile_pic_link: "",
-            remarks: "Mathematics Department Head",
-            religion: "Christianity",
-            caste: "General",
-            pwd: false,
-            is_teaching_staff: true
-        });
+        fetchProfileInfo();
     }, []);
 
-    const handleProfilePicUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const fetchProfileInfo = async () => {
+        try {
+            const response = await getProfileInfo();
+            setProfile(response);
+        } catch (error) {
+            if (error instanceof Error) {
+                message?.error(
+                    "unable to fetch profile details, try again later"
+                );
+            }
+        }
+    };
+
+    const handleProfilePicUpload = async (
+        event: React.ChangeEvent<HTMLInputElement>
+    ) => {
         const file = event.target.files?.[0];
         if (!file) return;
 
@@ -71,7 +78,7 @@ const StaffProfile = () => {
             if (profile) {
                 setProfile({
                     ...profile,
-                    profile_pic_link: reader.result as string
+                    profilePicLink: reader.result as string,
                 });
             }
         };
@@ -84,8 +91,12 @@ const StaffProfile = () => {
         <div className="space-y-6">
             {/* Header */}
             <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h1 className="text-xl font-bold text-gray-800">Staff Profile</h1>
-                <p className="text-sm text-gray-500 mt-1">View and manage your profile information</p>
+                <h1 className="text-xl font-bold text-gray-800">
+                    Staff Profile
+                </h1>
+                <p className="text-sm text-gray-500 mt-1">
+                    View and manage your profile information
+                </p>
             </div>
 
             {/* Profile Content */}
@@ -95,15 +106,18 @@ const StaffProfile = () => {
                     <div className="flex flex-col items-center">
                         <div className="w-32 h-32 relative group">
                             <div className="w-full h-full rounded-full overflow-hidden">
-                                {profile.profile_pic_link ? (
+                                {profile.profilePicLink ? (
                                     <img
-                                        src={profile.profile_pic_link}
+                                        src={profile.profilePicLink}
                                         alt={profile.name}
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
                                     <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                        <User size={48} className="text-gray-400" />
+                                        <User
+                                            size={48}
+                                            className="text-gray-400"
+                                        />
                                     </div>
                                 )}
                             </div>
@@ -122,15 +136,23 @@ const StaffProfile = () => {
                                 />
                                 <div className="text-white flex flex-col items-center">
                                     <Upload size={20} />
-                                    <span className="text-xs mt-1">Upload Photo</span>
+                                    <span className="text-xs mt-1">
+                                        Upload Photo
+                                    </span>
                                 </div>
                             </label>
                         </div>
-                        <h2 className="text-xl font-bold text-gray-800">{profile.name}</h2>
-                        <p className="text-sm text-gray-500 mt-1">{profile.id_card_number}</p>
+                        <h2 className="text-xl font-bold text-gray-800">
+                            {profile.name}
+                        </h2>
+                        <p className="text-sm text-gray-500 mt-1">
+                            {profile?.idCardNumber}
+                        </p>
                         <div className="mt-4 flex items-center gap-2">
                             <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm">
-                                {profile.is_teaching_staff ? 'Teaching Staff' : 'Non-Teaching Staff'}
+                                {profile.isTeachingStaff
+                                    ? "Teaching Staff"
+                                    : "Non-Teaching Staff"}
                             </span>
                         </div>
                     </div>
@@ -146,7 +168,11 @@ const StaffProfile = () => {
                         </div>
                         <div className="flex items-center gap-3 text-gray-600">
                             <MapPin size={18} />
-                            <span>{`${profile.street1}${profile.street2 ? `, ${profile.street2}` : ''}, ${profile.city}, ${profile.state} ${profile.pincode}`}</span>
+                            <span>{`${profile.street1}${
+                                profile.street2 ? `, ${profile.street2}` : ""
+                            }, ${profile.city}, ${profile.state} ${
+                                profile.pincode
+                            }`}</span>
                         </div>
                     </div>
                 </div>
@@ -155,44 +181,77 @@ const StaffProfile = () => {
                 <div className="lg:col-span-2 space-y-6">
                     {/* Personal Information */}
                     <div className="bg-white p-6 rounded-xl shadow-sm">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Personal Information</h3>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                            Personal Information
+                        </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="text-sm text-gray-500">Gender</label>
-                                <p className="text-gray-800">{profile.gender}</p>
+                                <label className="text-sm text-gray-500">
+                                    Gender
+                                </label>
+                                <p className="text-gray-800">
+                                    {profile.gender}
+                                </p>
                             </div>
                             <div>
-                                <label className="text-sm text-gray-500">Date of Birth</label>
+                                <label className="text-sm text-gray-500">
+                                    Date of Birth
+                                </label>
                                 <div className="flex items-center gap-2">
-                                    <Calendar size={16} className="text-gray-400" />
+                                    <Calendar
+                                        size={16}
+                                        className="text-gray-400"
+                                    />
                                     <p className="text-gray-800">
-                                        {new Date(profile.dob).toLocaleDateString()}
+                                        {new Date(
+                                            profile.dob
+                                        ).toLocaleDateString()}
                                     </p>
                                 </div>
                             </div>
                             <div>
-                                <label className="text-sm text-gray-500">Blood Group</label>
+                                <label className="text-sm text-gray-500">
+                                    Blood Group
+                                </label>
                                 <div className="flex items-center gap-2">
-                                    <Droplet size={16} className="text-gray-400" />
-                                    <p className="text-gray-800">{profile.blood_group}</p>
+                                    <Droplet
+                                        size={16}
+                                        className="text-gray-400"
+                                    />
+                                    <p className="text-gray-800">
+                                        {profile.bloodGroup}
+                                    </p>
                                 </div>
                             </div>
                             <div>
-                                <label className="text-sm text-gray-500">Religion</label>
-                                <p className="text-gray-800">{profile.religion}</p>
+                                <label className="text-sm text-gray-500">
+                                    Religion
+                                </label>
+                                <p className="text-gray-800">
+                                    {profile.religion}
+                                </p>
                             </div>
                         </div>
                     </div>
 
                     {/* Professional Information */}
                     <div className="bg-white p-6 rounded-xl shadow-sm">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">Professional Information</h3>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                            Professional Information
+                        </h3>
                         <div className="space-y-4">
                             <div>
-                                <label className="text-sm text-gray-500">Remarks</label>
+                                <label className="text-sm text-gray-500">
+                                    Remarks
+                                </label>
                                 <div className="flex items-center gap-2 mt-1">
-                                    <BookOpen size={16} className="text-gray-400" />
-                                    <p className="text-gray-800">{profile.remarks}</p>
+                                    <BookOpen
+                                        size={16}
+                                        className="text-gray-400"
+                                    />
+                                    <p className="text-gray-800">
+                                        {profile.remarks}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -211,10 +270,12 @@ const StaffProfile = () => {
                 </div>
             </div>
 
-            {profile.profile_pic_link && (
+            {profile.profilePicLink && (
                 <div className="mt-4 text-center">
                     <button
-                        onClick={() => {/* Implement preview modal */ }}
+                        onClick={() => {
+                            /* Implement preview modal */
+                        }}
                         className="text-sm text-emerald-600 hover:text-emerald-700"
                     >
                         View Photo
@@ -222,11 +283,13 @@ const StaffProfile = () => {
                 </div>
             )}
 
-            {showPreview && profile.profile_pic_link && (
+            {showPreview && profile.profilePicLink && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-lg p-4 max-w-2xl w-full">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-semibold">Profile Picture</h3>
+                            <h3 className="text-lg font-semibold">
+                                Profile Picture
+                            </h3>
                             <button
                                 onClick={() => setShowPreview(false)}
                                 className="text-gray-500 hover:text-gray-700"
@@ -236,7 +299,7 @@ const StaffProfile = () => {
                         </div>
                         <div className="relative aspect-square w-full">
                             <img
-                                src={profile.profile_pic_link}
+                                src={profile.profilePicLink}
                                 alt={profile.name}
                                 className="w-full h-full object-contain rounded-lg"
                             />
@@ -254,7 +317,7 @@ const StaffProfile = () => {
                                     if (profile) {
                                         setProfile({
                                             ...profile,
-                                            profile_pic_link: ''
+                                            profilePicLink: "",
                                         });
                                     }
                                     setShowPreview(false);
@@ -271,4 +334,4 @@ const StaffProfile = () => {
     );
 };
 
-export default StaffProfile; 
+export default StaffProfile;

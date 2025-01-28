@@ -5,6 +5,8 @@ interface StaffInfo {
     token: string;
     staffID: number;
     name: string;
+    idCardNumber: string | null;
+    profilePicLink: string | null;
 }
 
 interface StaffState {
@@ -25,6 +27,15 @@ const staffSlice = createSlice({
             state.staffInfo = action.payload;
             localStorage.setItem("staffInfo", JSON.stringify(action.payload));
         },
+        updateStaffInfo: (state, action: PayloadAction<Partial<StaffInfo>>) => {
+            if (state.staffInfo) {
+                state.staffInfo = {
+                    ...state.staffInfo,
+                    ...action.payload,
+                } as StaffInfo;
+            }
+        },
+
         logout: (state) => {
             state.staffInfo = null;
             localStorage.removeItem("staffInfo");
@@ -32,6 +43,6 @@ const staffSlice = createSlice({
     },
 });
 
-export const { setStaffInfo, logout } = staffSlice.actions;
+export const { setStaffInfo, updateStaffInfo, logout } = staffSlice.actions;
 
 export default staffSlice.reducer;

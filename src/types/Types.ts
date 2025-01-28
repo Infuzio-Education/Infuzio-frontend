@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface SchoolAddress {
     street1: string;
     street2: string;
@@ -465,7 +466,7 @@ export interface ClassItem {
 export interface ClassesTabProps {
     setShowTimetable: (show: boolean) => void;
     selectedClass: ClassItem | null;
-    setSelectedClass: (cls: ClassItem | null) => void;
+    setSelectedClass: (cls: any) => void;
 }
 
 // Add these exam and attendance related interfaces
@@ -550,10 +551,12 @@ export interface Announcement {
 // Add these interfaces for HomeWorkouts
 export interface Homework {
     id: number;
-    subjectId: number;
-    classId: number;
+    subjectID: number;
+    classID: number;
     homeworkDesc: string;
     dueDate: string;
+    subjectId: number;
+    classId: number;
 }
 
 // Add these interfaces for TakeAttendance
