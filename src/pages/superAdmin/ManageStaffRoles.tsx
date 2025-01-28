@@ -3,16 +3,9 @@ import { useSchoolContext } from '../../contexts/SchoolContext';
 import { FormControlLabel, Button, Modal, Box, TextField, FormGroup, Checkbox } from '@mui/material';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { PlusCircle, Check } from 'lucide-react';
-import { listStaff, updateStaffRole, getPrivilegedStaff } from '../../api/superAdmin';
+import { listStaff, updateStaffRole, getPrivilegedStaff, getPrivileges } from '../../api/superAdmin';
 import GridView from '../../components/GridView';
-
-interface PrivilegedStaffResponse {
-    staffId: number;
-    name: string;
-    idCardNumber: string;
-    mobile: string;
-    specialPrivileges: string[];
-}
+import { Privilege, PrivilegedStaffResponse } from '../../types/Types';
 
 interface Staff {
     id: number;
@@ -37,9 +30,8 @@ interface Staff {
     house: string;
     profile_pic_link: string;
     current_role?: string;
-    specialPrivileges: string[];
+    specialPrivileges: Privilege[];
 }
-
 
 const ManageStaffRoles: React.FC = () => {
     const { schoolInfo } = useSchoolContext();
@@ -48,7 +40,7 @@ const ManageStaffRoles: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [openModal, setOpenModal] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
-    const [selectedRole, setSelectedRole] = useState<string[]>([]);
+    const [selectedRole, setSelectedRole] = useState<Privilege[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [snackbar, setSnackbar] = useState({
         open: false,
@@ -56,9 +48,11 @@ const ManageStaffRoles: React.FC = () => {
         severity: 'success' as 'success' | 'error',
         position: { vertical: 'top' as const, horizontal: 'center' as const }
     });
+    const [availablePrivileges, setAvailablePrivileges] = useState<Privilege[]>([]);
 
     useEffect(() => {
         fetchPrivilegedStaff();
+        fetchPrivileges();
     }, []);
 
     const fetchPrivilegedStaff = async () => {
@@ -102,7 +96,7 @@ const ManageStaffRoles: React.FC = () => {
 
             const response = await listStaff(schoolInfo.schoolPrefix);
             if (response.status === true) {
-                setAllStaffList(response.data);
+                setAllStaffList(response.data || []);
             }
         } catch (error) {
             console.error('Error fetching staff list:', error);
@@ -112,6 +106,7 @@ const ManageStaffRoles: React.FC = () => {
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'center' }
             });
+            setAllStaffList([]);
         }
     };
 
@@ -122,8 +117,7 @@ const ManageStaffRoles: React.FC = () => {
         setOpenModal(true);
     };
 
-
-    const filteredStaff = allStaffList.filter(staff =>
+    const filteredStaff = (allStaffList || []).filter(staff =>
         !privilegedStaffList.find(p => p.staffId === staff.id) && // Only show non-privileged staff
         (staff.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (staff.id_card_number && staff.id_card_number.toLowerCase().includes(searchTerm.toLowerCase())))
@@ -140,7 +134,7 @@ const ManageStaffRoles: React.FC = () => {
                 : selectedStaff.id;
             const response = await updateStaffRole({
                 staffID: staffId as number,
-                specialPrivileges: selectedRole,
+                specialPrivileges: selectedRole.map(role => role.privilege),
                 school_prefix: schoolInfo.schoolPrefix
             });
 
@@ -176,36 +170,26 @@ const ManageStaffRoles: React.FC = () => {
         setSearchTerm('');
     };
 
-    const handleRoleChange = (role: string) => {
+    const handleRoleChange = (role: Privilege) => {
         setSelectedRole(prev => {
-            if (prev.includes(role)) {
-                return prev.filter(r => r !== role);
+            const existing = prev.find(r => r.privilege === role.privilege);
+            if (existing) {
+                return prev.filter(r => r.privilege !== role.privilege);
             } else {
                 return [...prev, role];
             }
         });
     };
 
-    const getRoleLabel = (roles: string[] | string) => {
+    const getRoleLabel = (roles: Privilege[] | string) => {
         if (!roles) return '';
 
-        const roleArray = Array.isArray(roles) ? roles : [roles];
+        if (typeof roles === 'string') {
+            return roles; // Handle legacy string format
+        }
 
-        return roleArray.map(role => {
-            switch (role) {
-                case 'schoolAdmin':
-                    return 'School Admin';
-                case 'schoolHead':
-                    return 'School Head';
-                case 'schoolDeputyHead':
-                    return 'Deputy Head';
-                default:
-                    return role;
-            }
-        }).join(', ');
+        return roles.map(role => role.alias).join(', ');
     };
-
-
 
     const getStaffContent = (staff: PrivilegedStaffResponse) => ({
         title: staff.name,
@@ -220,12 +204,16 @@ const ManageStaffRoles: React.FC = () => {
         },
     });
 
-    const getStatusColor = (roles: string[] | string) => {
+    const getStatusColor = (roles: Privilege[] | string) => {
         if (!roles) return 'bg-gray-100 text-gray-800';
+
+        if (typeof roles === 'string') {
+            return 'bg-gray-100 text-gray-800'; // Handle legacy string format
+        }
 
         const roleArray = Array.isArray(roles) ? roles : [roles];
 
-        switch (roleArray[0]) {
+        switch (roleArray[0].privilege) {
             case 'schoolAdmin':
                 return 'bg-blue-100 text-blue-800';
             case 'schoolHead':
@@ -234,6 +222,25 @@ const ManageStaffRoles: React.FC = () => {
                 return 'bg-purple-100 text-purple-800';
             default:
                 return 'bg-gray-100 text-gray-800';
+        }
+    };
+
+    const fetchPrivileges = async () => {
+        try {
+            if (!schoolInfo?.schoolPrefix) return;
+
+            const response = await getPrivileges(schoolInfo.schoolPrefix);
+            if (response.status === true) {
+                setAvailablePrivileges(response.data);
+            }
+        } catch (error) {
+            console.error('Error fetching privileges:', error);
+            setSnackbar({
+                open: true,
+                message: 'Failed to fetch privileges',
+                severity: 'error',
+                position: { vertical: 'top', horizontal: 'center' }
+            });
         }
     };
 
@@ -352,33 +359,19 @@ const ManageStaffRoles: React.FC = () => {
                                 Select Roles for {selectedStaff.name}
                             </h3>
                             <FormGroup>
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={selectedRole.includes('schoolAdmin')}
-                                            onChange={() => handleRoleChange('schoolAdmin')}
-                                        />
-                                    }
-                                    label="School Admin"
-                                />
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={selectedRole.includes('schoolHead')}
-                                            onChange={() => handleRoleChange('schoolHead')}
-                                        />
-                                    }
-                                    label="School Head"
-                                />
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={selectedRole.includes('schoolDeputyHead')}
-                                            onChange={() => handleRoleChange('schoolDeputyHead')}
-                                        />
-                                    }
-                                    label="Deputy Head"
-                                />
+                                {(availablePrivileges || []).map(privilege => (
+                                    <FormControlLabel
+                                        key={privilege.privilege}
+
+                                        control={
+                                            <Checkbox
+                                                checked={selectedRole.some(r => r.privilege === privilege.privilege)}
+                                                onChange={() => handleRoleChange(privilege)}
+                                            />
+                                        }
+                                        label={privilege.alias}
+                                    />
+                                ))}
                             </FormGroup>
                         </div>
                     )}
@@ -403,7 +396,6 @@ const ManageStaffRoles: React.FC = () => {
                     </div>
                 </Box>
             </Modal>
-
 
             <SnackbarComponent
                 open={snackbar.open}

@@ -213,13 +213,13 @@ export const getStaffAttendanceByMonth = async (params: {
         });
         return response?.data?.data || null;
     } catch (error) {
-        console.log(error);
+        console.error(error);
     }
 };
 
 export const getAnnouncements = async () => {
     try {
-        const response = await Api.get(staffEndpoints.getAnnouncements);
+        const response = await Api.get(staffEndpoints.Announcements);
         if (response?.data && response?.data?.status === true) {
             return response?.data?.data;
         }
@@ -262,7 +262,6 @@ export const getStudentAttendanceByMonth = async (params: {
 export const getSections = async () => {
     try {
         const response = await Api.get(staffEndpoints.getSections);
-        console.log(response);
 
         if (response?.data && response?.data?.status === true) {
             return response?.data?.data;
@@ -449,6 +448,21 @@ export const getHomeworkTeacher = async () => {
     }
 };
 
+export const getMyClasses = async () => {
+    try {
+
+        const response = await Api.get(staffEndpoints.getMyClasses, {
+            params: {
+                criteria: "my-classes",
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching my classes:", error);
+        throw error;
+    }
+};
+
 export const createHomework = async (data: Partial<Homework>) => {
     try {
         const response = await Api.post(staffEndpoints?.manageHomework, data);
@@ -461,6 +475,57 @@ export const createHomework = async (data: Partial<Homework>) => {
     }
 };
 
+// Create New Announcement
+export const createAnnouncement = async (announcementData: {
+    selectedCategory: string;
+    categoryIDs: number[];
+    title: string;
+    body: string;
+    files: File[];
+    authorRole: string;
+}) => {
+    const formData = new FormData();
+    formData.append("selectedCategory", announcementData.selectedCategory);
+    announcementData.categoryIDs.forEach((id) => formData.append("categoryIDs", id.toString()));
+    formData.append("title", announcementData.title);
+    formData.append("body", announcementData.body);
+    formData.append("authorRole", announcementData.authorRole);
+    announcementData.files.forEach((file) => formData.append("files", file));
+
+    try {
+        const response = await Api.post(staffEndpoints.Announcements, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("Error creating announcement:", error.response);
+            throw error;
+        } else {
+            console.error("Unexpected error:", error);
+            throw error;
+        }
+    }
+};
+
+
+
+export const getAllClassesInSchool = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${staffEndpoints.getAllClasses}?school_prefix=${schoolPrefix}`);
+        console.log("response1", response);
+        return response;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching privileges:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
 export const updateHomework = async (data: Homework) => {
     try {
         const response = await Api.put(staffEndpoints?.manageHomework, data);
@@ -469,6 +534,20 @@ export const updateHomework = async (data: Homework) => {
         }
     } catch (error) {
         console.error("Error updating homework:", error);
+        throw error;
+    }
+};
+
+
+export const getAllStandardsInSchool = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${staffEndpoints.getAllStandards}?school_prefix=${schoolPrefix}`);
+        return response;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching privileges:', error.response);
+            throw error;
+        }
         throw error;
     }
 };
@@ -487,6 +566,19 @@ export const deleteHomework = async (id: number) => {
     }
 };
 
+export const getAllGroupsInSchool = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${staffEndpoints.getAllGroups}?school_prefix=${schoolPrefix}`);
+        return response;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching privileges:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
 export const getProfileInfo = async () => {
     try {
         const response = await Api.get(staffEndpoints?.getProfileInfo);
@@ -499,3 +591,30 @@ export const getProfileInfo = async () => {
         throw error;
     }
 };
+
+export const getAllMediumsInSchool = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${staffEndpoints.getAllMediums}?school_prefix=${schoolPrefix}`);
+        return response;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching privileges:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const getAllSectionsInSchool = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${staffEndpoints.getAllSections}?school_prefix=${schoolPrefix}`);
+        return response;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching privileges:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
