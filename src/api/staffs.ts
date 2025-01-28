@@ -1,7 +1,7 @@
 import Api from "./axiosConfig";
 import staffEndpoints from "../endpoints/staffs";
 import axios from "axios";
-import { TestMark, UnitTest } from "../types/Types";
+import { Homework, TestMark, UnitTest } from "../types/Types";
 
 interface StaffInfo {
     token: string;
@@ -282,7 +282,6 @@ export const getSections = async () => {
 export const getSubjectsOfStaff = async () => {
     try {
         const response = await Api.get(staffEndpoints.getSubjectsOfStaff);
-        console.log(response);
 
         if (response?.data && response?.data?.status === true) {
             return response?.data?.data;
@@ -433,6 +432,70 @@ export const publishUnitTestmark = async (markPayload: TestMark[]) => {
         return response.data;
     } catch (error) {
         console.error("Error postponing unit test:", error);
+        throw error;
+    }
+};
+
+export const getHomeworkTeacher = async () => {
+    try {
+        const response = await Api.get(staffEndpoints?.getTeacherHomework);
+        if (response?.data && response?.data?.status === true) {
+            return response?.data?.data;
+        }
+        return [];
+    } catch (error) {
+        console.error("Error getting homework:", error);
+        throw error;
+    }
+};
+
+export const createHomework = async (data: Partial<Homework>) => {
+    try {
+        const response = await Api.post(staffEndpoints?.manageHomework, data);
+        if (response?.data && response?.data?.status === true) {
+            return response?.data;
+        }
+    } catch (error) {
+        console.error("Error creating homework:", error);
+        throw error;
+    }
+};
+
+export const updateHomework = async (data: Homework) => {
+    try {
+        const response = await Api.put(staffEndpoints?.manageHomework, data);
+        if (response?.data && response?.data?.status === true) {
+            return response?.data;
+        }
+    } catch (error) {
+        console.error("Error updating homework:", error);
+        throw error;
+    }
+};
+
+export const deleteHomework = async (id: number) => {
+    try {
+        const response = await Api.delete(
+            staffEndpoints?.manageHomework + `/${id}`
+        );
+        if (response?.data && response?.data?.status === true) {
+            return response?.data;
+        }
+    } catch (error) {
+        console.error("Error deleting homework:", error);
+        throw error;
+    }
+};
+
+export const getProfileInfo = async () => {
+    try {
+        const response = await Api.get(staffEndpoints?.getProfileInfo);
+        if (response?.data && response?.data?.status === true) {
+            return response?.data?.data;
+        }
+        return null;
+    } catch (error) {
+        console.error("Error getting profile info:", error);
         throw error;
     }
 };

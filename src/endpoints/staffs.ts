@@ -18,7 +18,11 @@ const staffEndpoints = {
     cancelUnitTest: "/school/exam/unitExam/cancel",
     completeUnitTest: "/staff/exam/unitExam/completed",
     postponeUnitTest: "/staff/exam/unitExam/postponed/indefinitely",
-    publishUnitTestMark:"/staff/exam/unitExam/mark"
+    publishUnitTestMark: "/staff/exam/unitExam/mark",
+    getTeacherHomework: "/staff/homework/teacher",
+    manageHomework: "/staff/homework",
+    getProfileInfo: "/staff/profile",
+    updateProfilePic:"/staff/profile-pic"
 };
 
 export default staffEndpoints;
