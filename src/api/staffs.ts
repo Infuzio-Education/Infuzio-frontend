@@ -618,3 +618,15 @@ export const getAllSectionsInSchool = async (schoolPrefix: string) => {
     }
 };
 
+
+
+export const deleteAnnouncement = async (announcementId: number, schoolPrefix: string) => {
+    try {
+        const response = await Api.delete(`${staffEndpoints.Announcements}/${announcementId}?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error deleting announcement:", error);
+        throw error;
+    }
+};
+

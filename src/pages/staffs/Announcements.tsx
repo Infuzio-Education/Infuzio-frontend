@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Plus, Image as ImageIcon, File, Send, X, MoreVertical, Play } from "lucide-react";
 import { CircularProgress, Box, Chip, Avatar, Typography, IconButton, Menu, MenuItem } from "@mui/material";
-import { getAnnouncements, getMyClasses, createAnnouncement, getAllClassesInSchool, getAllStandardsInSchool, getAllGroupsInSchool, getAllMediumsInSchool, getAllSectionsInSchool } from "../../api/staffs";
+import { getAnnouncements, getMyClasses, createAnnouncement, getAllClassesInSchool, getAllStandardsInSchool, getAllGroupsInSchool, getAllMediumsInSchool, getAllSectionsInSchool, deleteAnnouncement } from "../../api/staffs";
 import { AnnouncementData, ClassItem } from "../../types/Types";
 import { format, isToday, isYesterday } from 'date-fns';
 import { useSelector } from "react-redux";
@@ -58,11 +58,10 @@ const Announcements = () => {
     const [body, setBody] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('');
     const [categoryOptions, setCategoryOptions] = useState<{ value: string; label: string }[]>([]);
-    const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
     const [categoryIDs, setCategoryIDs] = useState<number[]>([]);
     const [files, setFiles] = useState<File[]>([]);
     const [fileErrors, setFileErrors] = useState<string[]>([]);
-    const [selectedClassId, setSelectedClassId] = useState<string>("");
+    const [, setSelectedClassId] = useState<string>("");
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'warning' | 'info'>('info');
@@ -71,11 +70,14 @@ const Announcements = () => {
     const [classError, setClassError] = useState<string | null>(null);
     const [selectedRole, setSelectedRole] = useState<string>("");
     const [roleError, setRoleError] = useState<string | null>(null);
+    const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+    const [announcementToDelete, setAnnouncementToDelete] = useState<number | null>(null);
+    const [selectedOptions, setSelectedOptions] = useState<{ value: string; label: string }[]>([]);
+    const [selectedClasses, setSelectedClasses] = useState<{ value: string; label: string }[]>([]);
 
 
     const { staffInfo } = useSelector((state: RootState) => state.staffInfo);
 
-    // Automatically select the role if there's only one privilege
     useEffect(() => {
         if (staffInfo?.specialPrivileges?.length === 1) {
             setSelectedRole(staffInfo.specialPrivileges[0].alias);
@@ -145,12 +147,42 @@ const Announcements = () => {
         }));
     };
 
-    const handleDelete = (announcementId: number) => {
-        handleMenuClose(announcementId);
+    const handleDelete = async (announcementId: number) => {
+        try {
+            handleMenuClose(announcementId);
+            setAnnouncementToDelete(announcementId);
+            setShowDeleteConfirmation(true);
+        } catch (error) {
+            console.error("Error in delete handler:", error);
+            setSnackbarMessage("Error initiating delete. Please try again.");
+            setSnackbarSeverity('error');
+            setSnackbarOpen(true);
+        }
     };
 
-    const handleEdit = (announcementId: number) => {
-        handleMenuClose(announcementId);
+    const confirmDelete = async () => {
+        if (!announcementToDelete) return;
+
+        try {
+            await deleteAnnouncement(announcementToDelete, staffInfo?.schoolCode || '');
+
+            // Update the announcements list
+            setAnnouncements(prevAnnouncements =>
+                prevAnnouncements.filter(announcement => announcement.id !== announcementToDelete)
+            );
+
+            setSnackbarMessage("Announcement deleted successfully!");
+            setSnackbarSeverity('success');
+            setSnackbarOpen(true);
+        } catch (error) {
+            console.error("Error deleting announcement:", error);
+            setSnackbarMessage("Error deleting announcement. Please try again.");
+            setSnackbarSeverity('error');
+            setSnackbarOpen(true);
+        } finally {
+            setShowDeleteConfirmation(false);
+            setAnnouncementToDelete(null);
+        }
     };
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -181,22 +213,29 @@ const Announcements = () => {
 
     const handleClassChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         const value = event.target.value;
-        setSelectedClassId(value);
+        const selectedLabel = event.target.options[event.target.selectedIndex].text;
 
         if (value === "all") {
-            // If "All Classes" is selected, set categoryIDs to all class IDs
-            const allClassIds = myClasses.map(cls => parseInt(cls.id));
-            setCategoryIDs(allClassIds);
-            setSelectedCategory("cls"); // Always set to "cls"
-        } else if (value !== "") {
-            // If a specific class is selected, set the category to "cls"
+            // If "All Classes" is selected
+            const allClassIds = myClasses.map(cls => cls.id);
+            setCategoryIDs(allClassIds.map(id => parseInt(id)));
             setSelectedCategory("cls");
-            setCategoryIDs([parseInt(value)]);
-        } else {
-            // If no class is selected, reset categoryIDs
-            setSelectedCategory("");
-            setCategoryIDs([]);
+            // Clear any previously selected individual classes
+            setSelectedClasses([]);
+        } else if (value !== "") {
+            // Check if class is already selected
+            if (!selectedClasses.some(cls => cls.value === value)) {
+                const newClass = { value, label: selectedLabel };
+                setSelectedClasses([...selectedClasses, newClass]);
+                setSelectedCategory("cls");
+                setCategoryIDs([...categoryIDs, parseInt(value)]);
+            }
         }
+    };
+
+    const handleRemoveClass = (valueToRemove: string) => {
+        setSelectedClasses(selectedClasses.filter(cls => cls.value !== valueToRemove));
+        setCategoryIDs(categoryIDs.filter(id => id !== parseInt(valueToRemove)));
     };
 
     const handleSnackbarClose = () => {
@@ -235,8 +274,8 @@ const Announcements = () => {
             if (!selectedCategory) {
                 setClassError("Please select a category.");
                 hasError = true;
-            } else if (selectedCategory !== 'all' && !selectedCategoryId) {
-                setClassError(`Please select a ${selectedCategory === 'cls' ? 'class' :
+            } else if (selectedCategory !== 'all' && selectedOptions.length === 0) {
+                setClassError(`Please select at least one ${selectedCategory === 'cls' ? 'class' :
                     selectedCategory === 'std' ? 'standard' :
                         selectedCategory === 'grp' ? 'group' :
                             selectedCategory === 'med' ? 'medium' : 'section'}`);
@@ -246,8 +285,8 @@ const Announcements = () => {
             }
         } else {
             // Regular class validation for other roles
-            if (!selectedClassId) {
-                setClassError("Please select a class.");
+            if (selectedClasses.length === 0) {
+                setClassError("Please select at least one class.");
                 hasError = true;
             } else {
                 setClassError(null);
@@ -276,7 +315,7 @@ const Announcements = () => {
                 files,
                 authorRole: staffInfo?.specialPrivileges?.length === 1
                     ? staffInfo.specialPrivileges[0].alias
-                    : selectedRole,
+                    : staffInfo?.specialPrivileges?.find(role => role.privilege === selectedRole)?.alias || selectedRole,
             });
 
             // Show success message
@@ -302,6 +341,8 @@ const Announcements = () => {
             setBodyError(null);
             setClassError(null);
             setRoleError(null);
+            setSelectedOptions([]);
+            setSelectedClasses([]);
         } catch (error) {
             console.error("Error creating announcement:", error);
             setSnackbarMessage("Error creating announcement. Please try again.");
@@ -367,9 +408,20 @@ const Announcements = () => {
     };
 
     const handleCategoryIdChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const value = event.target.value;
-        setSelectedCategoryId(value);
-        setCategoryIDs([parseInt(value)]);
+        const selectedValue = event.target.value;
+        const selectedLabel = event.target.options[event.target.selectedIndex].text;
+
+        // Check if option is already selected
+        if (!selectedOptions.some(option => option.value === selectedValue)) {
+            const newOption = { value: selectedValue, label: selectedLabel };
+            setSelectedOptions([...selectedOptions, newOption]);
+            setCategoryIDs([...categoryIDs, parseInt(selectedValue)]);
+        }
+    };
+
+    const handleRemoveOption = (valueToRemove: string) => {
+        setSelectedOptions(selectedOptions.filter(option => option.value !== valueToRemove));
+        setCategoryIDs(categoryIDs.filter(id => id !== parseInt(valueToRemove)));
     };
 
     if (loading) {
@@ -518,9 +570,7 @@ const Announcements = () => {
                                                             color: '#64748b',
                                                             fontWeight: 500,
                                                         }}>
-                                                            {announcement.authorRole === staffInfo?.specialPrivileges?.find(role => role.privilege === announcement.authorRole)?.privilege
-                                                                ? staffInfo.specialPrivileges.find(role => role.privilege === announcement.authorRole)?.alias
-                                                                : announcement.authorRole}
+                                                            {announcement.authorRole}
                                                         </Typography>
                                                         <Typography variant="caption" sx={{
                                                             color: '#94a3b8',
@@ -551,59 +601,50 @@ const Announcements = () => {
                                                     ))}
                                                 </Box>
 
-                                                {/* Add the 3-dot menu */}
-                                                <IconButton
-                                                    onClick={(e) => handleMenuOpen(e, announcement.id)}
-                                                    sx={{
-                                                        '&:hover': {
-                                                            backgroundColor: 'rgba(0,0,0,0.04)',
-                                                        },
-                                                    }}
-                                                >
-                                                    <MoreVertical size={20} color="#64748b" />
-                                                </IconButton>
+                                                {/* Add the 3-dot menu only for user's own announcements */}
+                                                {announcement.authorID === staffInfo?.staffID && (
+                                                    <>
+                                                        <IconButton
+                                                            onClick={(e) => handleMenuOpen(e, announcement.id)}
+                                                            sx={{
+                                                                '&:hover': {
+                                                                    backgroundColor: 'rgba(0,0,0,0.04)',
+                                                                },
+                                                            }}
+                                                        >
+                                                            <MoreVertical size={20} color="#64748b" />
+                                                        </IconButton>
 
-                                                {/* Menu component */}
-                                                <Menu
-                                                    anchorEl={anchorEl[announcement.id]}
-                                                    open={Boolean(anchorEl[announcement.id])}
-                                                    onClose={() => handleMenuClose(announcement.id)}
-                                                    PaperProps={{
-                                                        sx: {
-                                                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                                                            borderRadius: 2,
-                                                            minWidth: 120,
-                                                        },
-                                                    }}
-                                                >
-                                                    <MenuItem
-                                                        onClick={() => handleEdit(announcement.id)}
-                                                        sx={{
-                                                            color: '#3b82f6',
-                                                            '&:hover': {
-                                                                backgroundColor: 'rgba(59, 130, 246, 0.04)',
-                                                            },
-                                                            fontSize: '0.875rem',
-                                                            py: 1,
-                                                        }}
-                                                    >
-                                                        Edit
-                                                    </MenuItem>
-                                                    <MenuItem
-                                                        onClick={() => handleDelete(announcement.id)}
-                                                        sx={{
-                                                            color: '#ef4444',
-                                                            '&:hover': {
-                                                                backgroundColor: 'rgba(239, 68, 68, 0.04)',
-                                                            },
-                                                            fontSize: '0.875rem',
-                                                            py: 1,
-                                                            borderTop: '1px solid rgba(0,0,0,0.05)',
-                                                        }}
-                                                    >
-                                                        Delete
-                                                    </MenuItem>
-                                                </Menu>
+                                                        {/* Menu component */}
+                                                        <Menu
+                                                            anchorEl={anchorEl[announcement.id]}
+                                                            open={Boolean(anchorEl[announcement.id])}
+                                                            onClose={() => handleMenuClose(announcement.id)}
+                                                            PaperProps={{
+                                                                sx: {
+                                                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                                                                    borderRadius: 2,
+                                                                    minWidth: 120,
+                                                                },
+                                                            }}
+                                                        >
+                                                            <MenuItem
+                                                                onClick={() => handleDelete(announcement.id)}
+                                                                sx={{
+                                                                    color: '#ef4444',
+                                                                    '&:hover': {
+                                                                        backgroundColor: 'rgba(239, 68, 68, 0.04)',
+                                                                    },
+                                                                    fontSize: '0.875rem',
+                                                                    py: 1,
+                                                                    borderTop: '1px solid rgba(0,0,0,0.05)',
+                                                                }}
+                                                            >
+                                                                Delete
+                                                            </MenuItem>
+                                                        </Menu>
+                                                    </>
+                                                )}
                                             </Box>
 
                                             {/* Content Section */}
@@ -984,29 +1025,49 @@ const Announcements = () => {
                                     {selectedCategory && selectedCategory !== 'all' && (
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Select {selectedCategory === 'cls' ? 'Class' :
-                                                    selectedCategory === 'std' ? 'Standard' :
-                                                        selectedCategory === 'grp' ? 'Group' :
-                                                            selectedCategory === 'med' ? 'Medium' : 'Section'}
+                                                Select {selectedCategory === 'cls' ? 'Classes' :
+                                                    selectedCategory === 'std' ? 'Standards' :
+                                                        selectedCategory === 'grp' ? 'Groups' :
+                                                            selectedCategory === 'med' ? 'Mediums' : 'Sections'}
                                             </label>
                                             <select
-                                                value={selectedCategoryId}
+                                                value=""
                                                 onChange={handleCategoryIdChange}
                                                 className={`w-full px-4 py-2 border rounded-lg focus:ring-2 
                                                 focus:ring-emerald-500 focus:border-emerald-500 outline-none
                                                 ${classError ? 'border-red-500' : 'border-gray-300'}`}
                                                 required
                                             >
-                                                <option value="">Select {selectedCategory === 'cls' ? 'Class' :
-                                                    selectedCategory === 'std' ? 'Standard' :
-                                                        selectedCategory === 'grp' ? 'Group' :
-                                                            selectedCategory === 'med' ? 'Medium' : 'Section'}</option>
+                                                <option value="">Select Option</option>
                                                 {categoryOptions.map(option => (
-                                                    <option key={option.value} value={option.value}>
+                                                    <option
+                                                        key={option.value}
+                                                        value={option.value}
+                                                        className="p-2"
+                                                    >
                                                         {option.label}
                                                     </option>
                                                 ))}
                                             </select>
+
+                                            {/* Display selected options */}
+                                            <div className="mt-2 flex flex-wrap gap-2">
+                                                {selectedOptions.map((option) => (
+                                                    <div
+                                                        key={option.value}
+                                                        className="bg-emerald-50 px-3 py-1 rounded-full flex items-center gap-2"
+                                                    >
+                                                        <span className="text-sm text-emerald-800">{option.label}</span>
+                                                        <button
+                                                            onClick={() => handleRemoveOption(option.value)}
+                                                            className="text-emerald-600 hover:text-emerald-800"
+                                                        >
+                                                            <X size={14} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            {classError && <div className="text-red-500 mt-1 text-sm">{classError}</div>}
                                         </div>
                                     )}
                                 </div>
@@ -1016,7 +1077,7 @@ const Announcements = () => {
                                         Select Class
                                     </label>
                                     <select
-                                        value={selectedClassId}
+                                        value=""
                                         onChange={handleClassChange}
                                         className={`w-full px-4 py-2 border rounded-lg focus:ring-2 
                                         focus:ring-emerald-500 focus:border-emerald-500 outline-none
@@ -1035,6 +1096,24 @@ const Announcements = () => {
                                             </option>
                                         ))}
                                     </select>
+
+                                    {/* Display selected classes */}
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                        {selectedClasses.map((cls) => (
+                                            <div
+                                                key={cls.value}
+                                                className="bg-emerald-50 px-3 py-1 rounded-full flex items-center gap-2"
+                                            >
+                                                <span className="text-sm text-emerald-800">{cls.label}</span>
+                                                <button
+                                                    onClick={() => handleRemoveClass(cls.value)}
+                                                    className="text-emerald-600 hover:text-emerald-800"
+                                                >
+                                                    <X size={14} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
                                     {classError && <div className="text-red-500 mt-1 text-sm">{classError}</div>}
                                 </div>
                             )}
@@ -1089,6 +1168,37 @@ const Announcements = () => {
                             >
                                 <Send size={20} />
                                 Post Announcement
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirmation && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+                        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                            Delete Announcement
+                        </h2>
+                        <p className="text-gray-600 mb-6">
+                            Are you sure you want to delete this announcement? This action cannot be undone.
+                        </p>
+                        <div className="flex justify-end gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowDeleteConfirmation(false);
+                                    setAnnouncementToDelete(null);
+                                }}
+                                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                            >
+                                Delete
                             </button>
                         </div>
                     </div>
