@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface SchoolAddress {
     street1: string;
     street2: string;
@@ -16,6 +15,8 @@ export interface SchoolFormData {
     googleMapsLink: string;
     phone: string;
     email: string;
+    schoolHeadAlias: string;
+    schoolDeputyHeadAlias: string;
 }
 
 export interface Section {
@@ -466,7 +467,7 @@ export interface ClassItem {
 export interface ClassesTabProps {
     setShowTimetable: (show: boolean) => void;
     selectedClass: ClassItem | null;
-    setSelectedClass: (cls: any) => void;
+    setSelectedClass: (cls: ClassItem | null) => void;
 }
 
 // Add these exam and attendance related interfaces
@@ -863,14 +864,24 @@ export interface SchoolInfo {
     schoolPrefix: string;
 }
 
+// Or if you're using an interface:
+interface FileLink {
+    link: string;
+    fileType: "Image" | "Document" | "Audio" | "Video";
+}
+
 export interface AnnouncementData {
     id: number;
     title: string;
     body: string;
     author: string;
+    authorRole: string;
     author_profile_pic: string;
-    files: string[] | null;
+    fileLinks: FileLink[] | null;
     created_at: string;
+    audienceCategoryIDs: number[];
+    audienceCategoryType: string;
+    audienceCategoryNames: string[];
     authorID: number;
     deleted_at: null | string;
     is_deleted: boolean;
@@ -960,10 +971,28 @@ export interface AllocationStandard {
     totalSubjects?: number;
 }
 
-// Update the existing Syllabus interface if needed
 export interface Syllabus {
     id: number;
     name: string;
     standards: AllocationStandard[];
     totalSubjects?: number;
+}
+
+interface FileLink {
+    link: string;
+    fileType: "Image" | "Document" | "Audio" | "Video";
+}
+
+
+export interface Privilege {
+    privilege: string;
+    alias: string;
+}
+
+export interface PrivilegedStaffResponse {
+    staffId: number;
+    name: string;
+    idCardNumber: string;
+    mobile: string;
+    specialPrivileges: Privilege[];
 }

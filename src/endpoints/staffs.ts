@@ -7,10 +7,10 @@ const staffEndpoints = {
     getTimeTable: "/public/tt/byClass",
     getStudentsDetails: "/school/student",
     getStaffAttendance: "/staff/myAttendance/monthly",
-    getAnnouncements: "/staff/announcement",
+    Announcements: "/staff/announcement",
     getSubjectsOfStaff: "/staff/subjects/my-subjects",
     getStudentAttendance: "/staff/attendance/student",
-    getSections: "/global/sections",
+    getSections: "/school/sections",
     getClassesGeneral: "/staff/class/list",
     createUnitTest: "/staff/exam/unitExam",
     getAllUnitTests: "/staff/exam/unitExam",
@@ -22,7 +22,15 @@ const staffEndpoints = {
     getTeacherHomework: "/staff/homework/teacher",
     manageHomework: "/staff/homework",
     getProfileInfo: "/staff/profile",
-    updateProfilePic:"/staff/profile-pic"
+    updateProfilePic: "/staff/profile-pic",
+    getMyClasses: "/staff/class/list",
+
+
+    getAllClasses: "/public/classSimpleList",
+    getAllStandards: "/public/standardSimpleList",
+    getAllGroups: "/public/groupsSimpleList",
+    getAllMediums: "/public/mediumSimpleList",
+    getAllSections: "/public/sectionsWithCode"
 };
 
 export default staffEndpoints;

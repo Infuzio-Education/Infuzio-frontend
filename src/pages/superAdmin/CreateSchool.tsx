@@ -31,6 +31,8 @@ const initialValues: SchoolFormData = {
     googleMapsLink: 'https://maps.google.com',
     phone: '+919876543210',
     email: 'school@example.com',
+    schoolHeadAlias: '',
+    schoolDeputyHeadAlias: '',
 };
 
 const CreateSchool: React.FC = () => {
@@ -90,6 +92,8 @@ const CreateSchool: React.FC = () => {
                 googleMapsLink: values.googleMapsLink,
                 phone: values.phone,
                 email: values.email,
+                schoolHeadAlias: values.schoolHeadAlias,
+                schoolDeputyHeadAlias: values.schoolDeputyHeadAlias,
                 schoolLogo: logoFile,
             };
 
@@ -272,6 +276,29 @@ const CreateSchool: React.FC = () => {
                         )}
                     </Select>
                 </FormControl>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <TextField
+                        fullWidth
+                        id="schoolHeadAlias"
+                        name="schoolHeadAlias"
+                        label="School Head Alias"
+                        value={formik.values.schoolHeadAlias}
+                        onChange={formik.handleChange}
+                        error={formik.touched.schoolHeadAlias && Boolean(formik.errors.schoolHeadAlias)}
+                        helperText={formik.touched.schoolHeadAlias && formik.errors.schoolHeadAlias}
+                    />
+                    <TextField
+                        fullWidth
+                        id="schoolDeputyHeadAlias"
+                        name="schoolDeputyHeadAlias"
+                        label="School Deputy Head Alias"
+                        value={formik.values.schoolDeputyHeadAlias}
+                        onChange={formik.handleChange}
+                        error={formik.touched.schoolDeputyHeadAlias && Boolean(formik.errors.schoolDeputyHeadAlias)}
+                        helperText={formik.touched.schoolDeputyHeadAlias && formik.errors.schoolDeputyHeadAlias}
+                    />
+                </div>
 
                 <TextField
                     fullWidth
