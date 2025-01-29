@@ -423,10 +423,10 @@ export const postponeUnitTest = async (unit_test_id: number) => {
     }
 };
 
-export const publishUnitTestmark = async (markPayload: TestMark[]) => {
+export const postUnitTestmark = async (markPayload: TestMark[]) => {
     try {
         const response = await Api.post(
-            staffEndpoints.publishUnitTestMark,
+            staffEndpoints.postUnitTestMark,
             markPayload?.map((item) => ({ ...item, IsAbsent: item?.isAbsent }))
         );
         return response.data;
@@ -494,6 +494,37 @@ export const getProfileInfo = async () => {
             return response?.data?.data;
         }
         return null;
+    } catch (error) {
+        console.error("Error getting profile info:", error);
+        throw error;
+    }
+};
+
+export const getUnitTestMark = async (unit_test_id: number) => {
+    try {
+        const response = await Api.get(staffEndpoints?.getUnitTestMark, {
+            params: { unit_test_id },
+        });
+
+        if (response?.data && response?.data?.status === true) {
+            return response?.data?.data;
+        }
+        return [];
+    } catch (error) {
+        console.error("Error getting profile info:", error);
+        throw error;
+    }
+};
+
+export const publishUnitTestMark = async (unit_test_id: number) => {
+    try {
+        const response = await Api.patch(staffEndpoints?.publishUnitTestMark, {
+            unit_test_id,
+        });
+        if (response?.data && response?.data?.status === true) {
+            return response?.data?.data;
+        }
+        throw new Error("Cannot publish unit test mark");
     } catch (error) {
         console.error("Error getting profile info:", error);
         throw error;

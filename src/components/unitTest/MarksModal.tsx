@@ -6,9 +6,9 @@ import {
     TestMark,
     UnitTest,
 } from "../../types/Types";
-import { getStudentsByClass, publishUnitTestmark } from "../../api/staffs";
+import { getStudentsByClass, postUnitTestmark } from "../../api/staffs";
 import { useEffect, useState } from "react";
-import { message } from "antd";
+import { InputNumber, message } from "antd";
 
 type PropType = {
     selectedTest: UnitTest;
@@ -73,8 +73,9 @@ const MarksModal = ({
 
     const handleSubmitMarks = async () => {
         try {
-            await publishUnitTestmark(studentMarks);
+            await postUnitTestmark(studentMarks);
             message.success("Mark published");
+            setIsManageMarksOpen(false);
         } catch (error) {
             message.error("Cannot publish mark! Try again later");
             console.log(error);
@@ -136,23 +137,17 @@ const MarksModal = ({
                                             {student.name}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <input
-                                                type="number"
-                                                min="0"
+                                            <InputNumber
+                                                min={0}
                                                 max={selectedTest.max_mark}
                                                 value={studentMark?.mark ?? ""}
-                                                onChange={(e) =>
+                                                onChange={(value) =>
                                                     handleMarkUpdate(
                                                         student.id,
-                                                        Number(e.target.value),
+                                                        Number(value),
                                                         false
                                                     )
                                                 }
-                                                disabled={
-                                                    studentMark?.isAbsent
-                                                }
-                                                className="w-20 px-3 py-1 border rounded focus:outline-none focus:ring-2 
-                                                    focus:ring-emerald-500 disabled:bg-gray-100"
                                             />
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">

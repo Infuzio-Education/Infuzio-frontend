@@ -1,17 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
-import {
-    Plus,
-    BookOpenCheck,
-} from "lucide-react";
+import { Plus, BookOpenCheck } from "lucide-react";
 import EmptyState from "../../components/EmptyState";
-import {
-    UnitTest,
-    PublishStatus,
-    Subject,
-    Class,
-} from "../../types/Types";
+import { UnitTest, PublishStatus, Subject, Class } from "../../types/Types";
 import {
     getClasses,
     getSubjectsOfStaff,
@@ -26,7 +18,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store/store";
 import { message } from "antd";
 import MarksModal from "../../components/unitTest/MarksModal";
-// import PreviewModal from "../../components/unitTest/PreviewModal";
+import PreviewModal from "../../components/unitTest/PreviewModal";
 // import DetailsModal from "../../components/unitTest/DetailsModal";
 import CreateModal from "../../components/unitTest/CreateModal";
 import { UnitTestData } from "../../types/StateTypes";
@@ -50,7 +42,7 @@ const UnitTests = () => {
     });
     const [isManageMarksOpen, setIsManageMarksOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
-    const [, setIsPreviewModalOpen] = useState(false);
+    const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
     const [publishStatus] = useState<PublishStatus>({
         is_published: false,
     });
@@ -127,7 +119,7 @@ const UnitTests = () => {
                     subject_id: Number(newTest.subject_id),
                     class_id: Number(newTest.class_id),
                     portion_desc: newTest.portion_desc,
-                    date: new Date(newTest.date).toISOString(),
+                    date: newTest.date,
                     max_mark: Number(newTest.max_mark),
                     pass_mark: Number(newTest.pass_mark),
                 };
@@ -140,6 +132,7 @@ const UnitTests = () => {
                         )
                     );
                     setSelectedTest(updatedTest);
+                    message.success("Updated unit test");
                 }
             } else {
                 const unitTestData = {
@@ -169,6 +162,7 @@ const UnitTests = () => {
             setIsModalOpen(false);
             setIsEditMode(false);
             fetchUnitTests();
+            message.success("Unit test created");
         } catch (error) {
             if (error instanceof Error) {
                 message.error(
@@ -292,7 +286,15 @@ const UnitTests = () => {
             {/* Marks Management Modal */}
             {/* Add your marks management modal here */}
 
-            {/* {isPreviewModalOpen && selectedTest && <PreviewModal />} */}
+            {isPreviewModalOpen && selectedTest && (
+                <PreviewModal
+                    selectedTest={selectedTest}
+                    setIsPreviewModalOpen={setIsPreviewModalOpen}
+                    publishStatus={
+                        selectedTest?.status === "Published" ? true : false
+                    }
+                />
+            )}
             {isManageMarksOpen && selectedTest && (
                 <MarksModal
                     selectedTest={selectedTest}

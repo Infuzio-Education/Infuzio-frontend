@@ -600,12 +600,15 @@ export interface UnitTest {
     class_id: number;
     portion_desc: string;
     date: string;
-    is_completed: boolean;
-    is_postponed_indefinitely: boolean;
     max_mark: number;
     pass_mark: number;
-    has_submitted_marks: boolean;
-    is_exam_cancelled: boolean;
+    is_mark_added: boolean;
+    status:
+        | "Completed"
+        | "Not started"
+        | "Cancelled"
+        | "Postponed Indefinitely"
+        | "Published";
     created_staff_id: number;
     FKSubjectID: {
         Name: string;
@@ -729,9 +732,13 @@ export interface ChartData {
 
 // Add the StudentMark interface
 export interface StudentMark {
-    subjectId: number;
-    marks: number;
-    isAbsent: boolean;
+    name: string;
+    update_at: string;
+    student_id: number;
+    roll_number: number;
+    is_failed: boolean;
+    is_absent: boolean;
+    class_id: number;
 }
 
 export interface Student {
