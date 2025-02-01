@@ -1,86 +1,121 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Save, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { InputNumber, message } from "antd";
 import {
     AttendanceStudent,
     Subject,
     TestMark,
     UnitTest,
 } from "../../types/Types";
-import { getStudentsByClass, postUnitTestmark } from "../../api/staffs";
-import { useEffect, useState } from "react";
-import { InputNumber, message } from "antd";
+import {
+    getStudentsByClass,
+    getUnitTestMark,
+    postUnitTestmark,
+    updateUnitTestMark,
+} from "../../api/staffs";
 
 type PropType = {
     selectedTest: UnitTest;
     setIsManageMarksOpen: React.Dispatch<React.SetStateAction<boolean>>;
     subjects: Subject[];
+    setUnitTests: React.Dispatch<React.SetStateAction<UnitTest[]>>;
 };
 
 const MarksModal = ({
     selectedTest,
     setIsManageMarksOpen,
     subjects,
+    setUnitTests,
 }: PropType) => {
     const [students, setStudents] = useState<AttendanceStudent[]>([]);
     const [studentMarks, setStudentMarks] = useState<TestMark[]>([]);
-    // const [loading, setLoading] = useState<boolean>(true);
-    // const [error, setError] = useState<string>("");
 
     useEffect(() => {
-        fetchStudents();
-    }, []);
+        const fetchData = async () => {
+            try {
+                const fetchedStudents = await getStudentsByClass(
+                    String(selectedTest?.class_id)
+                );
+                setStudents(fetchedStudents);
+                if (selectedTest?.is_mark_added) {
+                    const marks = await getUnitTestMark(selectedTest.id);
+                    console.log(marks);
 
-    useEffect(() => {
-        if (students) {
-            const newMarks = students?.map((student) => ({
-                student_id: student.id,
-                unit_test_id: selectedTest.id,
-                mark: 0,
-                isAbsent: false,
-            }));
-            setStudentMarks(newMarks);
-        }
-    }, [students, selectedTest?.id]);
+                    setStudentMarks(
+                        marks?.map((item: any) => ({
+                            unit_test_mark_id: item.id,
+                            mark: item.mark || 0,
+                            isAbsent: item.is_absent,
+                            student_id: item.student_id,
+                        }))
+                    );
+                } else {
+                    setStudentMarks(
+                        fetchedStudents.map((student: any) => ({
+                            student_id: student.id,
+                            unit_test_id: selectedTest.id,
+                            mark: 0,
+                            isAbsent: false,
+                        }))
+                    );
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                message.error("Error fetching data");
+            }
+        };
+        fetchData();
+    }, [selectedTest]);
 
-    const fetchStudents = async () => {
-        try {
-            const students = await getStudentsByClass(
-                String(selectedTest?.class_id)
-            );
-            setStudents(students);
-            // setLoading(false);
-            // setError(null);
-        } catch (error) {
-            console.error("Error fetching students:", error);
-            // setError("Error fetching students");
-            // setLoading(false);
-        }
-    };
     const handleMarkUpdate = (
         student_id: string,
         mark: number,
         isAbsent: boolean
     ) => {
-        const newMark = studentMarks?.map((stdMark) => {
-            if (student_id === stdMark?.student_id) {
-                return { ...stdMark, mark, isAbsent };
-            }
-            return stdMark;
-        });
-
-        setStudentMarks(newMark);
+        setStudentMarks((prevMarks) =>
+            prevMarks.map((stdMark) =>
+                stdMark.student_id === student_id
+                    ? { ...stdMark, mark, isAbsent }
+                    : stdMark
+            )
+        );
     };
 
     const handleSubmitMarks = async () => {
         try {
             await postUnitTestmark(studentMarks);
-            message.success("Mark published");
+            message.success("Marks published successfully");
             setIsManageMarksOpen(false);
+            setUnitTests((prevTest) => {
+                const newTest = prevTest?.map((item) => {
+                    if (selectedTest.id === item.id) {
+                        return {
+                            ...item,
+                            is_mark_added: true,
+                        };
+                    }
+                    return item;
+                });
+                return newTest;
+            });
         } catch (error) {
-            message.error("Cannot publish mark! Try again later");
-            console.log(error);
+            console.error("Error submitting marks:", error);
+            message.error("Failed to publish marks! Please try again later.");
         }
     };
+
+    const handleUpdatedMarkPublish = async () => {
+        try {
+            await updateUnitTestMark(studentMarks);
+            message?.success("Marks updated");
+            setIsManageMarksOpen(false);
+        } catch (error) {
+            console.log(error);
+            message?.error("Cannot update mark! Try again later");
+        }
+    };
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl shadow-xl max-w-4xl w-full p-6 max-h-[90vh] overflow-hidden flex flex-col">
@@ -124,7 +159,7 @@ const MarksModal = ({
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {students?.map((student) => {
+                            {students.map((student) => {
                                 const studentMark = studentMarks.find(
                                     (m) => m.student_id === student.id
                                 );
@@ -140,7 +175,7 @@ const MarksModal = ({
                                             <InputNumber
                                                 min={0}
                                                 max={selectedTest.max_mark}
-                                                value={studentMark?.mark ?? ""}
+                                                value={studentMark?.mark ?? 0}
                                                 onChange={(value) =>
                                                     handleMarkUpdate(
                                                         student.id,
@@ -165,8 +200,7 @@ const MarksModal = ({
                                                             e.target.checked
                                                         )
                                                     }
-                                                    className="form-checkbox h-4 w-4 text-red-600 transition duration-150 
-                                                        ease-in-out"
+                                                    className="form-checkbox h-4 w-4 text-red-600 transition duration-150 ease-in-out"
                                                 />
                                                 <span className="ml-2 text-sm text-gray-600">
                                                     Absent
@@ -188,11 +222,17 @@ const MarksModal = ({
                         Cancel
                     </button>
                     <button
-                        onClick={handleSubmitMarks}
-                        className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 
-                            transition-colors flex items-center gap-2"
+                        onClick={
+                            selectedTest?.is_mark_added
+                                ? handleUpdatedMarkPublish
+                                : handleSubmitMarks
+                        }
+                        className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2"
                     >
-                        <Save size={20} /> Submit Marks
+                        <Save size={20} />{" "}
+                        {selectedTest?.is_mark_added
+                            ? "Update mark"
+                            : "Submit Marks"}
                     </button>
                 </div>
             </div>

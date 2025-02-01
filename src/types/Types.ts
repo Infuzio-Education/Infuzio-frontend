@@ -626,7 +626,7 @@ export interface StudentDetailsProps {
 // Add these interfaces for UnitTests
 export interface TestMark {
     student_id: string;
-    unit_test_id: number;
+    unit_test_mark_id: number;
     mark: number;
     isAbsent: boolean;
 }

@@ -18,7 +18,7 @@ const staffEndpoints = {
     cancelUnitTest: "/staff/exam/unitExam/cancel",
     completeUnitTest: "/staff/exam/unitExam/completed",
     postponeUnitTest: "/staff/exam/unitExam/postponed/indefinitely",
-    postUnitTestMark: "/staff/exam/unitExam/mark",
+    unitTestMark: "/staff/exam/unitExam/mark",
     getTeacherHomework: "/staff/homework/teacher",
     manageHomework: "/staff/homework",
     getProfileInfo: "/staff/profile",

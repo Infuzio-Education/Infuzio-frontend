@@ -23,6 +23,7 @@ import PreviewModal from "../../components/unitTest/PreviewModal";
 import CreateModal from "../../components/unitTest/CreateModal";
 import { UnitTestData } from "../../types/StateTypes";
 import UnitTestCard from "../../components/unitTest/UnitTestCard";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 const UnitTests = () => {
     const { staffInfo } = useSelector((state: RootState) => state.staffInfo);
@@ -46,6 +47,9 @@ const UnitTests = () => {
     const [publishStatus] = useState<PublishStatus>({
         is_published: false,
     });
+
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
 
     useEffect(() => {
         const fetchClasses = async () => {
@@ -75,11 +79,15 @@ const UnitTests = () => {
         fetchSubjects();
     }, []);
 
-    const fetchUnitTests = async () => {
+    useEffect(() => {
+        fetchUnitTests();
+    }, []);
+
+    const fetchUnitTests = async (page = 1) => {
         try {
             const fetchedUnitTests = await getUnitTest({
                 staff_unit_test: true,
-                page: 1,
+                page,
                 limit: 20,
             });
             setUnitTests(fetchedUnitTests);
@@ -88,9 +96,10 @@ const UnitTests = () => {
         }
     };
 
-    useEffect(() => {
-        fetchUnitTests();
-    }, []);
+    const fetchmore = () => {
+        fetchUnitTests(page + 1);
+        setPage(page + 1);
+    };
 
     const handleCreateOrUpdate = async () => {
         if (
@@ -241,29 +250,42 @@ const UnitTests = () => {
             </div>
 
             <div className="space-y-4 max-h-full overflow-y-auto">
-                {unitTests.length === 0 ? (
-                    <EmptyState
-                        icon={<BookOpenCheck size={48} />}
-                        title="No Unit Tests Found"
-                        message="Get started by scheduling your first unit test. Click the 'Schedule Unit Test' button above."
-                    />
-                ) : (
-                    unitTests.map((test) => (
-                        <UnitTestCard
-                            key={test.id}
-                            {...{
-                                test,
-                                setSelectedTest,
-                                handleStatusChange,
-                                setIsPreviewModalOpen,
-                                setIsManageMarksOpen,
-                                publishStatus,
-                                setIsEditMode,
-                                subjects,
-                            }}
+                <InfiniteScroll
+                    dataLength={unitTests?.length} //This is important field to render the next data
+                    next={fetchmore}
+                    hasMore={hasMore}
+                    loader={<h4 style={{ textAlign: "center" }}>Loading...</h4>}
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "10px",
+                    }}
+                >
+                    {" "}
+                    {unitTests.length === 0 ? (
+                        <EmptyState
+                            icon={<BookOpenCheck size={48} />}
+                            title="No Unit Tests Found"
+                            message="Get started by scheduling your first unit test. Click the 'Schedule Unit Test' button above."
                         />
-                    ))
-                )}
+                    ) : (
+                        unitTests.map((test) => (
+                            <UnitTestCard
+                                key={test.id}
+                                {...{
+                                    test,
+                                    setSelectedTest,
+                                    handleStatusChange,
+                                    setIsPreviewModalOpen,
+                                    setIsManageMarksOpen,
+                                    publishStatus,
+                                    setIsEditMode,
+                                    subjects,
+                                }}
+                            />
+                        ))
+                    )}
+                </InfiniteScroll>
             </div>
 
             {isModalOpen && (
@@ -293,6 +315,7 @@ const UnitTests = () => {
                     publishStatus={
                         selectedTest?.status === "Published" ? true : false
                     }
+                    setUnitTests={setUnitTests}
                 />
             )}
             {isManageMarksOpen && selectedTest && (
@@ -300,6 +323,7 @@ const UnitTests = () => {
                     selectedTest={selectedTest}
                     setIsManageMarksOpen={setIsManageMarksOpen}
                     subjects={subjects}
+                    setUnitTests={setUnitTests}
                 />
             )}
         </div>

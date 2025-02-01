@@ -1,7 +1,7 @@
 import Api from "./axiosConfig";
 import staffEndpoints from "../endpoints/staffs";
 import axios from "axios";
-import { Homework, TestMark, UnitTest } from "../types/Types";
+import { Homework, StudentMark, TestMark, UnitTest } from "../types/Types";
 
 interface StaffInfo {
     token: string;
@@ -426,7 +426,7 @@ export const postponeUnitTest = async (unit_test_id: number) => {
 export const postUnitTestmark = async (markPayload: TestMark[]) => {
     try {
         const response = await Api.post(
-            staffEndpoints.postUnitTestMark,
+            staffEndpoints.unitTestMark,
             markPayload?.map((item) => ({ ...item, IsAbsent: item?.isAbsent }))
         );
         return response.data;
@@ -511,7 +511,7 @@ export const getUnitTestMark = async (unit_test_id: number) => {
         }
         return [];
     } catch (error) {
-        console.error("Error getting profile info:", error);
+        console.error("Error getting unit test mark:", error);
         throw error;
     }
 };
@@ -521,6 +521,26 @@ export const publishUnitTestMark = async (unit_test_id: number) => {
         const response = await Api.patch(staffEndpoints?.publishUnitTestMark, {
             unit_test_id,
         });
+        if (response?.data && response?.data?.status === true) {
+            return response?.data?.data;
+        }
+        throw new Error("Cannot publish unit test mark");
+    } catch (error) {
+        console.error("Error getting profile info:", error);
+        throw error;
+    }
+};
+
+export const updateUnitTestMark = async (data: TestMark[]) => {
+    try {
+        const payload = [...data]?.map(
+            ({ unit_test_mark_id, mark, isAbsent }) => ({
+                unit_test_mark_id,
+                mark,
+                is_absent: isAbsent,
+            })
+        );
+        const response = await Api.patch(staffEndpoints?.unitTestMark, payload);
         if (response?.data && response?.data?.status === true) {
             return response?.data?.data;
         }

@@ -8,12 +8,14 @@ type PropType = {
     selectedTest: UnitTest;
     setIsPreviewModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
     publishStatus: boolean;
+    setUnitTests: React.Dispatch<React.SetStateAction<UnitTest[]>>;
 };
 
 const PreviewModal = ({
     selectedTest,
     setIsPreviewModalOpen,
     publishStatus,
+    setUnitTests,
 }: PropType) => {
     const [studentMarks, setStudentMarks] = useState<StudentMark[]>([]);
     const [btnIsloading, SetBtnIsLoading] = useState(false);
@@ -43,6 +45,23 @@ const PreviewModal = ({
             SetBtnIsLoading(false);
             setIsPreviewModalOpen(false);
             message?.success("Mark published successfully");
+            setUnitTests((prevTest) => {
+                const newTest = prevTest?.map((item) => {
+                    if (selectedTest.id === item.id) {
+                        return {
+                            ...item,
+                            status: "Published" as
+                                | "Completed"
+                                | "Not started"
+                                | "Cancelled"
+                                | "Postponed Indefinitely"
+                                | "Published",
+                        };
+                    }
+                    return item;
+                });
+                return newTest;
+            });
         } catch (error) {
             message?.error(`Couldn't publish mark!`);
             console.log(error);

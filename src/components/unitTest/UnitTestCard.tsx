@@ -53,41 +53,43 @@ const UnitTestCard = ({
                                 padding: "0px",
                             }}
                             title={
-                                <ul className="list-none p-0 m-0 w-[180px] bg-white rounded-lg shadow-md">
-                                    <li
-                                        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                        onClick={() =>
-                                            handleStatusChange(
-                                                test.id,
-                                                "completed"
-                                            )
-                                        }
-                                    >
-                                        Completed
-                                    </li>
-                                    <li
-                                        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                        onClick={() =>
-                                            handleStatusChange(
-                                                test.id,
-                                                "postponed"
-                                            )
-                                        }
-                                    >
-                                        Postponed
-                                    </li>
-                                    <li
-                                        className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                        onClick={() =>
-                                            handleStatusChange(
-                                                test.id,
-                                                "cancelled"
-                                            )
-                                        }
-                                    >
-                                        Cancelled
-                                    </li>
-                                </ul>
+                                test.status !== "Published" && (
+                                    <ul className="list-none p-0 m-0 w-[180px] bg-white rounded-lg shadow-md">
+                                        <li
+                                            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                            onClick={() =>
+                                                handleStatusChange(
+                                                    test.id,
+                                                    "completed"
+                                                )
+                                            }
+                                        >
+                                            Completed
+                                        </li>
+                                        <li
+                                            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                            onClick={() =>
+                                                handleStatusChange(
+                                                    test.id,
+                                                    "postponed"
+                                                )
+                                            }
+                                        >
+                                            Postponed
+                                        </li>
+                                        <li
+                                            className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                            onClick={() =>
+                                                handleStatusChange(
+                                                    test.id,
+                                                    "cancelled"
+                                                )
+                                            }
+                                        >
+                                            Cancelled
+                                        </li>
+                                    </ul>
+                                )
                             }
                         >
                             <span
@@ -98,12 +100,16 @@ const UnitTestCard = ({
                                             : test?.status ===
                                               `Postponed Indefinitely`
                                             ? `bg-yellow-100 text-yellow-700`
+                                            : test?.status === "Published"
+                                            ? `bg-green-100 text-green-500`
                                             : `bg-red-100 text-red-700`
                                         : `bg-gray-100 text-gray-700`
                                 }`}
                             >
                                 {test?.status || "Change status"}{" "}
-                                <ChevronDown size={18} color="gray" />
+                                {test.status !== "Published" && (
+                                    <ChevronDown size={18} color="gray" />
+                                )}
                             </span>
                         </Tooltip>
                     </div>
