@@ -84,6 +84,7 @@ services:
       REDIS_PASSWORD: ""
       AUTO_MIGRATE_DB_ON_START: "true"
       CREATE_DB_IF_NOT_EXISTS: "true"
+      # CORS_ALLOWED_ORIGINS: "https://www.infuzioeducation.com,https//www.infuzioeducation.com,http://localhost:3000"
     depends_on:
       postgres:
         condition: service_healthy

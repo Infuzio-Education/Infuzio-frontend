@@ -45,7 +45,10 @@ interface SchoolDetails {
     logo: string;
     syllabus: string[];
     schoolCode: string;
+    schoolHeadAlias: string;
+    schoolDeputyHeadAlias: string;
 }
+
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -100,7 +103,7 @@ const ManageSchool: React.FC = () => {
         open: false,
         message: '',
         severity: 'success' as 'success' | 'error',
-        position: { vertical: 'top', horizontal: 'right' }
+        position: { vertical: 'top', horizontal: 'center' }
     });
 
     const [schoolDetails, setSchoolDetails] = useState<SchoolDetails>({
@@ -118,7 +121,9 @@ const ManageSchool: React.FC = () => {
         googleMapsLink: '',
         phone: '',
         email: '',
-        syllabus: []
+        syllabus: [],
+        schoolHeadAlias: '',
+        schoolDeputyHeadAlias: ''
     });
 
     const [syllabusList, setSyllabusList] = useState<GlobalSyllabus[]>([]);
@@ -159,6 +164,8 @@ const ManageSchool: React.FC = () => {
                 formData.append('address[state]', values.address.state);
                 formData.append('address[pincode]', values.address.pincode);
                 formData.append('address[country]', values.address.country);
+                formData.append('schoolHeadAlias', values.schoolHeadAlias);
+                formData.append('schoolDeputyHeadAlias', values.schoolDeputyHeadAlias);
 
                 // Make the API call
                 await updateSchoolDetails(prefix, formData);
@@ -211,7 +218,9 @@ const ManageSchool: React.FC = () => {
                         googleMapsLink: schoolData.googleMapsLink || '',
                         phone: schoolData.phone,
                         email: schoolData.email,
-                        syllabus: schoolData.syllabuses ? schoolData.syllabuses.map((s: any) => s.name) : []
+                        syllabus: schoolData.syllabuses ? schoolData.syllabuses.map((s: any) => s.name) : [],
+                        schoolHeadAlias: schoolData.schoolHeadAlias,
+                        schoolDeputyHeadAlias: schoolData.schoolDeputyHeadAlias
                     });
 
                     setLimits({
@@ -464,6 +473,30 @@ const ManageSchool: React.FC = () => {
                                     name="schoolCode"
                                     disabled
                                     value={formik.values.schoolCode}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <TextField
+                                    fullWidth
+                                    label="School Head Alias"
+                                    name="schoolHeadAlias"
+                                    value={formik.values.schoolHeadAlias}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    error={formik.touched.schoolHeadAlias && Boolean(formik.errors.schoolHeadAlias)}
+                                    helperText={formik.touched.schoolHeadAlias && formik.errors.schoolHeadAlias}
+                                />
+
+                                <TextField
+                                    fullWidth
+                                    label="School Deputy Head Alias"
+                                    name="schoolDeputyHeadAlias"
+                                    value={formik.values.schoolDeputyHeadAlias}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    error={formik.touched.schoolDeputyHeadAlias && Boolean(formik.errors.schoolDeputyHeadAlias)}
+                                    helperText={formik.touched.schoolDeputyHeadAlias && formik.errors.schoolDeputyHeadAlias}
                                 />
                             </div>
 
@@ -974,12 +1007,12 @@ const ManageSchool: React.FC = () => {
                 message={snackbar.message}
                 severity={snackbar.severity}
                 position={{
-                    vertical: snackbar.position.vertical as "top" | "bottom",
-                    horizontal: snackbar.position.horizontal as "right" | "left" | "center"
+                    vertical: snackbar.position.vertical as "top",
+                    horizontal: snackbar.position.horizontal as "center"
                 }}
                 onClose={handleCloseSnackbar}
             />
-        </div>
+        </div >
     );
 };
 

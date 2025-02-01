@@ -7,10 +7,10 @@ const staffEndpoints = {
     getTimeTable: "/public/tt/byClass",
     getStudentsDetails: "/school/student",
     getStaffAttendance: "/staff/myAttendance/monthly",
-    getAnnouncements: "/staff/announcement",
+    Announcements: "/staff/announcement",
     getSubjectsOfStaff: "/staff/subjects/my-subjects",
     getStudentAttendance: "/staff/attendance/student",
-    getSections: "/global/sections",
+    getSections: "/school/sections",
     getClassesGeneral: "/staff/class/list",
     createUnitTest: "/staff/exam/unitExam",
     getAllUnitTests: "/staff/exam/unitExam",
@@ -18,11 +18,19 @@ const staffEndpoints = {
     cancelUnitTest: "/staff/exam/unitExam/cancel",
     completeUnitTest: "/staff/exam/unitExam/completed",
     postponeUnitTest: "/staff/exam/unitExam/postponed/indefinitely",
-    unitTestMark: "/staff/exam/unitExam/mark",
     getTeacherHomework: "/staff/homework/teacher",
     manageHomework: "/staff/homework",
     getProfileInfo: "/staff/profile",
     updateProfilePic: "/staff/profile-pic",
+    getMyClasses: "/staff/class/list",
+
+
+    getAllClasses: "/public/classSimpleList",
+    getAllStandards: "/public/standardSimpleList",
+    getAllGroups: "/public/groupsSimpleList",
+    getAllMediums: "/public/mediumSimpleList",
+    getAllSections: "/public/sectionsWithCode",
+    unitTestMark: "/staff/exam/unitExam/mark",
     getUnitTestMark: "/staff/exam/unitExam/mark",
     publishUnitTestMark:"/staff/exam/unitExam/status/publish"
     

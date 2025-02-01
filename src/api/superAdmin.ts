@@ -34,6 +34,7 @@ Api.interceptors.request.use(
 
 
 
+
 export const superLogin = async (body: { username: string, password: string }) => {
     try {
         const response = await Api.post(superAdminEndpoints.login, body);
@@ -1645,6 +1646,20 @@ export const updateSubjectAllocation = async (schoolPrefix: string, data: Subjec
             throw error;
         }
         console.error('Unexpected error:', error);
+        throw error;
+    }
+};
+
+
+export const getPrivileges = async (schoolPrefix: string) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.specialPrivilege}/privileges?school_prefix=${schoolPrefix}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching privileges:', error.response);
+            throw error;
+        }
         throw error;
     }
 };

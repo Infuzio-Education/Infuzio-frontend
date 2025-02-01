@@ -1,12 +1,19 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Privilege } from "../../../types/Types";
 
 interface StaffInfo {
-    username: string;
     token: string;
     staffID: number;
     name: string;
     idCardNumber: string | null;
     profilePicLink: string | null;
+    isTeachingStaff: boolean;
+    sectionIDs: number[];
+    schoolName: string;
+    schoolCode: string;
+    specialPrivileges: Privilege[];
+    isClassTeacher: boolean;
+    classTeacherClassID: number;
 }
 
 interface StaffState {
