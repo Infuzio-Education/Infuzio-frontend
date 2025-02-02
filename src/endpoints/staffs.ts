@@ -32,7 +32,10 @@ const staffEndpoints = {
     getAllSections: "/public/sectionsWithCode",
     unitTestMark: "/staff/exam/unitExam/mark",
     getUnitTestMark: "/staff/exam/unitExam/mark",
-    publishUnitTestMark:"/staff/exam/unitExam/status/publish"
+    publishUnitTestMark:"/staff/exam/unitExam/status/publish",
+
+    //term exam
+    getTermExams:"/staff/term/exam"
     
 };
 

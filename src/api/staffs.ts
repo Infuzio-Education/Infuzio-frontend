@@ -299,6 +299,8 @@ export const getSubjectsOfStaff = async () => {
 
 export const getClassesGeneral = async (params: {
     criteria: "all" | "all-in-my-sections" | "my-classes";
+    page?: number;
+    limit?: number;
 }) => {
     try {
         const response = await Api.get(staffEndpoints.getClassesGeneral, {
@@ -501,7 +503,6 @@ export const getHomeworkTeacher = async () => {
 
 export const getMyClasses = async () => {
     try {
-
         const response = await Api.get(staffEndpoints.getMyClasses, {
             params: {
                 criteria: "my-classes",
@@ -537,18 +538,24 @@ export const createAnnouncement = async (announcementData: {
 }) => {
     const formData = new FormData();
     formData.append("selectedCategory", announcementData.selectedCategory);
-    announcementData.categoryIDs.forEach((id) => formData.append("categoryIDs", id.toString()));
+    announcementData.categoryIDs.forEach((id) =>
+        formData.append("categoryIDs", id.toString())
+    );
     formData.append("title", announcementData.title);
     formData.append("body", announcementData.body);
     formData.append("authorRole", announcementData.authorRole);
     announcementData.files.forEach((file) => formData.append("files", file));
 
     try {
-        const response = await Api.post(staffEndpoints.Announcements, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
-        });
+        const response = await Api.post(
+            staffEndpoints.Announcements,
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }
+        );
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -561,16 +568,16 @@ export const createAnnouncement = async (announcementData: {
     }
 };
 
-
-
 export const getAllClassesInSchool = async (schoolPrefix: string) => {
     try {
-        const response = await Api.get(`${staffEndpoints.getAllClasses}?school_prefix=${schoolPrefix}`);
+        const response = await Api.get(
+            `${staffEndpoints.getAllClasses}?school_prefix=${schoolPrefix}`
+        );
         console.log("response1", response);
         return response;
     } catch (error) {
         if (axios.isAxiosError(error)) {
-            console.error('Error fetching privileges:', error.response);
+            console.error("Error fetching privileges:", error.response);
             throw error;
         }
         throw error;
@@ -589,14 +596,15 @@ export const updateHomework = async (data: Homework) => {
     }
 };
 
-
 export const getAllStandardsInSchool = async (schoolPrefix: string) => {
     try {
-        const response = await Api.get(`${staffEndpoints.getAllStandards}?school_prefix=${schoolPrefix}`);
+        const response = await Api.get(
+            `${staffEndpoints.getAllStandards}?school_prefix=${schoolPrefix}`
+        );
         return response;
     } catch (error) {
         if (axios.isAxiosError(error)) {
-            console.error('Error fetching privileges:', error.response);
+            console.error("Error fetching privileges:", error.response);
             throw error;
         }
         throw error;
@@ -619,11 +627,13 @@ export const deleteHomework = async (id: number) => {
 
 export const getAllGroupsInSchool = async (schoolPrefix: string) => {
     try {
-        const response = await Api.get(`${staffEndpoints.getAllGroups}?school_prefix=${schoolPrefix}`);
+        const response = await Api.get(
+            `${staffEndpoints.getAllGroups}?school_prefix=${schoolPrefix}`
+        );
         return response;
     } catch (error) {
         if (axios.isAxiosError(error)) {
-            console.error('Error fetching privileges:', error.response);
+            console.error("Error fetching privileges:", error.response);
             throw error;
         }
         throw error;
@@ -645,11 +655,13 @@ export const getProfileInfo = async () => {
 
 export const getAllMediumsInSchool = async (schoolPrefix: string) => {
     try {
-        const response = await Api.get(`${staffEndpoints.getAllMediums}?school_prefix=${schoolPrefix}`);
+        const response = await Api.get(
+            `${staffEndpoints.getAllMediums}?school_prefix=${schoolPrefix}`
+        );
         return response;
     } catch (error) {
         if (axios.isAxiosError(error)) {
-            console.error('Error fetching privileges:', error.response);
+            console.error("Error fetching privileges:", error.response);
             throw error;
         }
         throw error;
@@ -658,22 +670,27 @@ export const getAllMediumsInSchool = async (schoolPrefix: string) => {
 
 export const getAllSectionsInSchool = async (schoolPrefix: string) => {
     try {
-        const response = await Api.get(`${staffEndpoints.getAllSections}?school_prefix=${schoolPrefix}`);
+        const response = await Api.get(
+            `${staffEndpoints.getAllSections}?school_prefix=${schoolPrefix}`
+        );
         return response;
     } catch (error) {
         if (axios.isAxiosError(error)) {
-            console.error('Error fetching privileges:', error.response);
+            console.error("Error fetching privileges:", error.response);
             throw error;
         }
         throw error;
     }
 };
 
-
-
-export const deleteAnnouncement = async (announcementId: number, schoolPrefix: string) => {
+export const deleteAnnouncement = async (
+    announcementId: number,
+    schoolPrefix: string
+) => {
     try {
-        const response = await Api.delete(`${staffEndpoints.Announcements}/${announcementId}?school_prefix=${schoolPrefix}`);
+        const response = await Api.delete(
+            `${staffEndpoints.Announcements}/${announcementId}?school_prefix=${schoolPrefix}`
+        );
         return response.data;
     } catch (error) {
         console.error("Error deleting announcement:", error);
@@ -681,3 +698,21 @@ export const deleteAnnouncement = async (announcementId: number, schoolPrefix: s
     }
 };
 
+export const getTermExam = async (page: number = 1, limit: number = 20) => {
+    try {
+        const response = await Api.get(staffEndpoints?.getTermExams, {
+            params: {
+                page,
+                limit,
+            },
+        });
+
+        if (response?.data?.status) {
+            return response?.data?.data || [];
+        }
+        return [];
+    } catch (error) {
+        console.log("Error fetching term exam", error);
+        throw error;
+    }
+};
