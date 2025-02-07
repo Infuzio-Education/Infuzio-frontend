@@ -6,6 +6,7 @@ import SnackbarComponent from "../../components/SnackbarComponent";
 import { getWorkingDays, createWorkingDays, updateWorkingDays, deleteWorkingDays } from "../../api/superAdmin";
 import CreateWorkingDays from "./CreateWorkingDays";
 import { WorkingDay } from "../../types/Types";
+import { useSelector } from "react-redux";
 
 const ListWorkingDays: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -24,6 +25,11 @@ const ListWorkingDays: React.FC = () => {
         position: { vertical: "top" as const, horizontal: "center" as const },
     });
 
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
+    const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
+        (privilege: any) => privilege.privilege === "schoolAdmin"
+    );
+
     useEffect(() => {
         fetchWorkingDays();
     }, []);
@@ -32,7 +38,9 @@ const ListWorkingDays: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await getWorkingDays();
+            const response = await getWorkingDays(
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
             if (response.status === true && response.resp_code === "SUCCESS") {
                 setWorkingDayGroups(response.data);
             } else {
@@ -59,7 +67,11 @@ const ListWorkingDays: React.FC = () => {
     const handleSave = async (data: { group_name: string; days: number[] }) => {
         try {
             if (editingGroup) {
-                const response = await updateWorkingDays(editingGroup.id, data);
+                const response = await updateWorkingDays(
+                    editingGroup.id,
+                    data,
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status === true) {
                     await fetchWorkingDays();
                     setSnackbar({
@@ -70,7 +82,10 @@ const ListWorkingDays: React.FC = () => {
                     });
                 }
             } else {
-                const response = await createWorkingDays(data);
+                const response = await createWorkingDays(
+                    data,
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status === true) {
                     await fetchWorkingDays();
                     setSnackbar({
@@ -94,7 +109,10 @@ const ListWorkingDays: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            const response = await deleteWorkingDays(id);
+            const response = await deleteWorkingDays(
+                id,
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
             if (response.status === true) {
                 setWorkingDayGroups(prev => prev.filter(group => group.id !== id));
                 setSelectedGroups(prev => prev.filter(groupId => groupId !== id));

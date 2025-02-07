@@ -20,20 +20,20 @@ const CreateStandard: React.FC<CreateStandardProps> = ({
   const [name, setName] = useState("");
   const [hasGroup, setHasGroup] = useState(false);
   const [sectionId, setSectionId] = useState<number>(0);
-  const [sequenceNumber, setSequenceNumber] = useState<number|undefined>(undefined);
+  const [sequenceNumber, setSequenceNumber] = useState<number | undefined>(undefined);
 
   useEffect(() => {
-      if (initialData) {
-          setName(initialData.Name);
-          setHasGroup(initialData.HasGroup);
-          setSectionId(initialData.SectionId || 0);
-          setSequenceNumber(initialData.SequenceNumber || undefined);
-      } else {
-          setName('');
-          setHasGroup(false);
-          setSectionId(0);
-          setSequenceNumber(undefined);  // Changed from 0 to undefined
-      }
+    if (initialData) {
+      setName(initialData.Name);
+      setHasGroup(initialData.HasGroup);
+      setSectionId(initialData.SectionId || 0);
+      setSequenceNumber(initialData.SequenceNumber || undefined);
+    } else {
+      setName('');
+      setHasGroup(false);
+      setSectionId(0);
+      setSequenceNumber(undefined);  // Changed from 0 to undefined
+    }
   }, [initialData]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -64,10 +64,10 @@ const CreateStandard: React.FC<CreateStandardProps> = ({
             required
           >
             {(sections.length > 0) ? (sections?.map((section: Section) => (
-              <MenuItem key={section.ID} value={section.ID}>
-                {section.Name}
+              <MenuItem key={section.id} value={section.id}>
+                {section.name}
               </MenuItem>
-            )) ):(
+            ))) : (
               <MenuItem>No sections found</MenuItem>
             )}
           </Select>

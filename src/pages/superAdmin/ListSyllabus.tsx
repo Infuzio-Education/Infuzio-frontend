@@ -7,6 +7,7 @@ import { Syllabus } from '../../types/Types';
 import { getSyllabus, createSyllabus, deleteSyllabus, updateSyllabus } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { GlobalSyllabus } from '../../types/Types';
+import { useSelector } from 'react-redux';
 
 const ListSyllabus: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -25,6 +26,11 @@ const ListSyllabus: React.FC = () => {
         position: { vertical: 'top' as const, horizontal: 'center' as const }
     });
 
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
+    const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
+        (privilege: any) => privilege.privilege === "schoolAdmin"
+    );
+
     useEffect(() => {
         fetchSyllabuses();
     }, []);
@@ -33,7 +39,9 @@ const ListSyllabus: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await getSyllabus();
+            const response = await getSyllabus(
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
             if (response?.global && Array.isArray(response.global)) {
                 const formattedSyllabuses = response.global.map((syllabus: GlobalSyllabus) => ({
                     id: syllabus.id,
@@ -73,10 +81,12 @@ const ListSyllabus: React.FC = () => {
     const handleSave = async (syllabus: Syllabus) => {
         try {
             if (editingIndex !== null) {
-                // Update existing syllabus
-                const response = await updateSyllabus(syllabuses[editingIndex].id, syllabus.name);
+                const response = await updateSyllabus(
+                    syllabuses[editingIndex].id,
+                    syllabus.name,
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status === true) {
-                    // Update the state immediately with the new data
                     setSyllabuses(prevSyllabuses =>
                         prevSyllabuses.map(s =>
                             s.id === syllabuses[editingIndex].id
@@ -94,10 +104,12 @@ const ListSyllabus: React.FC = () => {
                     throw new Error(response.message || 'Failed to update syllabus');
                 }
             } else {
-                // Create new syllabus
-                const response = await createSyllabus(syllabus.name);
+                const response = await createSyllabus(
+                    syllabus.name,
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status === 200 || response.status === 201) {
-                    await fetchSyllabuses(); // Refresh the list for new creation
+                    await fetchSyllabuses();
                     setSnackbar({
                         open: true,
                         message: 'Syllabus created successfully!',
@@ -138,10 +150,12 @@ const ListSyllabus: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            const response = await deleteSyllabus(id);
+            const response = await deleteSyllabus(
+                id,
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
             if (response.status === true) {
-                setSyllabuses(syllabuses.filter(syllabus => syllabus.id !== id));
-                setSelectedSyllabuses(selectedSyllabuses.filter(syllabusId => syllabusId !== id));
+                setSyllabuses(syllabuses.filter(s => s.id !== id));
                 setSnackbar({
                     open: true,
                     message: 'Syllabus deleted successfully!',
@@ -153,22 +167,12 @@ const ListSyllabus: React.FC = () => {
             }
         } catch (error: any) {
             console.error('Error deleting syllabus:', error);
-
-            if (error.response?.status === 409 && error.response?.data?.resp_code === 'RECORD_IN_USE') {
-                setSnackbar({
-                    open: true,
-                    message: 'Cannot delete syllabus as it is being used by other records',
-                    severity: 'error',
-                    position: { vertical: 'top', horizontal: 'center' }
-                });
-            } else {
-                setSnackbar({
-                    open: true,
-                    message: error.response?.data?.error || 'Failed to delete syllabus',
-                    severity: 'error',
-                    position: { vertical: 'top', horizontal: 'center' }
-                });
-            }
+            setSnackbar({
+                open: true,
+                message: error.response?.data?.error || 'Failed to delete syllabus',
+                severity: 'error',
+                position: { vertical: 'top', horizontal: 'center' }
+            });
         }
     };
 

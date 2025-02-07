@@ -54,8 +54,6 @@ const ListStandards: React.FC = () => {
     }
   };
 
-
-
   const fetchStandards = async () => {
     setLoading(true);
     setError(null);
@@ -112,7 +110,7 @@ const ListStandards: React.FC = () => {
           hasGroup,
           sectionId,
           sequenceNumber
-        });
+        }, hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined);
 
         if (response.status && response.resp_code === "SUCCESS") {
           setStandards(prevStandards =>
@@ -143,7 +141,7 @@ const ListStandards: React.FC = () => {
           hasGroup,
           sectionId,
           sequenceNumber
-        });
+        }, hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined);
 
         if (response.status && response.resp_code === "CREATED") {
           // Use ID from response if available, otherwise generate a temporary one
@@ -225,7 +223,6 @@ const ListStandards: React.FC = () => {
     );
     setSelectAll(!selectAll);
   };
-
 
   const handleSelectStandard = (id: number) => {
     setSelectedStandards((prev) =>

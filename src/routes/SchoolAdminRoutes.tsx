@@ -17,6 +17,8 @@ import ManageSchool from "../pages/superAdmin/ManageSchool";
 import ListAcademicYears from "../pages/superAdmin/ListAcademicYears";
 import SubjectAllocation from "../pages/superAdmin/subjectAllocation";
 import SchoolProfiles from "../pages/superAdmin/SchoolProfiles";
+import ListReligions from "../pages/superAdmin/ListReligions";
+import ListCastes from "../pages/superAdmin/ListCastes";
 // import SchoolProfileWrapper from "../components/SchoolProfileWrapper";
 import Navbar from "../components/layouts/Navbar";
 
@@ -46,6 +48,8 @@ const SchoolAdminRoutes = () => {
                     <Route path=":schoolCode/academicYears" element={<ListAcademicYears />} />
                     <Route path=":schoolCode/grades" element={<ListGrades />} />
                     <Route path=":schoolCode/manage" element={<ManageSchool />} />
+                    <Route path=":schoolCode/religions" element={<ListReligions />} />
+                    <Route path=":schoolCode/castes" element={<ListCastes />} />
                     <Route path=":schoolCode/subjectAllocation" element={<SubjectAllocation />} />
                 </Route>
             </Route>

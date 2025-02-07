@@ -5,7 +5,8 @@ import Togglebar from '../../components/Togglebar';
 import CreateSubject from './CreateSubject';
 import { Subject } from '../../types/Types';
 import SnackbarComponent from '../../components/SnackbarComponent';
-import { createSubject, getSubjects, updateSubject, deleteSubject } from '../../api/superAdmin';
+import { createSubject, getSubjects, updateSubject, deleteSubject, getSchoolSubjects } from '../../api/superAdmin';
+import { useSelector } from 'react-redux';
 
 const ListSubjects: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -24,6 +25,10 @@ const ListSubjects: React.FC = () => {
         position: { vertical: 'top' as const, horizontal: 'center' as const }
     });
 
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
+    const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
+        (privilege: any) => privilege.privilege === "schoolAdmin"
+    );
 
     useEffect(() => {
         fetchSubjects();
@@ -33,7 +38,13 @@ const ListSubjects: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await getSubjects();
+            let response;
+            if (hasSchoolAdminPrivilege) {
+                response = await getSchoolSubjects(staffInfo?.schoolCode);
+            } else {
+                response = await getSubjects();
+            }
+
             if (response.status === true && response.resp_code === "SUCCESS") {
                 setSubjects(response.data);
             } else {
@@ -66,8 +77,12 @@ const ListSubjects: React.FC = () => {
     const handleSave = async (updatedSubject: Subject) => {
         try {
             if (editingSubject) {
-                // Update existing subject
-                const response = await updateSubject(editingSubject.id, updatedSubject.name, updatedSubject.code || '');
+                const response = await updateSubject(
+                    editingSubject.id,
+                    updatedSubject.name,
+                    updatedSubject.code || '',
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status === true) {
                     setSubjects(prevSubjects =>
                         prevSubjects.map(subject =>
@@ -90,8 +105,11 @@ const ListSubjects: React.FC = () => {
                     throw new Error(response.message || 'Failed to update subject');
                 }
             } else {
-                // Create new subject - now sending both name and code
-                const response = await createSubject(updatedSubject.name, updatedSubject.code || '');
+                const response = await createSubject(
+                    updatedSubject.name,
+                    updatedSubject.code || '',
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status === true) {
                     await fetchSubjects();
                     setSnackbar({
@@ -118,7 +136,10 @@ const ListSubjects: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            const response = await deleteSubject(id);
+            const response = await deleteSubject(
+                id,
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
             if (response.status === true) {
                 setSubjects(subjects.filter(subject => subject.id !== id));
                 setSelectedSubjects(selectedSubjects.filter(subjectId => subjectId !== id));

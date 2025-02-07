@@ -6,11 +6,10 @@ import CreateGrade from './CreateGrade';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { createGradeCategory, getGradeCategories, deleteGradeCategory, updateGradeCategory, getGradeBoundaries, createGradeBoundary, deleteGradeBoundary, updateGradeBoundary } from '../../api/superAdmin';
 import CreateBoundary from './CreateBoundary';
-import { useSchoolContext } from '../../contexts/SchoolContext';
 import { Grade, GradeSystem, GradeSnackbar } from '../../types/Types';
+import { useSelector } from 'react-redux';
 
 const ListGrades: React.FC = () => {
-    const { schoolInfo } = useSchoolContext();
     const [openModal, setOpenModal] = useState<boolean>(false);
     const [editingGrade, setEditingGrade] = useState<Grade | null>(null);
     const [grades, setGrades] = useState<Grade[]>([]);
@@ -31,6 +30,11 @@ const ListGrades: React.FC = () => {
     const [boundaries, setBoundaries] = useState<GradeSystem[]>([]);
     const [editingBoundary, setEditingBoundary] = useState<GradeSystem | null>(null);
 
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
+    const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
+        (privilege: any) => privilege.privilege === "schoolAdmin"
+    );
+
     useEffect(() => {
         fetchGrades();
     }, []);
@@ -39,7 +43,9 @@ const ListGrades: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await getGradeCategories();
+            const response = await getGradeCategories(
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
             if (response.status === true) {
                 setGrades(response.data);
             } else {
@@ -69,12 +75,12 @@ const ListGrades: React.FC = () => {
 
     const handleSave = async (name: string) => {
         try {
-            if (!schoolInfo.schoolPrefix) {
-                throw new Error("School prefix not found");
-            }
-
             if (editingGrade) {
-                const response = await updateGradeCategory(editingGrade.id, name, schoolInfo.schoolPrefix);
+                const response = await updateGradeCategory(
+                    editingGrade.id,
+                    name,
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status === true) {
                     setGrades(prevGrades => prevGrades.map(grade =>
                         grade.id === editingGrade.id ? { ...grade, name } : grade
@@ -89,7 +95,10 @@ const ListGrades: React.FC = () => {
                     throw new Error(response.message || 'Failed to update grade category');
                 }
             } else {
-                const response = await createGradeCategory(name, schoolInfo.schoolPrefix);
+                const response = await createGradeCategory(
+                    name,
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status === true) {
                     await fetchGrades();
                     setSnackbar({
@@ -115,11 +124,10 @@ const ListGrades: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            if (!schoolInfo.schoolPrefix) {
-                throw new Error("School prefix not found");
-            }
-
-            const response = await deleteGradeCategory(id, schoolInfo.schoolPrefix);
+            const response = await deleteGradeCategory(
+                id,
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
             if (response.status === true) {
                 setGrades(grades.filter(grade => grade.id !== id));
                 setSelectedGrades(selectedGrades.filter(gradeId => gradeId !== id));
@@ -160,11 +168,12 @@ const ListGrades: React.FC = () => {
         setSelectedGrade(grade);
         setShowBoundaries(true);
         try {
-            const response = await getGradeBoundaries(grade.id);
+            const response = await getGradeBoundaries(
+                grade.id,
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
             if (response.status && response.data) {
-                // Check if data exists and is an array
                 const boundaryData = Array.isArray(response.data) ? response.data : [];
-
                 const formattedBoundaries = boundaryData.map((boundary: any) => ({
                     id: boundary.id || boundary.ID,
                     category_id: boundary.category_id,
@@ -172,12 +181,11 @@ const ListGrades: React.FC = () => {
                     grade_label: boundary.grade_label,
                     is_failed: boundary.is_failed
                 }));
-
                 setBoundaries(formattedBoundaries);
             }
         } catch (error) {
             console.error('Error fetching boundaries:', error);
-            setBoundaries([]); // Set empty array on error
+            setBoundaries([]);
             setSnackbar({
                 open: true,
                 message: 'Failed to load grade boundaries',
@@ -199,10 +207,6 @@ const ListGrades: React.FC = () => {
         id?: number;
     }) => {
         try {
-            if (!schoolInfo.schoolPrefix) {
-                throw new Error("School prefix not found");
-            }
-
             let response;
             if (editingBoundary) {
                 response = await updateGradeBoundary({
@@ -211,12 +215,12 @@ const ListGrades: React.FC = () => {
                     base_percentage: boundaryData.base_percentage,
                     grade_label: boundaryData.grade_label,
                     is_failed: editingBoundary.is_failed || false
-                });
+                }, hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined);
             } else {
                 response = await createGradeBoundary({
                     ...boundaryData,
                     category_id: selectedGrade?.id || 0
-                }, schoolInfo.schoolPrefix);
+                }, hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined);
             }
 
             if (response.status) {
@@ -231,7 +235,10 @@ const ListGrades: React.FC = () => {
                 handleCloseModal();
 
                 if (selectedGrade) {
-                    const boundariesResponse = await getGradeBoundaries(selectedGrade.id);
+                    const boundariesResponse = await getGradeBoundaries(
+                        selectedGrade.id,
+                        hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                    );
                     if (boundariesResponse.status && boundariesResponse.data) {
                         const formattedBoundaries = boundariesResponse.data.map((boundary: any) => ({
                             id: boundary.id || boundary.ID,
@@ -256,7 +263,10 @@ const ListGrades: React.FC = () => {
 
     const handleDeleteBoundary = async (boundaryId: number) => {
         try {
-            const response = await deleteGradeBoundary(boundaryId);
+            const response = await deleteGradeBoundary(
+                boundaryId,
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
             if (response.status) {
                 setBoundaries(prev => prev.filter(boundary => boundary.id !== boundaryId));
                 setSnackbar({

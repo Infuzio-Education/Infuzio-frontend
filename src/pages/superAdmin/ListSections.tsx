@@ -6,6 +6,7 @@ import { Section } from '../../types/Types';
 import Togglebar from '../../components/Togglebar';
 import { createSections, getSections, updateSection, deleteSection } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
+import { useSelector } from 'react-redux';
 
 const ListSections: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -25,6 +26,11 @@ const ListSections: React.FC = () => {
         position: { vertical: 'top' as const, horizontal: 'center' as const }
     });
 
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
+    const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
+        (privilege: any) => privilege.privilege === "schoolAdmin"
+    );
+
     useEffect(() => {
         fetchSections();
     }, []);
@@ -32,7 +38,9 @@ const ListSections: React.FC = () => {
     const fetchSections = async () => {
         try {
             setLoading(true);
-            const response = await getSections();
+            const response = await getSections(
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
 
             if (response.status && response.resp_code === 'SUCCESS') {
                 const sectionsData = Array.isArray(response.data)
@@ -75,7 +83,11 @@ const ListSections: React.FC = () => {
     const handleSave = async (sectionData: { sectionName: string, sectionCode: string }) => {
         try {
             if (editingSection) {
-                const response = await updateSection(editingSection.id, sectionData);
+                const response = await updateSection(
+                    editingSection.id,
+                    sectionData,
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status && response.resp_code === 'SUCCESS') {
                     setSections(prevSections => prevSections.map(section =>
                         section.id === editingSection.id
@@ -97,40 +109,40 @@ const ListSections: React.FC = () => {
                     throw new Error(response.message || 'Failed to update section');
                 }
             } else {
-                const response = await createSections(sectionData);
+                const response = await createSections(
+                    sectionData,
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status && response.resp_code === 'SUCCESS') {
-                    const newSection: Section = {
-                        id: Date.now(),
-                        name: sectionData.sectionName,
-                        sectionCode: sectionData.sectionCode
-                    };
-                    setSections((prevSections) => [...prevSections, newSection]);
+                    await fetchSections();
                     setSnackbar({
                         open: true,
                         message: 'Section created successfully!',
                         severity: 'success',
                         position: { vertical: 'top', horizontal: 'center' }
                     });
-                    fetchSections();
                 } else {
                     throw new Error(response.message || 'Failed to create section');
                 }
             }
+            handleCloseModal();
         } catch (error: any) {
             console.error('Error creating/updating section:', error);
             setSnackbar({
                 open: true,
-                message: error.message || 'Failed to create/update section. Please try again.',
+                message: error.response?.data?.error || 'Failed to create/update section. Please try again.',
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'center' }
             });
         }
-        handleCloseModal();
     };
 
     const handleDelete = async (id: number) => {
         try {
-            const response = await deleteSection(id);
+            const response = await deleteSection(
+                id,
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
             if (response.status === true) {
                 setSections(sections.filter(section => section.id !== id));
                 setSelectedSections(selectedSections.filter(sectionId => sectionId !== id));
