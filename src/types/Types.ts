@@ -21,9 +21,9 @@ export interface SchoolFormData {
 }
 
 export interface Section {
-    ID: number;
-    Name: string;
-    SectionCode: string;
+    id: number;
+    name: string;
+    sectionCode: string;
 }
 
 export interface CreateSectionProps {

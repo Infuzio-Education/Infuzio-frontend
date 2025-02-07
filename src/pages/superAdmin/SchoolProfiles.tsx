@@ -2,16 +2,29 @@ import React from 'react';
 import { Users, GraduationCap, UserPlus, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSchoolContext } from '../../contexts/SchoolContext';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../redux/store/store';
 
 const SchoolProfiles: React.FC = () => {
     const navigate = useNavigate();
     const { schoolInfo } = useSchoolContext();
+    const staffInfo = useSelector((state: RootState) => state.staffInfo.staffInfo);
+    const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
+        (privilege) => privilege.privilege === "schoolAdmin"
+    );
 
     const stats = {
         totalStudents: 450,
         totalClasses: 15,
         totalParents: 420,
         totalStaffs: 35
+    };
+
+    const getNavigationPath = (route: string) => {
+        if (hasSchoolAdminPrivilege) {
+            return `/schoolAdmin/${schoolInfo.schoolPrefix}/${route}`;
+        }
+        return `/superAdmin/schools/${schoolInfo.schoolPrefix}/${route}`;
     };
 
     const cards = [
@@ -21,7 +34,7 @@ const SchoolProfiles: React.FC = () => {
             icon: <Users className="text-blue-600" size={24} />,
             bgColor: 'bg-blue-100',
             textColor: 'text-blue-600',
-            onClick: () => navigate(`/superAdmin/schools/${schoolInfo.schoolPrefix}/students`)
+            onClick: () => navigate(getNavigationPath('students'))
         },
         {
             title: 'Classes',
@@ -29,7 +42,7 @@ const SchoolProfiles: React.FC = () => {
             icon: <BookOpen className="text-green-600" size={24} />,
             bgColor: 'bg-green-100',
             textColor: 'text-green-600',
-            onClick: () => navigate(`/superAdmin/schools/${schoolInfo.schoolPrefix}/classes`)
+            onClick: () => navigate(getNavigationPath('classes'))
         },
         {
             title: 'Parents',
@@ -37,7 +50,7 @@ const SchoolProfiles: React.FC = () => {
             icon: <UserPlus className="text-purple-600" size={24} />,
             bgColor: 'bg-purple-100',
             textColor: 'text-purple-600',
-            onClick: () => navigate(`/superAdmin/schools/${schoolInfo.schoolPrefix}/parents`)
+            onClick: () => navigate(getNavigationPath('parents'))
         },
         {
             title: 'Staffs',
@@ -45,7 +58,7 @@ const SchoolProfiles: React.FC = () => {
             icon: <GraduationCap className="text-yellow-600" size={24} />,
             bgColor: 'bg-yellow-100',
             textColor: 'text-yellow-600',
-            onClick: () => navigate(`/superAdmin/schools/${schoolInfo.schoolPrefix}/staffs`)
+            onClick: () => navigate(getNavigationPath('staffs'))
         }
     ];
 

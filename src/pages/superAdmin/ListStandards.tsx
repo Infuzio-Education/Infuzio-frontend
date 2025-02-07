@@ -4,8 +4,9 @@ import { PlusCircle, Trash2 } from "lucide-react";
 import Togglebar from "../../components/Togglebar";
 import CreateStandard from "./CreateStandard";
 import SnackbarComponent from "../../components/SnackbarComponent";
-import { getStandards, createStandard, getSections, deleteStandard, updateStandard } from "../../api/superAdmin";
+import { getStandards, createStandard, getSections, deleteStandard, updateStandard, getSchoolStandards, getSchoolSections } from "../../api/superAdmin";
 import { Standard, Section } from "../../types/Types";
+import { useSelector } from "react-redux";
 
 const ListStandards: React.FC = () => {
   const [openModal, setOpenModal] = useState<boolean>(false);
@@ -25,15 +26,25 @@ const ListStandards: React.FC = () => {
     position: { vertical: "top" as const, horizontal: "center" as const },
   });
 
+  const { staffInfo } = useSelector((state: any) => state.staffInfo);
+
   useEffect(() => {
     fetchStandards();
     fetchSections();
   }, []);
 
+  const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
+    (privilege: any) => privilege.privilege === "schoolAdmin"
+  );
+
   const fetchSections = async () => {
     try {
-      const response = await getSections();
-      console.log('response:', response);
+      let response;
+      if (hasSchoolAdminPrivilege) {
+        response = await getSchoolSections(staffInfo?.schoolCode);
+      } else {
+        response = await getSections();
+      }
 
       if (response.status && response.resp_code === "SUCCESS") {
         setSections(response.data);
@@ -43,11 +54,18 @@ const ListStandards: React.FC = () => {
     }
   };
 
+
+
   const fetchStandards = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await getStandards();
+      let response;
+      if (hasSchoolAdminPrivilege) {
+        response = await getSchoolStandards("");
+      } else {
+        response = await getStandards();
+      }
 
       if (response.status && response.resp_code === "SUCCESS") {
         const sortedStandards = response.data.sort((a: Standard, b: Standard) =>
@@ -106,7 +124,7 @@ const ListStandards: React.FC = () => {
                   HasGroup: hasGroup,
                   SectionId: sectionId,
                   SequenceNumber: sequenceNumber,
-                  section: sections.find(s => s.ID === sectionId)?.Name || ''
+                  section: sections.find(s => s.id === sectionId)?.name || ''
                 }
                 : standard
             ).sort((a, b) => a.SequenceNumber - b.SequenceNumber)
@@ -136,7 +154,7 @@ const ListStandards: React.FC = () => {
             HasGroup: hasGroup,
             SectionId: sectionId,
             SequenceNumber: sequenceNumber,
-            section: sections.find(s => s.ID === sectionId)?.Name || '',
+            section: sections.find(s => s.id === sectionId)?.name || '',
           };
           setStandards((prevStandards) => {
             const updatedStandards = [...prevStandards, newStandard];
@@ -166,7 +184,8 @@ const ListStandards: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await deleteStandard(id);
+      const schoolPrefix = staffInfo?.schoolCode;
+      const response = await deleteStandard(id, hasSchoolAdminPrivilege ? schoolPrefix : undefined);
       if (response.status === true) {
         setStandards(standards.filter(standard => standard.ID !== id));
         setSelectedStandards(selectedStandards.filter(standardId => standardId !== id));
@@ -298,7 +317,7 @@ const ListStandards: React.FC = () => {
                   </td>
                   <td className="text-center">
                     <div className="text-sm font-medium text-gray-900">
-                      {sections?.find(s => s.ID === standard.SectionId)?.Name || ''}
+                      {sections?.find(s => s.id === standard.SectionId)?.name || ''}
                     </div>
                   </td>
                   <td className="text-center">

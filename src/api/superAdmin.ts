@@ -527,7 +527,6 @@ export const createClass = async (classData: any, schoolPrefix: string) => {
     try {
         console.log("classData", classData);
         const response = await Api.post(`${superAdminEndpoints.classes}?school_prefix=${schoolPrefix}`, classData);
-        // console.log("response", response);
         return response;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -625,9 +624,14 @@ export const deleteCaste = async (id: number) => {
     }
 };
 
-export const deleteStandard = async (id: number) => {
+export const deleteStandard = async (id: number, schoolPrefix?: string) => {
+    console.log("schoolPrefix", schoolPrefix);
     try {
-        const response = await Api.delete(`global/standard/${id}`);
+        let url = `${superAdminEndpoints.standards}/${id}?school_prefix=${schoolPrefix}`;
+        if (schoolPrefix) {
+            url = `${superAdminEndpoints.schoolStandards}/${id}`;
+        }
+        const response = await Api.delete(url);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
