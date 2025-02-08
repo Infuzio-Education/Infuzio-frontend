@@ -49,7 +49,7 @@ const UnitTests = () => {
     });
 
     const [page, setPage] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
+    const [hasMore,] = useState(true);
 
     useEffect(() => {
         const fetchClasses = async () => {
@@ -90,9 +90,10 @@ const UnitTests = () => {
                 page,
                 limit: 20,
             });
-            setUnitTests(fetchedUnitTests);
+            setUnitTests(fetchedUnitTests || []);
         } catch (error) {
             console.error("Error fetching unit tests:", error);
+            setUnitTests([]);
         }
     };
 
@@ -251,7 +252,7 @@ const UnitTests = () => {
 
             <div className="space-y-4 max-h-full overflow-y-auto">
                 <InfiniteScroll
-                    dataLength={unitTests?.length} //This is important field to render the next data
+                    dataLength={unitTests?.length || 0}
                     next={fetchmore}
                     hasMore={hasMore}
                     loader={<h4 style={{ textAlign: "center" }}>Loading...</h4>}
@@ -262,7 +263,7 @@ const UnitTests = () => {
                     }}
                 >
                     {" "}
-                    {unitTests.length === 0 ? (
+                    {unitTests && unitTests.length === 0 ? (
                         <EmptyState
                             icon={<BookOpenCheck size={48} />}
                             title="No Unit Tests Found"

@@ -27,9 +27,8 @@ const SchoolAdminRoutes = () => {
         <Routes>
             <Route element={<Sidebar />}>
                 <Route element={
-                    <div className="flex-1 ml-64">
+                    <div className="flex-1">
                         <Navbar />
-                        {/* <SchoolProfileWrapper /> */}
                     </div>
                 }>
                     <Route path=":schoolCode" element={<SchoolProfiles />} />

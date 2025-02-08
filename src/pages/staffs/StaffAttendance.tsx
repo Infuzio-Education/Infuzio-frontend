@@ -333,22 +333,21 @@ const StaffAttendance = () => {
                                                     value as AttendanceStatus
                                                 )
                                                     ? prev.filter(
-                                                          (s) => s !== value
-                                                      )
+                                                        (s) => s !== value
+                                                    )
                                                     : [
-                                                          ...prev,
-                                                          value as AttendanceStatus,
-                                                      ]
+                                                        ...prev,
+                                                        value as AttendanceStatus,
+                                                    ]
                                             );
                                         }}
                                         className={`px-3 py-1 rounded-full text-sm border
-                                        ${
-                                            filterStatus.includes(
-                                                value as AttendanceStatus
-                                            )
+                                        ${filterStatus.includes(
+                                            value as AttendanceStatus
+                                        )
                                                 ? `bg-${color}-100 border-${color}-500 text-${color}-700`
                                                 : "border-gray-300 hover:bg-gray-50"
-                                        }`}
+                                            }`}
                                     >
                                         {label}
                                     </button>

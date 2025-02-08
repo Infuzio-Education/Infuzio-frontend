@@ -11,6 +11,7 @@ import {
     Megaphone,
     User,
     ShieldCheck,
+    Calendar,
 } from "lucide-react";
 import { logout } from "../../redux/slices/staffSlice/staffSlice";
 import { updateStaffInfo } from "../../redux/slices/staffSlice/staffSlice";
@@ -32,10 +33,8 @@ const Sidebar: React.FC<SidebarProps> = () => {
 
     useEffect(() => {
         if (staffInfo) {
-            const { idCardNumber, name } = staffInfo;
-            if (idCardNumber && name) {
-                // No need to fetch again if staffInfo is already populated
-            } else {
+            const { regNumber, name } = staffInfo;
+            if (!regNumber && !name) {
                 fetchStaffInfo();
             }
         }
@@ -80,9 +79,9 @@ const Sidebar: React.FC<SidebarProps> = () => {
         (privilege) => privilege.privilege === "schoolAdmin"
     );
 
-
-    const isSchoolProfilesRoute = location.pathname.startsWith('/schoolAdmin/') &&
-        location.pathname.split('/').length >= 3;
+    const isTeachingStaff = staffInfo?.specialPrivileges?.some(
+        (privilege) => privilege.privilege === "teachingStaff"
+    );
 
     return (
         <div className="flex">
@@ -138,51 +137,65 @@ const Sidebar: React.FC<SidebarProps> = () => {
                             </span>
                         )}
                     </Link>
+                    {isTeachingStaff && (
+                        <>
+                            <Link
+                                to="/staffs/exams"
+                                className={`flex items-center mx-3 px-4 py-2.5 rounded-full transition-all duration-200 mt-1 ${isActiveLink("/staffs/exams")
+                                    ? "bg-emerald-700 text-white shadow-lg shadow-emerald-200"
+                                    : "text-gray-700 hover:bg-gray-100"
+                                    }`}
+                            >
+                                <span className="inline-flex items-center justify-center w-6">
+                                    <BookOpenCheck size={20} />
+                                </span>
+                                {!collapsed && (
+                                    <span className="ml-3 text-sm font-medium">Exams</span>
+                                )}
+                            </Link>
+                            <Link
+                                to="/staffs/unit-tests"
+                                className={`flex items-center mx-3 px-4 py-2.5 rounded-full transition-all duration-200 mt-1 ${isActiveLink("/staffs/unit-tests")
+                                    ? "bg-emerald-700 text-white shadow-lg shadow-emerald-200"
+                                    : "text-gray-700 hover:bg-gray-100"
+                                    }`}
+                            >
+                                <span className="inline-flex items-center justify-center w-6">
+                                    <FileText size={20} />
+                                </span>
+                                {!collapsed && (
+                                    <span className="ml-3 text-sm font-medium">Unit Tests</span>
+                                )}
+                            </Link>
+                            <Link
+                                to="/staffs/home-workouts"
+                                className={`flex items-center mx-3 px-4 py-2.5 rounded-full transition-all duration-200 mt-1 ${isActiveLink("/staffs/home-workouts")
+                                    ? "bg-emerald-700 text-white shadow-lg shadow-emerald-200"
+                                    : "text-gray-700 hover:bg-gray-100"
+                                    }`}
+                            >
+                                <span className="inline-flex items-center justify-center w-6">
+                                    <ListTodo size={20} />
+                                </span>
+                                {!collapsed && (
+                                    <span className="ml-3 text-sm font-medium">Home Workouts</span>
+                                )}
+                            </Link>
+                        </>
+                    )}
                     <Link
-                        to="/staffs/exams"
-                        className={`flex items-center mx-3 px-4 py-2.5 rounded-full transition-all duration-200 mt-1 ${isActiveLink("/staffs/exams")
+                        to="/staffs/attendance"
+                        className={`flex items-center mx-3 px-4 py-2.5 rounded-full transition-all duration-200 mt-1 ${location.pathname === "/staffs/attendance"
                             ? "bg-emerald-700 text-white shadow-lg shadow-emerald-200"
                             : "text-gray-700 hover:bg-gray-100"
                             }`}
                     >
                         <span className="inline-flex items-center justify-center w-6">
-                            <BookOpenCheck size={20} />
+                            <Calendar size={20} />
                         </span>
                         {!collapsed && (
                             <span className="ml-3 text-sm font-medium">
-                                Exams
-                            </span>
-                        )}
-                    </Link>
-                    <Link
-                        to="/staffs/unit-tests"
-                        className={`flex items-center mx-3 px-4 py-2.5 rounded-full transition-all duration-200 mt-1 ${isActiveLink("/staffs/unit-tests")
-                            ? "bg-emerald-700 text-white shadow-lg shadow-emerald-200"
-                            : "text-gray-700 hover:bg-gray-100"
-                            }`}
-                    >
-                        <span className="inline-flex items-center justify-center w-6">
-                            <FileText size={20} />
-                        </span>
-                        {!collapsed && (
-                            <span className="ml-3 text-sm font-medium">
-                                Unit Tests
-                            </span>
-                        )}
-                    </Link>
-                    <Link
-                        to="/staffs/home-workouts"
-                        className={`flex items-center mx-3 px-4 py-2.5 rounded-full transition-all duration-200 mt-1 ${isActiveLink("/staffs/home-workouts")
-                            ? "bg-emerald-700 text-white shadow-lg shadow-emerald-200"
-                            : "text-gray-700 hover:bg-gray-100"
-                            }`}
-                    >
-                        <span className="inline-flex items-center justify-center w-6">
-                            <ListTodo size={20} />
-                        </span>
-                        {!collapsed && (
-                            <span className="ml-3 text-sm font-medium">
-                                Home Workouts
+                                My Attendance
                             </span>
                         )}
                     </Link>
@@ -195,7 +208,9 @@ const Sidebar: React.FC<SidebarProps> = () => {
                                 : "text-gray-700 hover:bg-gray-100"
                                 }`}
                         >
-                            <ShieldCheck className="w-5 h-5 text-emerald-600" />
+                            <span className="inline-flex items-center justify-center w-6">
+                                <ShieldCheck size={20} />
+                            </span>
                             {!collapsed && <span className="ml-3">School Admin View</span>}
                         </Link>
                     )}
@@ -203,15 +218,10 @@ const Sidebar: React.FC<SidebarProps> = () => {
 
                 {/* Footer */}
                 <div className="absolute bottom-0 left-0 right-0 border-t bg-white">
-
-
-                    {!collapsed && (
-                        <div
-                            onClick={() => navigate("/staffs/profile")}
-                            className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                        >
+                    <div className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${collapsed ? 'flex justify-center' : ''}`}>
+                        <Link to="/staffs/profile">
                             <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                <div className={`${collapsed ? 'w-8 h-8' : 'w-8 h-8'} rounded-full bg-gray-200 flex items-center justify-center`}>
                                     {staffInfo?.profilePicLink ? (
                                         <img
                                             src={staffInfo.profilePicLink}
@@ -219,26 +229,24 @@ const Sidebar: React.FC<SidebarProps> = () => {
                                             className="w-full h-full rounded-full object-cover"
                                         />
                                     ) : (
-                                        <User
-                                            size={16}
-                                            className="text-gray-400"
-                                        />
+                                        <User size={16} className="text-gray-400" />
                                     )}
                                 </div>
-                                <div>
-                                    <p className="text-sm font-medium text-gray-700">
-                                        {staffInfo?.name || "Staff Name"}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        ID: {staffInfo?.idCardNumber || "#12345"}
-                                    </p>
-                                </div>
+                                {!collapsed && (
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-700">
+                                            {staffInfo?.name || "Staff Name"}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                            REG NO: {staffInfo?.regNumber || "#12345"}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    )}
+                        </Link>
+                    </div>
                     <button
-                        className={`w-full p-4 flex items-center text-red-500 hover:bg-gray-100 transition-colors ${collapsed ? "justify-center" : ""
-                            }`}
+                        className={`w-full p-4 flex items-center text-red-500 hover:bg-gray-100 transition-colors ${collapsed ? "justify-center" : ""}`}
                         onClick={handleLogout}
                     >
                         <LogOut size={20} />
@@ -247,8 +255,8 @@ const Sidebar: React.FC<SidebarProps> = () => {
                 </div>
             </div>
 
-            {/* Main content area - conditional margin for SchoolProfiles */}
-            <div className={`flex-1 ${isSchoolProfilesRoute ? 'ml-0' : collapsed ? 'ml-20' : 'ml-64'} 
+            {/* Main content area */}
+            <div className={`flex-1 ${collapsed ? 'ml-20' : 'ml-64'} 
                 min-h-screen flex flex-col transition-all duration-300`}>
                 <div className="flex-1 p-4 md:p-6 bg-[#E7E7E7] overflow-auto">
                     <Outlet />

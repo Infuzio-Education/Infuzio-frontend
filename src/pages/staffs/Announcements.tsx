@@ -75,12 +75,13 @@ const Announcements = () => {
     const [selectedOptions, setSelectedOptions] = useState<{ value: string; label: string }[]>([]);
     const [selectedClasses, setSelectedClasses] = useState<{ value: string; label: string }[]>([]);
 
+    console.log("Roles", selectedRole);
+
 
     const { staffInfo } = useSelector((state: RootState) => state.staffInfo);
-
     useEffect(() => {
         if (staffInfo?.specialPrivileges?.length === 1) {
-            setSelectedRole(staffInfo.specialPrivileges[0].alias);
+            setSelectedRole(staffInfo.specialPrivileges[0].privilege);
         }
     }, [staffInfo]);
 
