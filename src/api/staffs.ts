@@ -422,15 +422,66 @@ export const postponeUnitTest = async (unit_test_id: number) => {
     }
 };
 
-export const publishUnitTestmark = async (markPayload: TestMark[]) => {
+export const postUnitTestmark = async (markPayload: TestMark[]) => {
     try {
         const response = await Api.post(
-            staffEndpoints.publishUnitTestMark,
+            staffEndpoints.unitTestMark,
             markPayload?.map((item) => ({ ...item, IsAbsent: item?.isAbsent }))
         );
         return response.data;
     } catch (error) {
         console.error("Error postponing unit test:", error);
+        throw error;
+    }
+};
+
+export const getUnitTestMark = async (unit_test_id: number) => {
+    try {
+        const response = await Api.get(staffEndpoints?.getUnitTestMark, {
+            params: { unit_test_id },
+        });
+
+        if (response?.data && response?.data?.status === true) {
+            return response?.data?.data;
+        }
+        return [];
+    } catch (error) {
+        console.error("Error getting unit test mark:", error);
+        throw error;
+    }
+};
+
+export const publishUnitTestMark = async (unit_test_id: number) => {
+    try {
+        const response = await Api.patch(staffEndpoints?.publishUnitTestMark, {
+            unit_test_id,
+        });
+        if (response?.data && response?.data?.status === true) {
+            return response?.data?.data;
+        }
+        throw new Error("Cannot publish unit test mark");
+    } catch (error) {
+        console.error("Error getting profile info:", error);
+        throw error;
+    }
+};
+
+export const updateUnitTestMark = async (data: TestMark[]) => {
+    try {
+        const payload = [...data]?.map(
+            ({ unit_test_mark_id, mark, isAbsent }) => ({
+                unit_test_mark_id,
+                mark,
+                is_absent: isAbsent,
+            })
+        );
+        const response = await Api.patch(staffEndpoints?.unitTestMark, payload);
+        if (response?.data && response?.data?.status === true) {
+            return response?.data?.data;
+        }
+        throw new Error("Cannot publish unit test mark");
+    } catch (error) {
+        console.error("Error getting profile info:", error);
         throw error;
     }
 };

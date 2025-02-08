@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface SchoolAddress {
     street1: string;
     street2: string;
@@ -467,7 +468,7 @@ export interface ClassItem {
 export interface ClassesTabProps {
     setShowTimetable: (show: boolean) => void;
     selectedClass: ClassItem | null;
-    setSelectedClass: (cls: ClassItem | null) => void;
+    setSelectedClass: (cls: any) => void;
 }
 
 // Add these exam and attendance related interfaces
@@ -601,12 +602,15 @@ export interface UnitTest {
     class_id: number;
     portion_desc: string;
     date: string;
-    is_completed: boolean;
-    is_postponed_indefinitely: boolean;
     max_mark: number;
     pass_mark: number;
-    has_submitted_marks: boolean;
-    is_exam_cancelled: boolean;
+    is_mark_added: boolean;
+    status:
+        | "Completed"
+        | "Not started"
+        | "Cancelled"
+        | "Postponed Indefinitely"
+        | "Published";
     created_staff_id: number;
     FKSubjectID: {
         Name: string;
@@ -624,7 +628,7 @@ export interface StudentDetailsProps {
 // Add these interfaces for UnitTests
 export interface TestMark {
     student_id: string;
-    unit_test_id: number;
+    unit_test_mark_id: number;
     mark: number;
     isAbsent: boolean;
 }
@@ -730,9 +734,13 @@ export interface ChartData {
 
 // Add the StudentMark interface
 export interface StudentMark {
-    subjectId: number;
-    marks: number;
-    isAbsent: boolean;
+    name: string;
+    update_at: string;
+    student_id: number;
+    roll_number: number;
+    is_failed: boolean;
+    is_absent: boolean;
+    class_id: number;
 }
 
 export interface Student {

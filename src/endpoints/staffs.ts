@@ -15,10 +15,9 @@ const staffEndpoints = {
     createUnitTest: "/staff/exam/unitExam",
     getAllUnitTests: "/staff/exam/unitExam",
     updateUnitTest: "/staff/exam/unitExam/update",
-    cancelUnitTest: "/school/exam/unitExam/cancel",
+    cancelUnitTest: "/staff/exam/unitExam/cancel",
     completeUnitTest: "/staff/exam/unitExam/completed",
     postponeUnitTest: "/staff/exam/unitExam/postponed/indefinitely",
-    publishUnitTestMark: "/staff/exam/unitExam/mark",
     getTeacherHomework: "/staff/homework/teacher",
     manageHomework: "/staff/homework",
     getProfileInfo: "/staff/profile",
@@ -30,7 +29,11 @@ const staffEndpoints = {
     getAllStandards: "/public/standardSimpleList",
     getAllGroups: "/public/groupsSimpleList",
     getAllMediums: "/public/mediumSimpleList",
-    getAllSections: "/public/sectionsWithCode"
+    getAllSections: "/public/sectionsWithCode",
+    unitTestMark: "/staff/exam/unitExam/mark",
+    getUnitTestMark: "/staff/exam/unitExam/mark",
+    publishUnitTestMark:"/staff/exam/unitExam/status/publish"
+    
 };
 
 export default staffEndpoints;
