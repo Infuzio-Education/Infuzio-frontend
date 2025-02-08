@@ -6,6 +6,7 @@ import CreateReligion from './CreateReligion';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { Religion } from '../../types/Types';
 import { createReligion, getReligions, updateReligion, deleteReligion } from '../../api/superAdmin';
+import { useSelector } from 'react-redux';
 
 const ListReligions: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -24,6 +25,11 @@ const ListReligions: React.FC = () => {
         position: { vertical: 'top' as const, horizontal: 'center' as const }
     });
 
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
+    const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
+        (privilege: any) => privilege.privilege === "schoolAdmin"
+    );
+
     useEffect(() => {
         fetchReligions();
     }, []);
@@ -32,7 +38,9 @@ const ListReligions: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await getReligions();
+            const response = await getReligions(
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
             if (response.status === true) {
                 setReligions(response.data);
             } else {
@@ -62,8 +70,11 @@ const ListReligions: React.FC = () => {
     const handleSave = async (name: string) => {
         try {
             if (editingReligion) {
-                // Update existing religion
-                const response = await updateReligion(editingReligion.ID, name);
+                const response = await updateReligion(
+                    editingReligion.ID,
+                    name,
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status === true) {
                     setReligions(prevReligions => prevReligions.map(religion =>
                         religion.ID === editingReligion.ID ? { ...religion, Name: name } : religion
@@ -78,10 +89,12 @@ const ListReligions: React.FC = () => {
                     throw new Error(response.data);
                 }
             } else {
-                // Create new religion
-                const response = await createReligion(name);
+                const response = await createReligion(
+                    name,
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status === true) {
-                    await fetchReligions(); // Refresh the list instead of manually adding
+                    await fetchReligions();
                     setSnackbar({
                         open: true,
                         message: 'Religion created successfully!',
@@ -96,7 +109,7 @@ const ListReligions: React.FC = () => {
             console.error('Error creating/updating religion:', error);
             setSnackbar({
                 open: true,
-                message: 'Failed to create/update religion',
+                message: error.response?.data?.error || 'Failed to create/update religion',
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'center' }
             });
@@ -106,7 +119,10 @@ const ListReligions: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            const response = await deleteReligion(id);
+            const response = await deleteReligion(
+                id,
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
             if (response.status === true) {
                 setReligions(religions.filter(religion => religion.ID !== id));
                 setSelectedReligions(selectedReligions.filter(religionId => religionId !== id));

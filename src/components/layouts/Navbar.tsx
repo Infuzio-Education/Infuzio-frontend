@@ -5,20 +5,20 @@ import { logout } from '../../redux/slices/superAdminSlice/superAdminSlice';
 import Breadcrumbs from '../Breadcrumbs';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 
+
+
 const Navbar: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { superAdminInfo } = useSelector((state: any) => state.superAdminInfo);
     const { schoolInfo } = useSchoolContext();
-    console.log('superAdminInfo', superAdminInfo);
-    console.log('SchoolInfo in Navbar:', schoolInfo);
-
 
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isSchoolDropdownOpen, setIsSchoolDropdownOpen] = useState(false);
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const [schoolId, setSchoolId] = useState<string | null>(null);
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
 
     const toggleDropdown = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -27,6 +27,10 @@ const Navbar: React.FC = () => {
             setIsSchoolDropdownOpen(false);
         }
     };
+
+    const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
+        (privilege: any) => privilege.privilege === "schoolAdmin"
+    );
 
     const toggleSchoolDropdown = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -82,19 +86,24 @@ const Navbar: React.FC = () => {
     const isInSchoolContext = location.pathname.includes('/schools/') &&
         location.pathname.split('/').length > 3;
 
+    // Update the condition to show Schools nav for both school admin and super admin
+    const shouldShowSchoolsNav = isInSchoolContext || hasSchoolAdminPrivilege;
+
     return (
         <>
-            <nav className="bg-[#308369] fixed top-0 left-0 w-full z-50">
+            <nav className="bg-[#308369] sticky top-0 left-0 w-full z-50">
                 <div className="flex flex-wrap justify-between items-center mx-auto p-4">
                     <div className="flex flex-row space-x-8">
-                        <Link to="/superAdmin" className="flex items-center space-x-3 rtl:space-x-reverse">
-                            <img src="/infuzio-logo.png" className="h-8 w-auto" alt="School Admin Logo" />
-                        </Link>
+                        {!hasSchoolAdminPrivilege && (
+                            <Link to="/superAdmin" className="flex items-center space-x-3 rtl:space-x-reverse">
+                                <img src="/infuzio-logo.png" className="h-8 w-auto" alt="School Admin Logo" />
+                            </Link>
+                        )}
 
                         <div className="flex items-center">
                             <ul className="flex flex-row mt-0 space-x-8 text-sm">
-                                {/* Only show Schools nav when in school context */}
-                                {isInSchoolContext && (
+                                {/* Show Schools nav for both school admin and super admin */}
+                                {shouldShowSchoolsNav && (
                                     <li className="relative">
                                         <button
                                             onClick={toggleSchoolDropdown}
@@ -107,7 +116,9 @@ const Navbar: React.FC = () => {
                                                 <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Profiles</li>
                                                 <li>
                                                     <Link
-                                                        to={`/superAdmin/schools/${schoolInfo.schoolPrefix}/students`}
+                                                        to={hasSchoolAdminPrivilege
+                                                            ? `/schoolAdmin/${staffInfo?.schoolCode}/students`
+                                                            : `/superAdmin/schools/${schoolInfo.schoolPrefix}/students`}
                                                         className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                         onClick={handleLinkClick}
                                                     >
@@ -115,40 +126,76 @@ const Navbar: React.FC = () => {
                                                     </Link>
                                                 </li>
                                                 <li>
-                                                    <Link to={`/superAdmin/schools/${schoolId}/parents`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
+                                                    <Link
+                                                        to={hasSchoolAdminPrivilege
+                                                            ? `/schoolAdmin/${staffInfo?.schoolCode}/parents`
+                                                            : `/superAdmin/schools/${schoolId}/parents`}
+                                                        className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                        onClick={handleLinkClick}
+                                                    >
                                                         Parents
                                                     </Link>
                                                 </li>
                                                 <li>
-                                                    <Link to={`/superAdmin/schools/${schoolId}/staffs`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
+                                                    <Link
+                                                        to={hasSchoolAdminPrivilege
+                                                            ? `/schoolAdmin/${staffInfo?.schoolCode}/staffs`
+                                                            : `/superAdmin/schools/${schoolId}/staffs`}
+                                                        className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                        onClick={handleLinkClick}
+                                                    >
                                                         Staffs
                                                     </Link>
                                                 </li>
                                                 <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Manage school</li>
                                                 <li>
-                                                    <Link to={`/superAdmin/schools/${schoolId}/classes`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                    <Link
+                                                        to={hasSchoolAdminPrivilege
+                                                            ? `/schoolAdmin/${staffInfo?.schoolCode}/classes`
+                                                            : `/superAdmin/schools/${schoolId}/classes`}
+                                                        className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                    >
                                                         Classes
                                                     </Link>
                                                 </li>
                                                 <li>
-                                                    <Link to={`/superAdmin/schools/${schoolInfo.schoolPrefix}/roles`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
+                                                    <Link
+                                                        to={hasSchoolAdminPrivilege
+                                                            ? `/schoolAdmin/${staffInfo?.schoolCode}/roles`
+                                                            : `/superAdmin/schools/${schoolInfo.schoolPrefix}/roles`}
+                                                        className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                        onClick={handleLinkClick}
+                                                    >
                                                         Roles
                                                     </Link>
                                                 </li>
                                                 <li>
-                                                    <Link to={`/superAdmin/schools/${schoolId}/subjectAllocation`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                    <Link
+                                                        to={hasSchoolAdminPrivilege
+                                                            ? `/schoolAdmin/${staffInfo?.schoolCode}/subjectAllocation`
+                                                            : `/superAdmin/schools/${schoolId}/subjectAllocation`}
+                                                        className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                    >
                                                         Subject allocation
                                                     </Link>
                                                 </li>
                                                 <li>
-                                                    <Link to={`/superAdmin/schools/${schoolInfo.schoolPrefix}/academicYears`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
+                                                    <Link
+                                                        to={hasSchoolAdminPrivilege
+                                                            ? `/schoolAdmin/${staffInfo?.schoolCode}/academicYears`
+                                                            : `/superAdmin/schools/${schoolInfo.schoolPrefix}/academicYears`}
+                                                        className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                        onClick={handleLinkClick}
+                                                    >
                                                         Academic years
                                                     </Link>
                                                 </li>
-                                                <li>
-                                                    <Link to={`/superAdmin/schools/${schoolInfo.schoolPrefix}/manage`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
-                                                        School settings</Link>
-                                                </li>
+                                                {superAdminInfo && (
+                                                    <li>
+                                                        <Link to={`/superAdmin/schools/${schoolInfo.schoolPrefix}/manage`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                            School settings</Link>
+                                                    </li>
+                                                )}
                                             </ul>
                                         )}
                                     </li>
@@ -159,14 +206,16 @@ const Navbar: React.FC = () => {
                                         onClick={toggleDropdown}
                                         className="text-white hover:text-gray-200 focus:outline-none"
                                     >
-                                        Configurations
+                                        {hasSchoolAdminPrivilege ? "Configurations" : "Global configurations"}
                                     </button>
                                     {isDropdownOpen && (
                                         <ul className="absolute left-0 mt-2 w-64 bg-white shadow-md z-10 shadow-gray-400" onClick={(e) => e.stopPropagation()}>
                                             <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Standards</li>
                                             <li>
                                                 <Link
-                                                    to="/superAdmin/standards"
+                                                    to={hasSchoolAdminPrivilege
+                                                        ? `/schoolAdmin/${staffInfo?.schoolCode}/standards`
+                                                        : `/superAdmin/standards`}
                                                     className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                     onClick={handleLinkClick}
                                                 >
@@ -175,7 +224,9 @@ const Navbar: React.FC = () => {
                                             </li>
                                             <li>
                                                 <Link
-                                                    to="/superAdmin/groups"
+                                                    to={hasSchoolAdminPrivilege
+                                                        ? `/schoolAdmin/${staffInfo?.schoolCode}/groups`
+                                                        : `/superAdmin/groups`}
                                                     className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                     onClick={handleLinkClick}
                                                 >
@@ -183,44 +234,92 @@ const Navbar: React.FC = () => {
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link to="/superAdmin/mediums" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
+                                                <Link
+                                                    to={hasSchoolAdminPrivilege
+                                                        ? `/schoolAdmin/${staffInfo?.schoolCode}/mediums`
+                                                        : `/superAdmin/mediums`}
+                                                    className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                    onClick={handleLinkClick}
+                                                >
                                                     Mediums
                                                 </Link>
                                             </li>
                                             <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">Subjects</li>
                                             <li>
-                                                <Link to="/superAdmin/subjects" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
+                                                <Link
+                                                    to={hasSchoolAdminPrivilege
+                                                        ? `/schoolAdmin/${staffInfo?.schoolCode}/subjects`
+                                                        : `/superAdmin/subjects`}
+                                                    className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                    onClick={handleLinkClick}
+                                                >
                                                     Subjects
                                                 </Link>
                                             </li>
                                             <li className="px-4 py-1 bg-gray-100 font-semibold text-sm text-gray-400">School configuration</li>
                                             <li>
-                                                <Link to="/superAdmin/grades" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
+                                                <Link
+                                                    to={hasSchoolAdminPrivilege
+                                                        ? `/schoolAdmin/${staffInfo?.schoolCode}/grades`
+                                                        : `/superAdmin/grades`}
+                                                    className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                    onClick={handleLinkClick}
+                                                >
                                                     Grades
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link to="/superAdmin/workingDays" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
+                                                <Link
+                                                    to={hasSchoolAdminPrivilege
+                                                        ? `/schoolAdmin/${staffInfo?.schoolCode}/workingDays`
+                                                        : `/superAdmin/workingDays`}
+                                                    className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                    onClick={handleLinkClick}
+                                                >
                                                     Working days
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link to="/superAdmin/religions" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
+                                                <Link
+                                                    to={hasSchoolAdminPrivilege
+                                                        ? `/schoolAdmin/${staffInfo?.schoolCode}/religions`
+                                                        : `/superAdmin/religions`}
+                                                    className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                    onClick={handleLinkClick}
+                                                >
                                                     Religions
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link to="/superAdmin/castes" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
+                                                <Link
+                                                    to={hasSchoolAdminPrivilege
+                                                        ? `/schoolAdmin/${staffInfo?.schoolCode}/castes`
+                                                        : `/superAdmin/castes`}
+                                                    className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                    onClick={handleLinkClick}
+                                                >
                                                     Castes
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link to="/superAdmin/sections" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
+                                                <Link
+                                                    to={hasSchoolAdminPrivilege
+                                                        ? `/schoolAdmin/${staffInfo?.schoolCode}/sections`
+                                                        : `/superAdmin/sections`}
+                                                    className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                    onClick={handleLinkClick}
+                                                >
                                                     Sections
                                                 </Link>
                                             </li>
                                             <li>
-                                                <Link to="/superAdmin/syllabus" className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2" onClick={handleLinkClick}>
+                                                <Link
+                                                    to={hasSchoolAdminPrivilege
+                                                        ? `/schoolAdmin/${staffInfo?.schoolCode}/syllabus`
+                                                        : `/superAdmin/syllabus`}
+                                                    className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                    onClick={handleLinkClick}
+                                                >
                                                     Syllabuses
                                                 </Link>
                                             </li>
@@ -290,9 +389,11 @@ const Navbar: React.FC = () => {
                 </div>
             </nav >
 
-            <Breadcrumbs />
+            {!hasSchoolAdminPrivilege && (
+                <Breadcrumbs />
+            )}
 
-            <main className="pt-24">
+            <main className="flex-1">
                 <Outlet />
             </main>
         </>

@@ -105,13 +105,76 @@ const Exams = () => {
             name: "John Doe",
             rollNo: "001",
             marks: [
-                { subjectId: 1, marks: 0, isAbsent: false },  // Math marks pending
-                { subjectId: 2, marks: 78, isAbsent: false }, // Science marks added
-                { subjectId: 3, marks: 92, isAbsent: false },
-                { subjectId: 4, marks: 88, isAbsent: false },
-                { subjectId: 5, marks: 75, isAbsent: false },
-                { subjectId: 6, marks: 82, isAbsent: false },
-                { subjectId: 7, marks: 79, isAbsent: false },
+                {
+                    subjectId: 1, marks: 0, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },  // Math marks pending
+                {
+                    subjectId: 2, marks: 78, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                }, // Science marks added
+                {
+                    subjectId: 3, marks: 92, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 4, marks: 88, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 5, marks: 75, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 6, marks: 82, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 7, marks: 79, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
             ]
         },
         {
@@ -119,13 +182,76 @@ const Exams = () => {
             name: "Jane Smith",
             rollNo: "002",
             marks: [
-                { subjectId: 1, marks: 0, isAbsent: false },  // Math marks pending
-                { subjectId: 2, marks: 85, isAbsent: false }, // Science marks added
-                { subjectId: 3, marks: 88, isAbsent: false },
-                { subjectId: 4, marks: 90, isAbsent: false },
-                { subjectId: 5, marks: 87, isAbsent: false },
-                { subjectId: 6, marks: 84, isAbsent: false },
-                { subjectId: 7, marks: 86, isAbsent: false },
+                {
+                    subjectId: 1, marks: 0, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },  // Math marks pending
+                {
+                    subjectId: 2, marks: 85, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                }, // Science marks added
+                {
+                    subjectId: 3, marks: 88, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 4, marks: 90, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 5, marks: 87, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 6, marks: 84, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 7, marks: 86, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
             ]
         },
         {
@@ -133,13 +259,76 @@ const Exams = () => {
             name: "Mike Johnson",
             rollNo: "003",
             marks: [
-                { subjectId: 1, marks: 0, isAbsent: false },  // Math marks pending
-                { subjectId: 2, marks: 82, isAbsent: false }, // Science marks added
-                { subjectId: 3, marks: 85, isAbsent: false },
-                { subjectId: 4, marks: 76, isAbsent: false },
-                { subjectId: 5, marks: 80, isAbsent: false },
-                { subjectId: 6, marks: 88, isAbsent: false },
-                { subjectId: 7, marks: 84, isAbsent: false },
+                {
+                    subjectId: 1, marks: 0, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },  // Math marks pending
+                {
+                    subjectId: 2, marks: 82, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                }, // Science marks added
+                {
+                    subjectId: 3, marks: 85, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 4, marks: 76, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 5, marks: 80, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 6, marks: 88, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 7, marks: 84, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
             ]
         },
         {
@@ -147,13 +336,76 @@ const Exams = () => {
             name: "Sarah Williams",
             rollNo: "004",
             marks: [
-                { subjectId: 1, marks: 95, isAbsent: false },
-                { subjectId: 2, marks: 88, isAbsent: false },
-                { subjectId: 3, marks: 90, isAbsent: false },
-                { subjectId: 4, marks: 92, isAbsent: false },
-                { subjectId: 5, marks: 85, isAbsent: false },
-                { subjectId: 6, marks: 89, isAbsent: false },
-                { subjectId: 7, marks: 87, isAbsent: false },
+                {
+                    subjectId: 1, marks: 95, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 2, marks: 88, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 3, marks: 90, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 4, marks: 92, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 5, marks: 85, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 6, marks: 89, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
+                {
+                    subjectId: 7, marks: 87, isAbsent: false,
+                    name: '',
+                    update_at: '',
+                    student_id: 0,
+                    roll_number: 0,
+                    is_failed: false,
+                    is_absent: false,
+                    class_id: 0
+                },
             ]
         }
     ]);

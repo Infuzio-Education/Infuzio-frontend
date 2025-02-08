@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Privilege } from "../../../types/Types";
 
 interface StaffInfo {
+    regNumber: string | null;
     token: string;
     staffID: number;
     name: string;

@@ -582,8 +582,8 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                                                 </MenuItem>
                                             ) : (
                                                 sections.map((section: Section) => (
-                                                    <MenuItem key={section.ID} value={section.ID}>
-                                                        {section.Name}
+                                                    <MenuItem key={section.id} value={section.id}>
+                                                        {section.name}
                                                     </MenuItem>
                                                 ))
                                             )}

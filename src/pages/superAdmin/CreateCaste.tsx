@@ -2,18 +2,26 @@ import React, { useState, useEffect } from "react";
 import { TextField, Button, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent } from "@mui/material";
 import { CreateCasteProps, Religion } from "../../types/Types";
 import { getReligions } from "../../api/superAdmin";
+import { useSelector } from "react-redux";
 
 const CreateCaste: React.FC<CreateCasteProps> = ({ initialData, onSave, onCancel }) => {
-    const [name, setName] = useState("");
-    const [religionId, setReligionId] = useState<number | "">("");
+    const [name, setName] = useState(initialData?.Name || '');
+    const [religionId, setReligionId] = useState<number>(initialData?.ReligionID || 0);
     const [religions, setReligions] = useState<Religion[]>([]);
     const [error, setError] = useState("");
     const [religionError, setReligionError] = useState("");
 
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
+    const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
+        (privilege: any) => privilege.privilege === "schoolAdmin"
+    );
+
     useEffect(() => {
         const fetchReligions = async () => {
             try {
-                const response = await getReligions();
+                const response = await getReligions(
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status === true) {
                     setReligions(response.data);
                 }
@@ -23,15 +31,15 @@ const CreateCaste: React.FC<CreateCasteProps> = ({ initialData, onSave, onCancel
         };
 
         fetchReligions();
-    }, []);
+    }, [hasSchoolAdminPrivilege, staffInfo?.schoolCode]);
 
     useEffect(() => {
         if (initialData) {
             setName(initialData.Name || "");
-            setReligionId(initialData.ReligionID || "");
+            setReligionId(initialData.ReligionID || 0);
         } else {
             setName("");
-            setReligionId("");
+            setReligionId(0);
         }
     }, [initialData]);
 
@@ -49,7 +57,7 @@ const CreateCaste: React.FC<CreateCasteProps> = ({ initialData, onSave, onCancel
         }
 
         try {
-            onSave(name, religionId as number);
+            onSave(name, religionId);
         } catch (error: any) {
             console.error('Error creating caste:', error);
         }
@@ -65,9 +73,9 @@ const CreateCaste: React.FC<CreateCasteProps> = ({ initialData, onSave, onCancel
         }
     };
 
-    const handleReligionChange = (event: SelectChangeEvent<number | "">) => {
+    const handleReligionChange = (event: SelectChangeEvent<number>) => {
         const value = event.target.value;
-        setReligionId(value === "" ? "" : Number(value));
+        setReligionId(Number(value));
         setReligionError("");
     };
 
