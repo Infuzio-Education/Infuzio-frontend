@@ -6,13 +6,13 @@ import ExamCard from "../../components/Exams/ExamCard";
 import HeaderComponent from "../../components/Exams/HeaderComponent";
 import { message } from "antd";
 import { getClassesGeneral, getTermExam } from "../../api/staffs";
-import ClassCard from "../../components/Exams/ClassCard";
+import ClassCard, { ClassCardType } from "../../components/Exams/ClassCard";
 import SelectedClassComponent from "../../components/Exams/SelectedClassComponent";
 
 const Exams = () => {
     const [exams, setExams] = useState<Exam[]>([]);
 
-    const [classes, setClasses] = useState<Class[]>([]);
+    const [classes, setClasses] = useState<ClassCardType[]>([]);
 
     const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
     const [selectedClass, setSelectedClass] = useState<Class | null>(null);
@@ -74,7 +74,7 @@ const Exams = () => {
                         <ClassCard
                             key={cls?.id}
                             cls={cls}
-                            handleClick={() => setSelectedClass(cls)}
+                            handleClick={() => setSelectedClass(cls as unknown as Class)}
                         />
                     ))}
                 </div>

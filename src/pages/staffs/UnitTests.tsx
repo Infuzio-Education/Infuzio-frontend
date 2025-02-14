@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
 import { Plus, BookOpenCheck } from "lucide-react";
@@ -49,7 +49,7 @@ const UnitTests = () => {
     });
 
     const [page, setPage] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
+    const [hasMore] = useState(true);
 
     useEffect(() => {
         const fetchClasses = async () => {
