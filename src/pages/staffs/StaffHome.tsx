@@ -25,7 +25,6 @@ const StaffHome = () => {
     const tabs = [
         { id: "overview", label: "Overview", icon: <ChartLine size={18} /> },
         { id: "classes", label: "Classes", icon: <Users size={18} /> },
-        { id: "attendance", label: "My Attendance", icon: <Users size={18} /> },
     ];
 
     // Update renderContent to pass selectedClass props
@@ -82,10 +81,9 @@ const StaffHome = () => {
                                         setActiveTab(tab.id as TabType)
                                     }
                                     className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm
-                                        ${
-                                            activeTab === tab.id
-                                                ? "border-emerald-700 text-emerald-700"
-                                                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                                        ${activeTab === tab.id
+                                            ? "border-emerald-700 text-emerald-700"
+                                            : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                                         }`}
                                 >
                                     {tab.icon}

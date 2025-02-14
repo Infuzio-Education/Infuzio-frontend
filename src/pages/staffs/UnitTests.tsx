@@ -49,7 +49,7 @@ const UnitTests = () => {
     });
 
     const [page, setPage] = useState(1);
-    const [hasMore] = useState(true);
+    const [hasMore,] = useState(true);
 
     useEffect(() => {
         const fetchClasses = async () => {
@@ -90,9 +90,10 @@ const UnitTests = () => {
                 page,
                 limit: 20,
             });
-            setUnitTests(fetchedUnitTests);
+            setUnitTests(fetchedUnitTests || []);
         } catch (error) {
             console.error("Error fetching unit tests:", error);
+            setUnitTests([]);
         }
     };
 

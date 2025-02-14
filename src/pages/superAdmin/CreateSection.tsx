@@ -10,8 +10,8 @@ const CreateSection: React.FC<CreateSectionProps> = ({ initialData, onSave, onCa
 
     useEffect(() => {
         if (initialData) {
-            setName(initialData.Name);
-            setSectionCode(initialData.SectionCode);
+            setName(initialData.name);
+            setSectionCode(initialData.sectionCode);
         }
     }, [initialData]);
 

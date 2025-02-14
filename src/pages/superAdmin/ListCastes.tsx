@@ -6,6 +6,7 @@ import SnackbarComponent from '../../components/SnackbarComponent';
 import { Caste } from '../../types/Types';
 import { createCaste, getCastes, updateCaste, deleteCaste } from '../../api/superAdmin';
 import CreateCaste from './CreateCaste';
+import { useSelector } from 'react-redux';
 
 const ListCastes: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -24,7 +25,10 @@ const ListCastes: React.FC = () => {
         position: { vertical: 'top' as const, horizontal: 'center' as const }
     });
 
-    console.log("castes", castes);
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
+    const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
+        (privilege: any) => privilege.privilege === "schoolAdmin"
+    );
 
     useEffect(() => {
         fetchCastes();
@@ -35,14 +39,11 @@ const ListCastes: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await getCastes();
+            const response = await getCastes(
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
             if (response.status === true) {
-                const mappedCastes = response.data.map((item: any) => ({
-                    ID: item.ID,
-                    Name: item.Name,
-                    ReligionID: item.ReligionID
-                }));
-                setCastes(mappedCastes);
+                setCastes(response.data);
             } else {
                 throw new Error('Failed to fetch castes');
             }
@@ -70,7 +71,12 @@ const ListCastes: React.FC = () => {
     const handleSave = async (name: string, religion_id: number) => {
         try {
             if (editingCaste) {
-                const response = await updateCaste(editingCaste.ID, name, religion_id);
+                const response = await updateCaste(
+                    editingCaste.ID,
+                    name,
+                    religion_id,
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status === true) {
                     setCastes(prevCastes => prevCastes.map(caste =>
                         caste.ID === editingCaste.ID
@@ -87,14 +93,12 @@ const ListCastes: React.FC = () => {
                     throw new Error(response.data);
                 }
             } else {
-                const response = await createCaste({ Name: name, ReligionID: religion_id });
+                const response = await createCaste(
+                    { Name: name, ReligionID: religion_id },
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status === true) {
-                    const newCaste = {
-                        ID: response.data.id,
-                        Name: name,
-                        ReligionID: religion_id
-                    };
-                    setCastes(prevCastes => [...prevCastes, newCaste]);
+                    await fetchCastes();
                     setSnackbar({
                         open: true,
                         message: 'Caste created successfully!',
@@ -110,7 +114,7 @@ const ListCastes: React.FC = () => {
             console.error('Error creating/updating caste:', error);
             setSnackbar({
                 open: true,
-                message: error.message || 'Failed to create/update caste',
+                message: error.response?.data?.error || 'Failed to create/update caste',
                 severity: 'error',
                 position: { vertical: 'top', horizontal: 'center' }
             });
@@ -119,7 +123,10 @@ const ListCastes: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            const response = await deleteCaste(id);
+            const response = await deleteCaste(
+                id,
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
             if (response.status === true) {
                 setCastes(castes.filter(caste => caste.ID !== id));
                 setSelectedCastes(selectedCastes.filter(casteId => casteId !== id));

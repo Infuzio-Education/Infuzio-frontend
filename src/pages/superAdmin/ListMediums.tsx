@@ -3,9 +3,10 @@ import { Checkbox, Modal, Box, IconButton } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
 import Togglebar from '../../components/Togglebar';
 import CreateMedium from './CreateMedium';
-import { getMediums, createMediums, updateMediums, deleteMedium } from '../../api/superAdmin';
+import { getMediums, createMediums, updateMediums, deleteMedium, getSchoolMediums } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { Medium } from '../../types/Types';
+import { useSelector } from "react-redux";
 
 const ListMediums: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -24,6 +25,11 @@ const ListMediums: React.FC = () => {
         position: { vertical: 'top' as const, horizontal: 'center' as const }
     });
 
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
+    const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
+        (privilege: any) => privilege.privilege === "schoolAdmin"
+    );
+
     useEffect(() => {
         fetchMediums();
     }, []);
@@ -32,14 +38,21 @@ const ListMediums: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await getMediums();
-            if (response.status === true && Array.isArray(response.data)) {
+            let response;
+            if (hasSchoolAdminPrivilege) {
+                response = await getSchoolMediums(staffInfo?.schoolCode);
+            } else {
+                response = await getMediums();
+            }
+
+            if (response.status && response.resp_code === "SUCCESS") {
                 setMediums(response.data);
             } else {
-                throw new Error('Failed to fetch mediums');
+                throw new Error("Failed to fetch mediums");
             }
-        } catch (error) {
-            setError('Failed to load mediums. Please try again.');
+        } catch (err) {
+            setError("Failed to load mediums. Please try again.");
+            console.error(err);
         } finally {
             setLoading(false);
         }
@@ -62,7 +75,11 @@ const ListMediums: React.FC = () => {
     const handleSave = async (name: string) => {
         try {
             if (editingMedium) {
-                const response = await updateMediums(editingMedium.ID, name);
+                const response = await updateMediums(
+                    editingMedium.ID,
+                    name,
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status && response.resp_code === "SUCCESS") {
                     setMediums(prevMediums =>
                         prevMediums.map(medium =>
@@ -79,7 +96,10 @@ const ListMediums: React.FC = () => {
                     throw new Error(response.data || "Failed to update medium");
                 }
             } else {
-                const response = await createMediums(name);
+                const response = await createMediums(
+                    name,
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status && response.resp_code === "CREATED") {
                     await fetchMediums();
                     setSnackbar({
@@ -107,7 +127,10 @@ const ListMediums: React.FC = () => {
     const handleDelete = async (id: number) => {
         console.log('id', id);
         try {
-            const response = await deleteMedium(id);
+            const response = await deleteMedium(
+                id,
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
             if (response.status === true) {
                 setMediums(mediums.filter(medium => medium.ID !== id));
                 setSelectedMediums(selectedMediums.filter(mediumId => mediumId !== id));
@@ -153,7 +176,7 @@ const ListMediums: React.FC = () => {
     };
 
     const filteredMediums = mediums.filter(medium =>
-        medium.Name.toLowerCase().includes(searchTerm.toLowerCase())
+        (medium.Name || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -259,7 +282,7 @@ const ListMediums: React.FC = () => {
                     borderRadius: 2,
                 }}>
                     <CreateMedium
-                        initialData={editingMedium}
+                        initialData={editingMedium ? { ID: editingMedium.ID, Name: editingMedium.Name || '' } : null}
                         onSave={handleSave}
                         onCancel={handleCloseModal}
                     />

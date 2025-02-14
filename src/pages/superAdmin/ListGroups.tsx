@@ -3,9 +3,10 @@ import { Modal, Box, IconButton, Checkbox } from "@mui/material";
 import { PlusCircle, Trash2 } from "lucide-react";
 import Togglebar from "../../components/Togglebar";
 import SnackbarComponent from "../../components/SnackbarComponent";
-import { getGroups, createGroup, updateGroup, deleteGroup } from "../../api/superAdmin";
+import { getGroups, createGroup, updateGroup, deleteGroup, getSchoolGroups } from "../../api/superAdmin";
 import CreateGroup from "./CreateGroup";
 import { Group } from "../../types/Types";
+import { useSelector } from "react-redux";
 
 const ListGroups: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -23,6 +24,11 @@ const ListGroups: React.FC = () => {
     });
     const [editingGroup, setEditingGroup] = useState<Group | null>(null);
 
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
+    const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
+        (privilege: any) => privilege.privilege === "schoolAdmin"
+    );
+
     useEffect(() => {
         fetchGroups();
     }, []);
@@ -31,7 +37,13 @@ const ListGroups: React.FC = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await getGroups();
+            let response;
+            if (hasSchoolAdminPrivilege) {
+                response = await getSchoolGroups(staffInfo?.schoolCode);
+            } else {
+                response = await getGroups();
+            }
+
             if (response.status && response.resp_code === "SUCCESS") {
                 setGroups(response.data);
             } else {
@@ -62,7 +74,11 @@ const ListGroups: React.FC = () => {
     const handleSave = async (name: string) => {
         try {
             if (editingGroup) {
-                const response = await updateGroup(editingGroup.ID, name);
+                const response = await updateGroup(
+                    editingGroup.ID,
+                    name,
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status && response.resp_code === "SUCCESS") {
                     setGroups(prevGroups =>
                         prevGroups.map(group =>
@@ -79,7 +95,10 @@ const ListGroups: React.FC = () => {
                     throw new Error(response.data || "Failed to update group");
                 }
             } else {
-                const response = await createGroup(name);
+                const response = await createGroup(
+                    name,
+                    hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                );
                 if (response.status && response.resp_code === "CREATED") {
                     await fetchGroups();
                     setSnackbar({
@@ -106,7 +125,10 @@ const ListGroups: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            const response = await deleteGroup(id);
+            const response = await deleteGroup(
+                id,
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
             if (response.status === true) {
                 setGroups(groups.filter(group => group.ID !== id));
                 setSelectedGroups(selectedGroups.filter(groupId => groupId !== id));
@@ -154,8 +176,9 @@ const ListGroups: React.FC = () => {
         }
     };
 
+
     const filteredGroups = groups.filter((group) =>
-        group.Name.toLowerCase().includes(searchTerm.toLowerCase())
+        (group?.Name || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (

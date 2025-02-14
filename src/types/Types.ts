@@ -21,9 +21,9 @@ export interface SchoolFormData {
 }
 
 export interface Section {
-    ID: number;
-    Name: string;
-    SectionCode: string;
+    id: number;
+    name: string;
+    sectionCode: string;
 }
 
 export interface CreateSectionProps {
@@ -88,7 +88,7 @@ export interface CreateSyllabusProps {
 
 export interface Medium {
     ID: number;
-    Name: string;
+    Name: string | null;
 }
 
 export interface CreateMediumProps {
@@ -168,7 +168,7 @@ export interface CreateReligionProps {
 
 export interface Medium {
     ID: number;
-    Name: string;
+    Name: string | null;
 }
 
 export interface CreateMediumProps {

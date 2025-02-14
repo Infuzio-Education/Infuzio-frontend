@@ -9,6 +9,7 @@ import UnitTests from "../pages/staffs/UnitTests";
 import Exams from "../pages/staffs/Exams";
 import StaffProfile from "../pages/staffs/StaffProfile";
 import { StaffProtect } from "../components/PrivateRoute";
+import StaffAttendance from "../pages/staffs/StaffAttendance";
 
 const StaffRoutes = () => {
     return (
@@ -18,6 +19,7 @@ const StaffRoutes = () => {
                 <Route path="/" element={<StaffLayout />}>
                     <Route index element={<Navigate to="home" replace />} />
                     <Route path="home" element={<StaffHome />} />
+                    <Route path="attendance" element={<StaffAttendance />} />
                     <Route path="students" element={<StudentList />} />
                     <Route path="announcements" element={<Announcements />} />
                     <Route path="home-workouts" element={<HomeWorkouts />} />
