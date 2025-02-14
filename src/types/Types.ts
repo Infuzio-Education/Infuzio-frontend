@@ -687,7 +687,7 @@ export interface Exam {
     id: number;
     Name: string;
     AcademicYear: string;
-    CreatedBy: number;
+    created_by: number;
     UpdatedBy: number;
     Status: string;
     UpdateAt: string;

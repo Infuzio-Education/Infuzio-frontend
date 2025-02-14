@@ -1,17 +1,15 @@
-import { Subject } from "../../types/Types";
+import { SubjectExam } from "./ClassTeacherView";
 
 type PropType = {
-    subjects: any[];
-    setSelectedSubject: React.Dispatch<React.SetStateAction<Subject | null>>;
-    getSubjectMarkStatus: (
-        subjectId: number
-    ) => "pending" | "partial" | "complete";
-    selectedSubject: Subject | null;
+    subjects: SubjectExam[];
+    setSelectedSubject: React.Dispatch<
+        React.SetStateAction<SubjectExam | null>
+    >;
+    selectedSubject: SubjectExam | null;
 };
 const ClassTeacherSubjectSelectionTab = ({
     subjects,
     setSelectedSubject,
-    getSubjectMarkStatus,
     selectedSubject,
 }: PropType) => {
     return (
@@ -21,22 +19,22 @@ const ClassTeacherSubjectSelectionTab = ({
             </h3>
             <div className="flex flex-wrap gap-2">
                 {subjects.map((subject) => {
-                    const status = getSubjectMarkStatus(subject.id);
+                    const status = subject?.markEntryStatus;
                     return (
                         <button
-                            key={subject.id}
-                            onClick={() => setSelectedSubject(subject)}
+                            key={subject?.subjectId}
+                            onClick={() => setSelectedSubject({ ...subject })}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all
                                             flex items-center gap-2 
                                             ${
-                                                selectedSubject?.id ===
-                                                subject.id
+                                                selectedSubject?.subjectId ===
+                                                subject?.subjectId
                                                     ? "bg-emerald-100 text-emerald-700 border-2 border-emerald-200"
                                                     : "bg-gray-100 text-gray-700 hover:bg-gray-200 border-2 border-transparent"
                                             }`}
                         >
-                            <span>{subject.name}</span>
-                            {status === "pending" && (
+                            <span>{subject?.subjectName}</span>
+                            {status === "Pending" && (
                                 <span
                                     className="inline-flex items-center px-2 py-0.5 rounded-full text-xs 
                                             bg-amber-100 text-amber-700"
@@ -44,7 +42,7 @@ const ClassTeacherSubjectSelectionTab = ({
                                     Add Marks
                                 </span>
                             )}
-                            {status === "partial" && (
+                            {status === "Partial" && (
                                 <span
                                     className="inline-flex items-center px-2 py-0.5 rounded-full text-xs 
                                             bg-blue-100 text-blue-700"
@@ -52,7 +50,7 @@ const ClassTeacherSubjectSelectionTab = ({
                                     Partial
                                 </span>
                             )}
-                            {status === "complete" && (
+                            {status === "Completed" && (
                                 <span
                                     className="inline-flex items-center px-2 py-0.5 rounded-full text-xs 
                                             bg-emerald-100 text-emerald-700"
@@ -73,8 +71,8 @@ const ClassTeacherSubjectSelectionTab = ({
                     </div>
                     <div className="text-2xl font-bold text-amber-800 mt-1">
                         {
-                            subjects.filter(
-                                (s) => getSubjectMarkStatus(s.id) === "pending"
+                            subjects?.filter(
+                                (s) => s.markEntryStatus === "Pending"
                             ).length
                         }
                     </div>
@@ -85,8 +83,8 @@ const ClassTeacherSubjectSelectionTab = ({
                     </div>
                     <div className="text-2xl font-bold text-blue-800 mt-1">
                         {
-                            subjects.filter(
-                                (s) => getSubjectMarkStatus(s.id) === "partial"
+                            subjects?.filter(
+                                (s) => s.markEntryStatus === "Partial"
                             ).length
                         }
                     </div>
@@ -97,8 +95,8 @@ const ClassTeacherSubjectSelectionTab = ({
                     </div>
                     <div className="text-2xl font-bold text-emerald-800 mt-1">
                         {
-                            subjects.filter(
-                                (s) => getSubjectMarkStatus(s.id) === "complete"
+                            subjects?.filter(
+                                (s) => s.markEntryStatus === "Completed"
                             ).length
                         }
                     </div>

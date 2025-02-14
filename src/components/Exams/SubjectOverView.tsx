@@ -1,10 +1,20 @@
 import React from "react";
-import { ExamStudent, Subject } from "../../types/Types";
+import { StudentExam, SubjectExam } from "./ClassTeacherView";
+// import { ExamStudent, Subject } from "../../types/Types";
+
+
+// type Subject = {
+//     subjectName: string;
+//     maxMark: number;
+//     markEntryStatus: "Partial" | "Completed";
+// };
+
+// type SubjectsRecord = Record<string, Subject>;
 
 type PropType = {
-    subjects: Subject[];
-    setSelectedSubject: React.Dispatch<React.SetStateAction<Subject | null>>;
-    students: ExamStudent[];
+    subjects: SubjectExam[];
+    setSelectedSubject: React.Dispatch<React.SetStateAction<SubjectExam | null>>;
+    students: StudentExam[];
 };
 
 const SubjectOverView = ({
@@ -24,43 +34,42 @@ const SubjectOverView = ({
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Name
                             </th>
-                            {subjects.map((subject) => (
+                            {Object.values(subjects).map((subject, index) => (
                                 <th
-                                    key={subject.id}
+                                    key={index}
                                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
                                 >
-                                    {subject.name}
+                                    {subject.subjectName}
                                 </th>
                             ))}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                         {students.map((student) => (
-                            <tr key={student.id}>
+                            <tr key={student.rollNumber}>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {student.rollNo}
+                                    {student.rollNumber}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {student.name}
                                 </td>
-                                {subjects.map((subject) => {
-                                    const mark = student.marks.find(
-                                        (m) => m.subjectId === subject.id
-                                    );
-                                    return (
-                                        <td
-                                            key={subject.id}
-                                            className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 cursor-pointer hover:bg-gray-50"
-                                            onClick={() =>
-                                                setSelectedSubject(subject)
-                                            }
-                                        >
-                                            {mark?.isAbsent
-                                                ? "Absent"
-                                                : mark?.marks || "-"}
-                                        </td>
-                                    );
-                                })}
+                                {Object.entries(subjects).map(
+                                    ([subjectId, subject]) => {
+                                        const mark =
+                                            student?.subjectMarks?.[subjectId];
+                                        return (
+                                            <td
+                                                key={subjectId}
+                                                className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 cursor-pointer hover:bg-gray-50"
+                                                onClick={() =>
+                                                    setSelectedSubject(subject)
+                                                }
+                                            >
+                                                {mark  ? mark : "-"}
+                                            </td>
+                                        );
+                                    }
+                                )}
                             </tr>
                         ))}
                     </tbody>

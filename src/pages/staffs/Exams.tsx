@@ -48,7 +48,7 @@ const Exams = () => {
         }
     };
 
-    return selectedClass ? (
+    return selectedClass && selectedExam ? (
         <SelectedClassComponent
             selectedExam={selectedExam}
             selectedClass={selectedClass}

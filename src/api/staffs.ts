@@ -716,3 +716,106 @@ export const getTermExam = async (page: number = 1, limit: number = 20) => {
         throw error;
     }
 };
+
+export const getSubjects = async (params: {
+    staffID: number;
+    classID: number;
+    termExamSubjectsOnly?: boolean;
+    page?: number;
+    limit?: number;
+}) => {
+    try {
+        const response = await Api.get(staffEndpoints?.getSubjects, {
+            params: {
+                ...params,
+                page: params?.page || 1,
+                limit: params?.limit || 20,
+            },
+        });
+
+        if (response?.data?.status) {
+            return response?.data?.data || [];
+        }
+        return [];
+    } catch (error) {
+        console.log("Error fetching subjects", error);
+        throw error;
+    }
+};
+
+export const getTermExamMarksForClassTeacher = async (
+    term_exam_id: number,
+    class_id: number
+) => {
+    try {
+        const response = await Api.get(
+            staffEndpoints?.getTermExamMarksForClassTeacher,
+            {
+                params: { term_exam_id, class_id },
+            }
+        );
+
+        if (response?.data?.status) {
+            return response.data.data;
+        }
+        return null;
+    } catch (error) {
+        console.log("Error fetching subjects", error);
+        throw error;
+    }
+};
+
+export const getTermExamMarkClasswise = async (
+    term_exam_id: number,
+    class_id: number,
+    subject_id: number
+) => {
+    try {
+        const response = await Api.get(
+            staffEndpoints?.getClasswiseTermExamMark,
+            {
+                params: {
+                    term_exam_id,
+                    class_id,
+                    subject_id,
+                },
+            }
+        );
+
+        if (response?.data?.status) {
+            console.log(response?.data);
+
+            return response?.data?.data || [];
+        }
+        return [];
+    } catch (error) {
+        console.log("Error fetching subjects", error);
+        throw error;
+    }
+};
+
+export const postTermExamMark = async (
+    payload: {
+        student_id: number;
+        term_exam_subject_id: number;
+        obtained_mark: number;
+        is_absent: boolean;
+    }[]
+) => {
+    try {
+        const response = await Api.put(
+            staffEndpoints?.postTermExamMark,
+            payload
+        );
+
+        if (response?.data?.status) {
+            console.log(response?.data);
+
+            return response?.data?.data || [];
+        }
+        return [];
+    } catch (error) {
+        console.log("Error fetching subjects", error);
+        throw error;
+    }
+};
