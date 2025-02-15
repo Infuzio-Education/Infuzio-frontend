@@ -24,7 +24,6 @@ const staffEndpoints = {
     updateProfilePic: "/staff/profile-pic",
     getMyClasses: "/staff/class/list",
 
-
     getAllClasses: "/public/classSimpleList",
     getAllStandards: "/public/standardSimpleList",
     getAllGroups: "/public/groupsSimpleList",
@@ -32,8 +31,14 @@ const staffEndpoints = {
     getAllSections: "/public/sectionsWithCode",
     unitTestMark: "/staff/exam/unitExam/mark",
     getUnitTestMark: "/staff/exam/unitExam/mark",
-    publishUnitTestMark:"/staff/exam/unitExam/status/publish"
-    
+    publishUnitTestMark: "/staff/exam/unitExam/status/publish",
+
+    //term exam
+    getTermExams: "/staff/term/exam",
+    getSubjects: "/staff/subjects/class",
+    getTermExamMarksForClassTeacher: "/staff/term/exam/mark/class",
+    getClasswiseTermExamMark:"/staff/term/exam/mark/class-wise-subject-marks",
+    postTermExamMark:"/staff/term/exam/mark"
 };
 
 export default staffEndpoints;

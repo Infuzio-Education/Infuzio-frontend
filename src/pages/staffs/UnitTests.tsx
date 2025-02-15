@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
 import { Plus, BookOpenCheck } from "lucide-react";
@@ -252,7 +252,7 @@ const UnitTests = () => {
 
             <div className="space-y-4 max-h-full overflow-y-auto">
                 <InfiniteScroll
-                    dataLength={unitTests?.length || 0}
+                    dataLength={unitTests?.length} //This is important field to render the next data
                     next={fetchmore}
                     hasMore={hasMore}
                     loader={<h4 style={{ textAlign: "center" }}>Loading...</h4>}
@@ -263,7 +263,7 @@ const UnitTests = () => {
                     }}
                 >
                     {" "}
-                    {unitTests && unitTests.length === 0 ? (
+                    {unitTests.length === 0 ? (
                         <EmptyState
                             icon={<BookOpenCheck size={48} />}
                             title="No Unit Tests Found"

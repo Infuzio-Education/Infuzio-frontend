@@ -684,12 +684,12 @@ export interface StudentListProps {
 
 // Add these interfaces for Exams
 export interface Exam {
-    ID: number;
+    id: number;
     Name: string;
     AcademicYear: string;
-    CreatedBy: number;
+    created_by: number;
     UpdatedBy: number;
-    gradeSystemId: number;
+    Status: string;
     UpdateAt: string;
     CreatedAt: string;
     subjectMaxMarks?: SubjectMaxMarks[];
@@ -990,7 +990,6 @@ interface FileLink {
     link: string;
     fileType: "Image" | "Document" | "Audio" | "Video";
 }
-
 
 export interface Privilege {
     privilege: string;
