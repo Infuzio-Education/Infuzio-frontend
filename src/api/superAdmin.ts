@@ -1052,9 +1052,9 @@ export const getPrivilegedStaff = async (schoolPrefix: string) => {
 // Add these functions
 export const getGradeCategories = async (schoolPrefix?: string) => {
     try {
-        let url = superAdminEndpoints.gradeCategory;
+        let url = superAdminEndpoints.schoolGradeCategory;
         if (schoolPrefix) {
-            url = `${superAdminEndpoints.schoolGradeCategory}?school_prefix=${schoolPrefix}`;
+            url = `${superAdminEndpoints.gradeCategory}?school_prefix=${schoolPrefix}`;
         }
         const response = await Api.get(url);
         return response.data;
@@ -1313,7 +1313,7 @@ export const getAcademicYears = async (schoolPrefix: string) => {
 };
 
 // Add these functions for academic year operations
-export const createAcademicYear = async (data: { name: string, isCurrent: boolean }, schoolPrefix: string) => {
+export const createAcademicYear = async (data: { name: string, is_current: boolean }, schoolPrefix: string) => {
     try {
         const response = await Api.post(`${superAdminEndpoints.academicYear}?school_prefix=${schoolPrefix}`, data);
         return response.data;
@@ -1326,7 +1326,7 @@ export const createAcademicYear = async (data: { name: string, isCurrent: boolea
     }
 };
 
-export const updateAcademicYear = async (id: number, data: { name: string, isCurrent: boolean }, schoolPrefix: string) => {
+export const updateAcademicYear = async (id: number, data: { name: string }, schoolPrefix: string) => {
     try {
         const response = await Api.put(`${superAdminEndpoints.academicYear}/${id}?school_prefix=${schoolPrefix}`, data);
         return response.data;
@@ -1790,6 +1790,93 @@ export const getPrivileges = async (schoolPrefix: string) => {
 };
 
 
+export const createTermExam = async (data: { Name: string; AcademicYear: number }) => {
+    try {
+        const response = await Api.post(superAdminEndpoints.termExams, data);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error creating term exam:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
 
+export const getTermExams = async () => {
+    try {
+        const response = await Api.get(superAdminEndpoints.termExams);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching term exams:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
 
+export const updateTermExam = async (data: { id: number; Name: string; AcademicYearID: number }) => {
+    try {
+        const response = await Api.patch(`${superAdminEndpoints.termExams}`, data);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating term exam:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
 
+export const deleteTermExam = async (id: number) => {
+    try {
+        const response = await Api.delete(`${superAdminEndpoints.termExams}?term_exam_id=${id}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error deleting term exam:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const getTermExamsStandards = async (termExamId: number) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.termExams}/standard?term_exam_id=${termExamId}&page=1&limit=100`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching term exams standards:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const addTermExamStandard = async (data: { term_exam_id: number; grade_type_id: number; standard_id: number }) => {
+    try {
+        const response = await Api.post(`${superAdminEndpoints.termExams}/standard`, data);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error adding term exam standard:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const removeTermExamStandard = async (term_exam_standard_id: number) => {
+    try {
+        const response = await Api.delete(`${superAdminEndpoints.termExams}/standard?term_exam_standard_id=${term_exam_standard_id}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error removing term exam standard:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};

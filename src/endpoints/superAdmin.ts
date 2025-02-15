@@ -33,6 +33,7 @@ const superAdminEndpoints = {
     classes: 'school/class',
     specialPrivilege: 'school/special-privilege',
     subjectAllocation: 'school/subjectallocation',
+    academicYear: 'school/academic-year',
 
     // Manage school
     school: 'manage-school',
@@ -41,7 +42,9 @@ const superAdminEndpoints = {
     studentLimit: 'manage-school/student-limit',
     syllabusConnection: 'manage-school/syllabus-connection',
 
-    academicYear: 'school/academic-year',
+
+    // School Admin
+    termExams: 'school-admin/term/exam',
 };
 
 export default superAdminEndpoints;

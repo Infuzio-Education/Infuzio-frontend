@@ -169,6 +169,32 @@ const Navbar: React.FC = () => {
                                                         Roles
                                                     </Link>
                                                 </li>
+                                                {!superAdminInfo && (
+                                                    <>
+                                                        <li>
+                                                            <Link
+                                                                to={hasSchoolAdminPrivilege
+                                                                    ? `/schoolAdmin/${staffInfo?.schoolCode}/termExams`
+                                                                    : `/superAdmin/schools/${schoolInfo.schoolPrefix}/termExams`}
+                                                                className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                                onClick={handleLinkClick}
+                                                            >
+                                                                Term exams
+                                                            </Link>
+                                                        </li>
+                                                        <li>
+                                                            <Link
+                                                                to={hasSchoolAdminPrivilege
+                                                                    ? `/schoolAdmin/${staffInfo?.schoolCode}/timetables`
+                                                                    : `/superAdmin/schools/${schoolInfo.schoolPrefix}/timetables`}
+                                                                className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
+                                                                onClick={handleLinkClick}
+                                                            >
+                                                                Time tables
+                                                            </Link>
+                                                        </li>
+                                                    </>
+                                                )}
                                                 <li>
                                                     <Link
                                                         to={hasSchoolAdminPrivilege

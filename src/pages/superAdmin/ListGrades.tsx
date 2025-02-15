@@ -4,7 +4,7 @@ import { PlusCircle, Trash2, Edit2 } from "lucide-react";
 import Togglebar from '../../components/Togglebar';
 import CreateGrade from './CreateGrade';
 import SnackbarComponent from '../../components/SnackbarComponent';
-import { createGradeCategory, getGradeCategories, deleteGradeCategory, updateGradeCategory, getGradeBoundaries, createGradeBoundary, deleteGradeBoundary, updateGradeBoundary } from '../../api/superAdmin';
+import { createGradeCategory, deleteGradeCategory, updateGradeCategory, getGradeBoundaries, createGradeBoundary, deleteGradeBoundary, updateGradeBoundary, getGradeCategories } from '../../api/superAdmin';
 import CreateBoundary from './CreateBoundary';
 import { Grade, GradeSystem, GradeSnackbar } from '../../types/Types';
 import { useSelector } from 'react-redux';
@@ -44,7 +44,7 @@ const ListGrades: React.FC = () => {
         setError(null);
         try {
             const response = await getGradeCategories(
-                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+                hasSchoolAdminPrivilege ? undefined : staffInfo?.schoolCode
             );
             if (response.status === true) {
                 setGrades(response.data);

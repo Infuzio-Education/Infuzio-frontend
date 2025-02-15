@@ -606,11 +606,11 @@ export interface UnitTest {
     pass_mark: number;
     is_mark_added: boolean;
     status:
-        | "Completed"
-        | "Not started"
-        | "Cancelled"
-        | "Postponed Indefinitely"
-        | "Published";
+    | "Completed"
+    | "Not started"
+    | "Cancelled"
+    | "Postponed Indefinitely"
+    | "Published";
     created_staff_id: number;
     FKSubjectID: {
         Name: string;
@@ -1002,4 +1002,26 @@ export interface PrivilegedStaffResponse {
     idCardNumber: string;
     mobile: string;
     specialPrivileges: Privilege[];
+}
+
+export interface TermExam {
+    id: number;
+    Name: string;
+    AcademicYear: string;
+    Status: string;
+    CreatedAt: string;
+}
+
+export interface AcademicYear {
+    id: number;
+    name: string;
+    is_current: boolean;
+}
+
+export interface TermExamStandard {
+    id: number;
+    term_exam_id: number;
+    grade_type_id: number;
+    grade_name: string;
+    standard_name: string;
 }

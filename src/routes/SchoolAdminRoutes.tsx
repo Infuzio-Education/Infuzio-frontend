@@ -21,6 +21,7 @@ import ListReligions from "../pages/superAdmin/ListReligions";
 import ListCastes from "../pages/superAdmin/ListCastes";
 // import SchoolProfileWrapper from "../components/SchoolProfileWrapper";
 import Navbar from "../components/layouts/Navbar";
+import ListTermExams from "../pages/superAdmin/ListTermExams";
 
 const SchoolAdminRoutes = () => {
     return (
@@ -50,6 +51,8 @@ const SchoolAdminRoutes = () => {
                     <Route path=":schoolCode/religions" element={<ListReligions />} />
                     <Route path=":schoolCode/castes" element={<ListCastes />} />
                     <Route path=":schoolCode/subjectAllocation" element={<SubjectAllocation />} />
+                    <Route path=":schoolCode/termExams" element={<ListTermExams />} />
+                    {/* <Route path=":schoolCode/timetables" element={<Timetables />} /> */}
                 </Route>
             </Route>
         </Routes>
