@@ -19,10 +19,9 @@ import SubjectAllocation from "../pages/superAdmin/subjectAllocation";
 import SchoolProfiles from "../pages/superAdmin/SchoolProfiles";
 import ListReligions from "../pages/superAdmin/ListReligions";
 import ListCastes from "../pages/superAdmin/ListCastes";
-// import SchoolProfileWrapper from "../components/SchoolProfileWrapper";
 import Navbar from "../components/layouts/Navbar";
 import ListTermExams from "../pages/superAdmin/ListTermExams";
-
+import ListTimetable from "../pages/superAdmin/ListTimetable";
 const SchoolAdminRoutes = () => {
     return (
         <Routes>
@@ -52,7 +51,8 @@ const SchoolAdminRoutes = () => {
                     <Route path=":schoolCode/castes" element={<ListCastes />} />
                     <Route path=":schoolCode/subjectAllocation" element={<SubjectAllocation />} />
                     <Route path=":schoolCode/termExams" element={<ListTermExams />} />
-                    {/* <Route path=":schoolCode/timetables" element={<Timetables />} /> */}
+                    <Route path=":schoolCode/timetables" element={<ListTimetable />} />
+                    {/* <Route path=":schoolCode/createTimetables" element={<CreateTimetable />} /> */}
                 </Route>
             </Route>
         </Routes>

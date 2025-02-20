@@ -451,11 +451,6 @@ export const createStaff = async (values: CreateStaffPayload, schoolPrefix: stri
             }
         });
 
-        // Log FormData for debugging
-        console.log('FormData Contents:');
-        for (let pair of formData.entries()) {
-            console.log(pair[0], pair[1]);
-        }
 
         const response = await Api.post(
             `${superAdminEndpoints.staff}?school_prefix=${schoolPrefix}`,
@@ -560,7 +555,7 @@ export const updateGroup = async (id: number, name: string, schoolPrefix?: strin
 
 export const deleteGroup = async (id: number, schoolPrefix?: string) => {
     try {
-        let url = `${superAdminEndpoints.groups}${id}`;
+        let url = `${superAdminEndpoints.groups}/${id}`;
         if (schoolPrefix) {
             url = `${superAdminEndpoints.schoolGroups}/${id}?school_prefix=${schoolPrefix}`;
         }
@@ -814,7 +809,7 @@ export const createStudent = async (studentData: FormData, schoolPrefix: string)
 
 export const listStudents = async (schoolPrefix: string) => {
     try {
-        const response = await Api.get(`${superAdminEndpoints.student}?school_prefix=${schoolPrefix}`);
+        const response = await Api.get(`${superAdminEndpoints.student}?school_prefix=${schoolPrefix}&page=1&limit=1000`);
         return response.data;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -1051,10 +1046,11 @@ export const getPrivilegedStaff = async (schoolPrefix: string) => {
 
 // Add these functions
 export const getGradeCategories = async (schoolPrefix?: string) => {
+
     try {
-        let url = superAdminEndpoints.schoolGradeCategory;
+        let url = superAdminEndpoints.gradeCategory;
         if (schoolPrefix) {
-            url = `${superAdminEndpoints.gradeCategory}?school_prefix=${schoolPrefix}`;
+            url = `${superAdminEndpoints.schoolGradeCategory}?school_prefix=${schoolPrefix}`;
         }
         const response = await Api.get(url);
         return response.data;
@@ -1174,7 +1170,7 @@ export const deleteGradeBoundary = async (id: number, schoolPrefix?: string) => 
     try {
         let url = `${superAdminEndpoints.gradeBoundary}?id=${id}`;
         if (schoolPrefix) {
-            url = `${superAdminEndpoints.schoolGradeBoundary}/${id}?school_prefix=${schoolPrefix}`;
+            url = `${superAdminEndpoints.schoolGradeBoundary}?id=${id}&school_prefix=${schoolPrefix}`;
         }
         const response = await Api.delete(url);
         return response.data;
@@ -1573,7 +1569,7 @@ export const connectSchoolSyllabus = async (schoolPrefix: string, syllabusID: nu
     try {
         const response = await Api.post(
             `${superAdminEndpoints.syllabusConnection}?school_prefix=${schoolPrefix}`,
-            { syllabusID }
+            { syllabusID: syllabusID }
         );
         return response.data;
     } catch (error) {
@@ -1875,6 +1871,85 @@ export const removeTermExamStandard = async (term_exam_standard_id: number) => {
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error('Error removing term exam standard:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const getTimetable = async () => {
+    try {
+        const response = await Api.get(superAdminEndpoints.timetable);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching timetable:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+
+export const getTimetableByClass = async (classId: number) => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.getTimetableByClass}/${classId}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching timetable by class:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const getSchoolWorkingDays = async () => {
+    try {
+        const response = await Api.get(`${superAdminEndpoints.schoolWorkingDays}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error fetching school working days:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const createTimetable = async (data: any) => {
+    try {
+        const response = await Api.post(superAdminEndpoints.timetable, data);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error creating timetable:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const updateTimetable = async (data: any) => {
+    try {
+        const response = await Api.patch(`${superAdminEndpoints.timetable}`, data);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error updating timetable:', error.response);
+            throw error;
+        }
+        throw error;
+    }
+};
+
+export const deleteTimetable = async (id: number) => {
+    try {
+        const response = await Api.delete(`${superAdminEndpoints.timetable}/${id}`);
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error('Error deleting timetable:', error.response);
             throw error;
         }
         throw error;

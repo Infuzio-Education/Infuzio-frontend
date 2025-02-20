@@ -199,7 +199,7 @@ const ManageSchool: React.FC = () => {
                     getSyllabus()
                 ]);
 
-                console.log(schoolResponse);
+                console.log(syllabusResponse);
 
                 if (schoolResponse?.data) {
                     const schoolData = schoolResponse.data;
@@ -238,8 +238,8 @@ const ManageSchool: React.FC = () => {
                     }
                 }
 
-                if (syllabusResponse?.global && Array.isArray(syllabusResponse.global)) {
-                    setSyllabusList(syllabusResponse.global);
+                if (syllabusResponse?.data && Array.isArray(syllabusResponse.data)) {
+                    setSyllabusList(syllabusResponse.data);
                 }
             } catch (error) {
                 console.error('Error fetching school details:', error);

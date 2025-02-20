@@ -31,6 +31,8 @@ const ListGrades: React.FC = () => {
     const [editingBoundary, setEditingBoundary] = useState<GradeSystem | null>(null);
 
     const { staffInfo } = useSelector((state: any) => state.staffInfo);
+    console.log("staffInfoGrades", staffInfo);
+
     const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
         (privilege: any) => privilege.privilege === "schoolAdmin"
     );
@@ -44,7 +46,7 @@ const ListGrades: React.FC = () => {
         setError(null);
         try {
             const response = await getGradeCategories(
-                hasSchoolAdminPrivilege ? undefined : staffInfo?.schoolCode
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
             );
             if (response.status === true) {
                 setGrades(response.data);
@@ -290,6 +292,44 @@ const ListGrades: React.FC = () => {
         setEditingBoundary(boundary);
         setOpenModal(true);
     };
+
+    const fetchBoundaries = async (gradeId: number) => {
+        setBoundaries([]);
+
+        try {
+            const boundariesResponse = await getGradeBoundaries(
+                gradeId,
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
+            if (boundariesResponse.status && boundariesResponse.data) {
+                const formattedBoundaries = boundariesResponse.data.map((boundary: any) => ({
+                    id: boundary.id || boundary.ID,
+                    category_id: boundary.category_id,
+                    base_percentage: boundary.base_percentage,
+                    grade_label: boundary.grade_label,
+                    is_failed: boundary.is_failed
+                }));
+                setBoundaries(formattedBoundaries);
+            }
+        } catch (error) {
+            console.error('Error fetching boundaries:', error);
+            setSnackbar({
+                open: true,
+                message: 'Failed to load grade boundaries',
+                severity: 'error',
+                position: { vertical: 'top', horizontal: 'center' }
+            });
+            setBoundaries([]);
+        }
+    };
+
+    useEffect(() => {
+        if (selectedGrade) {
+            fetchBoundaries(selectedGrade.id);
+        } else {
+            setBoundaries([]);
+        }
+    }, [selectedGrade]);
 
     return (
         <div className="min-h-screen bg-gray-200 p-8 pt-5 relative">

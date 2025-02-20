@@ -1025,3 +1025,11 @@ export interface TermExamStandard {
     grade_name: string;
     standard_name: string;
 }
+
+export interface Timetable {
+    id: number;
+    classId: number;
+    activeFrom: string;
+    isActive: boolean;
+    className: string;
+}

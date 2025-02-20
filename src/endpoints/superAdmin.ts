@@ -1,3 +1,4 @@
+
 const superAdminEndpoints = {
     // Auth
     login: 'login/infuzAdmin',
@@ -35,6 +36,7 @@ const superAdminEndpoints = {
     subjectAllocation: 'school/subjectallocation',
     academicYear: 'school/academic-year',
 
+
     // Manage school
     school: 'manage-school',
     schoolLogo: 'manage-school/logo',
@@ -45,6 +47,10 @@ const superAdminEndpoints = {
 
     // School Admin
     termExams: 'school-admin/term/exam',
+    timetable: 'school-admin/tt',
+    getTimetableByClass: 'public/tt/byClass',
+
+
 };
 
 export default superAdminEndpoints;
