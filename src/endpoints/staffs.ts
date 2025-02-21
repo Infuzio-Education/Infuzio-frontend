@@ -37,8 +37,11 @@ const staffEndpoints = {
     getTermExams: "/staff/term/exam",
     getSubjects: "/staff/subjects/class",
     getTermExamMarksForClassTeacher: "/staff/term/exam/mark/class",
-    getClasswiseTermExamMark:"/staff/term/exam/mark/class-wise-subject-marks",
-    postTermExamMark:"/staff/term/exam/mark"
+    getClasswiseTermExamMark: "/staff/term/exam/mark/class-wise-subject-marks",
+    postTermExamMark: "/staff/term/exam/mark",
+
+    allStudentsInSchool: "/school/student",
+    allStaffsInSchool: "/school/staff",
 };
 
 export default staffEndpoints;

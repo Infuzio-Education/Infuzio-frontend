@@ -559,6 +559,8 @@ export interface Homework {
     dueDate: string;
     subjectId: number;
     classId: number;
+    subjectName: string;
+    className: string;
 }
 
 // Add these interfaces for TakeAttendance

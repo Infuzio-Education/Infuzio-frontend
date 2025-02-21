@@ -2,6 +2,7 @@ import Api from "./axiosConfig";
 import staffEndpoints from "../endpoints/staffs";
 import axios from "axios";
 import { Homework, TestMark, UnitTest } from "../types/Types";
+import store from "../redux/store/store";
 
 interface StaffInfo {
     token: string;
@@ -26,6 +27,35 @@ Api.interceptors.request.use(
         return config;
     },
     (error) => {
+        return Promise.reject(error);
+    }
+);
+
+Api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        console.log("Full Axios Error Object:", error);
+
+        // Network or unexpected error
+        if (!error.response) {
+            console.error("Network Error or CORS Issue:", error.message);
+            return Promise.reject(error);
+        }
+
+        // Ignore 401 errors from login requests
+        if (error.config?.url?.includes("/login/staff")) {
+            return Promise.reject(error);
+        }
+
+        console.log("Error Response:", error.response);
+
+        // If token expired, clear Redux store and redirect
+        if (error.response.status === 401) {
+            // store.dispatch(logout()); // Clear Redux store
+            localStorage.removeItem("accessToken"); // Clear token
+            window.location.href = "/login?sessionExpired=true"; // Redirect to login with message
+        }
+
         return Promise.reject(error);
     }
 );
@@ -816,6 +846,52 @@ export const postTermExamMark = async (
         return [];
     } catch (error) {
         console.log("Error fetching subjects", error);
+        throw error;
+    }
+};
+
+export const getAllStudentsInSchool = async (
+    prefix: string,
+    page = 1,
+    limit = 10
+) => {
+    try {
+        const response = await Api.get(staffEndpoints?.allStudentsInSchool, {
+            params: {
+                school_prefix: prefix,
+                page,
+                limit,
+            },
+        });
+        if (response?.data?.status) {
+            return response?.data?.data?.students;
+        }
+        return [];
+    } catch (error) {
+        console.log("Error fetching students", error);
+        throw error;
+    }
+};
+
+export const getAllStaffsInSchool = async (
+    prefix: string,
+    page = 1,
+    limit = 10
+) => {
+    try {
+        const response = await Api.get(staffEndpoints?.allStaffsInSchool, {
+            params: {
+                school_prefix: prefix,
+                page,
+                limit,
+            },
+        });
+        if (response?.data?.status) {
+            return response?.data?.data;
+        }
+        return [];
+    } catch (error) {
+        console.log("Error fetching staffs", error);
         throw error;
     }
 };

@@ -15,3 +15,12 @@ export const StaffProtect = () => {
 
     return staffInfo ? <Outlet /> : <Navigate to="/staffs/login" replace />;
 };
+
+
+export const SchoolHeadProtect = () => {
+    const { staffInfo } = useSelector((state: RootState) => state.staffInfo);
+
+    const isSchoolHead = staffInfo?.specialPrivileges?.some((privilage)=>privilage?.privilege ==="schoolHead");
+
+    return isSchoolHead  ? <Outlet /> : <Navigate to="/staffs/login" replace />;
+};

@@ -8,8 +8,11 @@ import HomeWorkouts from "../pages/staffs/HomeWorkouts";
 import UnitTests from "../pages/staffs/UnitTests";
 import Exams from "../pages/staffs/Exams";
 import StaffProfile from "../pages/staffs/StaffProfile";
-import { StaffProtect } from "../components/PrivateRoute";
+import { StaffProtect, SchoolHeadProtect } from "../components/PrivateRoute";
 import StaffAttendance from "../pages/staffs/StaffAttendance";
+import AllStudents from "../pages/staffs/schoolHead/AllStudents";
+import AllStaffs from "../pages/staffs/schoolHead/AllStaffs";
+import SchoolHeadAttendance from "../pages/staffs/schoolHead/SchoolHeadAttendance";
 
 const StaffRoutes = () => {
     return (
@@ -26,6 +29,14 @@ const StaffRoutes = () => {
                     <Route path="unit-tests" element={<UnitTests />} />
                     <Route path="exams" element={<Exams />} />
                     <Route path="profile" element={<StaffProfile />} />
+                    <Route element={<SchoolHeadProtect />}>
+                        <Route path="all-students" element={<AllStudents />} />
+                        <Route path="all-staffs" element={<AllStaffs />} />
+                        <Route
+                            path="take-attendance"
+                            element={<SchoolHeadAttendance />}
+                        />
+                    </Route>
                 </Route>
             </Route>
         </Routes>
