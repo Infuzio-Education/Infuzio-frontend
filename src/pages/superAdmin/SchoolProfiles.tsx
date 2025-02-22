@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Users, GraduationCap, UserPlus, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../redux/store/store';
+import { listStudents, listStaff, listParents, getClasses } from '../../api/superAdmin';
+import CountUp from 'react-countup';
 
 const SchoolProfiles: React.FC = () => {
     const navigate = useNavigate();
@@ -13,12 +15,41 @@ const SchoolProfiles: React.FC = () => {
         (privilege) => privilege.privilege === "schoolAdmin"
     );
 
-    const stats = {
-        totalStudents: 450,
-        totalClasses: 15,
-        totalParents: 420,
-        totalStaffs: 35
-    };
+    const [stats, setStats] = useState({
+        totalStudents: 0,
+        totalClasses: 0,
+        totalParents: 0,
+        totalStaffs: 0
+    });
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                if (schoolInfo?.schoolPrefix) {
+                    const [students, classes, staff, parents] = await Promise.all([
+                        listStudents(schoolInfo.schoolPrefix),
+                        getClasses(schoolInfo.schoolPrefix),
+                        listStaff(schoolInfo.schoolPrefix),
+                        listParents(schoolInfo.schoolPrefix)
+                    ]);
+
+                    console.log(students);
+                    console.log(parents);
+
+                    setStats({
+                        totalStudents: students.data.students.length,
+                        totalClasses: classes.data.length,
+                        totalParents: parents.data.parents.length,
+                        totalStaffs: staff.data.length
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching statistics:', error);
+            }
+        };
+
+        fetchData();
+    }, [schoolInfo?.schoolPrefix]);
 
     const getNavigationPath = (route: string) => {
         if (hasSchoolAdminPrivilege) {
@@ -100,7 +131,11 @@ const SchoolProfiles: React.FC = () => {
                             <div>
                                 <h3 className="text-lg font-semibold text-gray-700">{card.title}</h3>
                                 <p className={`text-3xl font-bold ${card.textColor}`}>
-                                    {card.count}
+                                    <CountUp
+                                        end={card.count}
+                                        duration={2.5}
+                                        separator=","
+                                    />
                                 </p>
                             </div>
                             <div className={`${card.bgColor} p-4 rounded-full`}>
