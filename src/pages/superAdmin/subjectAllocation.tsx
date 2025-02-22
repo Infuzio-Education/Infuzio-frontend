@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getSubjectAllocation, getSchoolStandards, getSchoolGroups, getSchoolSubjects, getSchoolSyllabus, saveSubjectAllocations, removeSubjectAllocation, updateSubjectAllocation } from '../../api/superAdmin';
+import { getSubjectAllocation, getSchoolStandards, getSchoolGroups, getSchoolSubjects, saveSubjectAllocations, removeSubjectAllocation, updateSubjectAllocation, getSchoolSyllabus } from '../../api/superAdmin';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import { Modal, Box, Switch, TextField } from '@mui/material';
 import { X, PlusCircle } from 'lucide-react';
@@ -69,7 +69,7 @@ const SubjectAllocation = () => {
         [key: number]: { defaultMaxMarks: number; hasTermExam: boolean }
     }>({});
     const [, setHasChanges] = useState(false);
-    const [editingSubjectId, setEditingSubjectId] = useState<number | null>(null);
+    const [, setEditingSubjectId] = useState<number | null>(null);
     const [showStandardDropdown, setShowStandardDropdown] = useState(false);
     const [standards, setStandards] = useState<SchoolStandard[]>([]);
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
@@ -86,6 +86,9 @@ const SubjectAllocation = () => {
 
     const [groupModalOpen, setGroupModalOpen] = useState(false);
 
+    // Add new state for school syllabuses
+    const [schoolSyllabuses, setSchoolSyllabuses] = useState<Syllabus[]>([]);
+
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
@@ -95,48 +98,30 @@ const SubjectAllocation = () => {
                     throw new Error('School prefix not found');
                 }
 
-                // Fetch syllabuses first
-                const syllabusResponse = await getSchoolSyllabus(schoolInfo.schoolPrefix);
-                if (syllabusResponse.status === true && syllabusResponse.data?.global) {
-                    // Map the syllabus data to match our interface
-                    const mappedSyllabuses: Syllabus[] = syllabusResponse.data.global.map((syllabus: any) => ({
-                        id: syllabus.id,
-                        name: syllabus.name,
-                        standards: [] // Initialize with empty standards
-                    }));
-                    setSyllabuses(mappedSyllabuses);
-                }
-
                 // Fetch subject allocations
                 const allocationResponse: SubjectAllocationResponse = await getSubjectAllocation(schoolInfo.schoolPrefix);
                 if (allocationResponse.data?.syllabuses) {
-                    // Update the syllabuses with allocation data
-                    setSyllabuses(prev => {
-                        const updatedSyllabuses = [...prev];
-                        allocationResponse.data.syllabuses.forEach(allocation => {
-                            const syllabusIndex = updatedSyllabuses.findIndex(s => s.id === allocation.id);
-                            if (syllabusIndex !== -1) {
-                                updatedSyllabuses[syllabusIndex] = {
-                                    ...updatedSyllabuses[syllabusIndex],
-                                    standards: allocation.standards.map(standard => ({
-                                        id: standard.id,
-                                        name: standard.name,
-                                        groups: standard.groups.map(group => ({
-                                            id: group.id,
-                                            name: group.name,
-                                            subjects: group.subjects.map(subject => ({
-                                                id: subject.id,
-                                                name: subject.name,
-                                                defaultMaxMarks: subject.defaultMaxMarks,
-                                                hasTermExam: subject.hasTermExam
-                                            }))
-                                        }))
-                                    }))
-                                };
-                            }
-                        });
-                        return updatedSyllabuses;
-                    });
+                    // Map the response to our Syllabus interface
+                    const mappedSyllabuses: Syllabus[] = allocationResponse.data.syllabuses.map(syllabus => ({
+                        id: syllabus.id,
+                        name: syllabus.name,
+                        standards: syllabus.standards.map(standard => ({
+                            id: standard.id,
+                            name: standard.name,
+                            groups: standard.groups.map(group => ({
+                                id: group.id,
+                                name: group.name,
+                                subjects: group.subjects.map(subject => ({
+                                    id: subject.id,
+                                    name: subject.name,
+                                    defaultMaxMarks: subject.defaultMaxMarks,
+                                    hasTermExam: subject.hasTermExam
+                                }))
+                            }))
+                        }))
+                    }));
+
+                    setSyllabuses(mappedSyllabuses);
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -212,7 +197,35 @@ const SubjectAllocation = () => {
         }
     }, [openModal, schoolInfo?.schoolPrefix]);
 
+    // Add new useEffect to fetch school syllabuses
+    useEffect(() => {
+        const fetchSchoolSyllabuses = async () => {
+            try {
+                if (!schoolInfo?.schoolPrefix) {
+                    throw new Error('School prefix not found');
+                }
 
+                const response = await getSchoolSyllabus(schoolInfo.schoolPrefix);
+                if (response?.data) {
+                    const mappedSyllabuses = response.data.map((syllabus: any) => ({
+                        id: syllabus.id,
+                        name: syllabus.name,
+                        standards: []
+                    }));
+                    setSchoolSyllabuses(mappedSyllabuses);
+                }
+            } catch (error) {
+                console.error('Error fetching school syllabuses:', error);
+                setSnackbarState({
+                    open: true,
+                    message: 'Failed to load syllabuses',
+                    type: 'error'
+                });
+            }
+        };
+
+        fetchSchoolSyllabuses();
+    }, [schoolInfo?.schoolPrefix]);
 
     const handleTermExamChange = (subjectId: number, checked: boolean) => {
         setEditedSubjects(prev => ({
@@ -223,26 +236,6 @@ const SubjectAllocation = () => {
             }
         }));
         setHasChanges(true);
-    };
-
-    const handleEditClick = async (subjectId: number) => {
-        try {
-            const editedSubject = editedSubjects[subjectId];
-            if (!editedSubject) return;
-
-            // API call will be implemented here
-            console.log('Saving changes for subject:', subjectId, editedSubject);
-
-            // Reset editing state after successful save
-            setEditingSubjectId(null);
-            setEditedSubjects(prev => {
-                const newState = { ...prev };
-                delete newState[subjectId];
-                return newState;
-            });
-        } catch (error) {
-            console.error('Error saving subject changes:', error);
-        }
     };
 
     const handleRemoveAllocation = async (subject: Subject) => {
@@ -610,13 +603,13 @@ const SubjectAllocation = () => {
                                             className="w-full p-2 border rounded-md"
                                             value={selectedSyllabus?.id || ''}
                                             onChange={(e) => {
-                                                const syllabus = syllabuses.find(s => s.id === Number(e.target.value));
+                                                const syllabus = schoolSyllabuses.find(s => s.id === Number(e.target.value));
                                                 setSelectedSyllabus(syllabus || null);
                                                 setSelectedStandard(null);
                                             }}
                                         >
                                             <option value="">Select Syllabus</option>
-                                            {syllabuses.map((syllabus) => (
+                                            {schoolSyllabuses.map((syllabus) => (
                                                 <option key={syllabus.id} value={syllabus.id}>
                                                     {syllabus.name}
                                                 </option>
@@ -716,7 +709,6 @@ const SubjectAllocation = () => {
                                             </thead>
                                             <tbody className="divide-y divide-gray-200">
                                                 {getCurrentGroupSubjects().map((subject) => {
-                                                    const isEditing = editingSubjectId === subject.id;
                                                     const editedSubject = editedSubjects[subject.id] || subject;
                                                     return (
                                                         <tr key={subject.id}>
@@ -768,26 +760,19 @@ const SubjectAllocation = () => {
                                                             </td>
                                                             <td className="px-6 py-4 whitespace-nowrap">
                                                                 <div className="flex space-x-2">
-                                                                    {isEditing ? (
-                                                                        <button
-                                                                            onClick={() => handleEditClick(subject.id)}
-                                                                            className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                                                                        >
-                                                                            Save
-                                                                        </button>
-                                                                    ) : (
-                                                                        <button
-                                                                            onClick={(e) => {
-                                                                                e.preventDefault();
-                                                                                e.stopPropagation();
-                                                                                handleRemoveAllocation(subject);
-                                                                            }}
-                                                                            className="p-1 hover:bg-red-100 rounded-full transition-colors"
-                                                                            title="Remove Allocation"
-                                                                        >
-                                                                            <X size={20} className="text-red-500" />
-                                                                        </button>
-                                                                    )}
+
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.preventDefault();
+                                                                            e.stopPropagation();
+                                                                            handleRemoveAllocation(subject);
+                                                                        }}
+                                                                        className="p-1 hover:bg-red-100 rounded-full transition-colors"
+                                                                        title="Remove Allocation"
+                                                                    >
+                                                                        <X size={20} className="text-red-500" />
+                                                                    </button>
+
                                                                 </div>
                                                             </td>
                                                         </tr>

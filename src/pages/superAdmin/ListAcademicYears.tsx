@@ -6,12 +6,7 @@ import SnackbarComponent from '../../components/SnackbarComponent';
 import { getAcademicYears, createAcademicYear, updateAcademicYear, deleteAcademicYear } from '../../api/superAdmin';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import CreateAcademicYear from './CreateAcademicYear';
-
-interface AcademicYear {
-    id: number;
-    name: string;
-    isCurrent: boolean;
-}
+import { AcademicYear } from '../../types/Types';
 
 const ListAcademicYears: React.FC = () => {
     const { schoolInfo } = useSchoolContext();
@@ -86,7 +81,7 @@ const ListAcademicYears: React.FC = () => {
         setOpenModal(false);
     };
 
-    const handleSave = async (name: string, isCurrent: boolean) => {
+    const handleSave = async (name: string, is_current: boolean) => {
         try {
             if (!schoolInfo.schoolPrefix) {
                 throw new Error('School prefix not found');
@@ -95,18 +90,18 @@ const ListAcademicYears: React.FC = () => {
             if (editingYear) {
                 const response = await updateAcademicYear(
                     editingYear.id,
-                    { name, isCurrent },
+                    { name },
                     schoolInfo.schoolPrefix
                 );
                 if (response.status === true) {
                     setAcademicYears(prevYears => prevYears.map(year => {
-                        if (isCurrent) {
+                        if (is_current) {
                             return year.id === editingYear.id
-                                ? { ...year, name, isCurrent: true }
-                                : { ...year, isCurrent: false };
+                                ? { ...year, name, is_current: true }
+                                : { ...year, is_current: false };
                         } else {
                             return year.id === editingYear.id
-                                ? { ...year, name, isCurrent }
+                                ? { ...year, name, is_current }
                                 : year;
                         }
                     }));
@@ -119,17 +114,17 @@ const ListAcademicYears: React.FC = () => {
                     });
                 }
             } else {
-                const response = await createAcademicYear({ name, isCurrent }, schoolInfo.schoolPrefix);
+                const response = await createAcademicYear({ name, is_current }, schoolInfo.schoolPrefix);
                 if (response.status === true) {
                     const newYear = {
                         id: response.data.id,
                         name,
-                        isCurrent
+                        is_current
                     };
 
                     setAcademicYears(prevYears => {
-                        if (isCurrent) {
-                            return [...prevYears.map(year => ({ ...year, isCurrent: false })), newYear];
+                        if (is_current) {
+                            return [...prevYears.map(year => ({ ...year, is_current: false })), newYear];
                         } else {
                             return [...prevYears, newYear];
                         }
@@ -259,7 +254,7 @@ const ListAcademicYears: React.FC = () => {
                                     </td>
                                     <td className="text-center">
                                         <div className="text-sm font-medium text-gray-900">
-                                            {year.isCurrent ? 'Yes' : 'No'}
+                                            {year.is_current ? 'Yes' : 'No'}
                                         </div>
                                     </td>
                                     <td className="text-center">

@@ -6,7 +6,6 @@ import CreateSyllabus from './CreateSyllubus';
 import { Syllabus } from '../../types/Types';
 import { getSyllabus, createSyllabus, deleteSyllabus, updateSyllabus } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
-import { GlobalSyllabus } from '../../types/Types';
 import { useSelector } from 'react-redux';
 
 const ListSyllabus: React.FC = () => {
@@ -42,8 +41,9 @@ const ListSyllabus: React.FC = () => {
             const response = await getSyllabus(
                 hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
             );
-            if (response?.global && Array.isArray(response.global)) {
-                const formattedSyllabuses = response.global.map((syllabus: GlobalSyllabus) => ({
+            console.log('API Response:', response);
+            if (response?.data) {
+                const formattedSyllabuses = response.data.map((syllabus: any) => ({
                     id: syllabus.id,
                     name: syllabus.name,
                     isCustomSyllabus: syllabus.isCustomSyllabus,
@@ -167,12 +167,23 @@ const ListSyllabus: React.FC = () => {
             }
         } catch (error: any) {
             console.error('Error deleting syllabus:', error);
-            setSnackbar({
-                open: true,
-                message: error.response?.data?.error || 'Failed to delete syllabus',
-                severity: 'error',
-                position: { vertical: 'top', horizontal: 'center' }
-            });
+
+            // Check for RECORD_IN_USE error
+            if (error.response?.data?.resp_code === 'RECORD_IN_USE') {
+                setSnackbar({
+                    open: true,
+                    message: 'Cannot delete syllabus as it is currently in use',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            } else {
+                setSnackbar({
+                    open: true,
+                    message: error.response?.data?.error || 'Failed to delete syllabus',
+                    severity: 'error',
+                    position: { vertical: 'top', horizontal: 'center' }
+                });
+            }
         }
     };
 
