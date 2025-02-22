@@ -5,16 +5,16 @@ interface CreateAcademicYearProps {
     initialData?: {
         id: number;
         name: string;
-        isCurrent: boolean;
+        is_current: boolean;
     };
-    onSave: (name: string, isCurrent: boolean) => void;
+    onSave: (name: string, is_current: boolean) => void;
     onCancel: () => void;
 }
 
 const CreateAcademicYear: React.FC<CreateAcademicYearProps> = ({ initialData, onSave, onCancel }) => {
     const [formData, setFormData] = useState({
         name: "",
-        isCurrent: false
+        is_current: false
     });
     const [error, setError] = useState("");
 
@@ -22,12 +22,12 @@ const CreateAcademicYear: React.FC<CreateAcademicYearProps> = ({ initialData, on
         if (initialData) {
             setFormData({
                 name: initialData.name || "",
-                isCurrent: initialData.isCurrent || false
+                is_current: initialData.is_current || false
             });
         } else {
             setFormData({
                 name: "",
-                isCurrent: false
+                is_current: false
             });
         }
     }, [initialData]);
@@ -52,7 +52,7 @@ const CreateAcademicYear: React.FC<CreateAcademicYearProps> = ({ initialData, on
         }
 
         try {
-            onSave(formData.name, formData.isCurrent);
+            onSave(formData.name, formData.is_current);
         } catch (error: any) {
             console.error('Error creating academic year:', error);
         }
@@ -70,7 +70,7 @@ const CreateAcademicYear: React.FC<CreateAcademicYearProps> = ({ initialData, on
     const handleCurrentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData(prev => ({
             ...prev,
-            isCurrent: e.target.checked
+            is_current: e.target.checked
         }));
     };
 
@@ -91,16 +91,18 @@ const CreateAcademicYear: React.FC<CreateAcademicYearProps> = ({ initialData, on
                         helperText={error || "Format: YYYY-YY (e.g., 2024-25)"}
                         required
                     />
-                    <FormControlLabel
-                        control={
-                            <Switch
-                                checked={formData.isCurrent}
-                                onChange={handleCurrentChange}
-                                color="primary"
-                            />
-                        }
-                        label="Set as Current Academic Year"
-                    />
+                    {!initialData && (
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={formData.is_current}
+                                    onChange={handleCurrentChange}
+                                    color="primary"
+                                />
+                            }
+                            label="Set as Current Academic Year"
+                        />
+                    )}
                     <div className="flex justify-end space-x-2">
                         <Button onClick={onCancel} variant="outlined" color="success">
                             Cancel

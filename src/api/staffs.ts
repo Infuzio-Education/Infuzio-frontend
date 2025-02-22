@@ -602,7 +602,6 @@ export const getAllClassesInSchool = async (schoolPrefix: string) => {
         const response = await Api.get(
             `${staffEndpoints.getAllClasses}?school_prefix=${schoolPrefix}`
         );
-        console.log("response1", response);
         return response;
     } catch (error) {
         if (axios.isAxiosError(error)) {

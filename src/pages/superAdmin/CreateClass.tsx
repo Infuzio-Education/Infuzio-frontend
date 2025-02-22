@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { TextField, Button, FormControl, InputLabel, Select, MenuItem, Grid, FormHelperText, ListSubheader } from '@mui/material';
+import { TextField, Button, FormControl, InputLabel, Select, MenuItem, Grid, FormHelperText } from '@mui/material';
 import { CreateClassProps, Group, Standard } from '../../types/Types';
 import { Formik, Form, FormikProps, FormikValues } from 'formik';
 import {
     getSchoolMediums,
     getSchoolStandards,
     getSchoolSyllabus,
-    getGroups,
+    getSchoolGroups,
     getTeachingStaff,
     getAcademicYears,
 } from '../../api/superAdmin';
@@ -17,20 +17,7 @@ const CreateClass: React.FC<CreateClassProps> = ({ initialData, onSave, onCancel
     const { schoolInfo } = useSchoolContext();
     const [mediums, setMediums] = useState([]);
     const [standards, setStandards] = useState([]);
-    const [syllabuses, setSyllabuses] = useState<{
-        global: Array<{
-            id: number;
-            name: string;
-            isCustomSyllabus: boolean;
-            creatorSchoolCode: string | null;
-        }>;
-        custom: Array<{
-            id: number;
-            name: string;
-            isCustomSyllabus: boolean;
-            creatorSchoolCode: string | null;
-        }>;
-    }>({ global: [], custom: [] });
+    const [syllabuses, setSyllabuses] = useState([]);
     const [groups, setGroups] = useState([]);
     const [staffs, setStaffs] = useState([]);
     const [_loading, setLoading] = useState(true);
@@ -55,17 +42,14 @@ const CreateClass: React.FC<CreateClassProps> = ({ initialData, onSave, onCancel
                     getSchoolMediums(schoolInfo.schoolPrefix),
                     getSchoolStandards(schoolInfo.schoolPrefix),
                     getSchoolSyllabus(schoolInfo.schoolPrefix),
-                    getGroups(),
+                    getSchoolGroups(schoolInfo.schoolPrefix),
                     getTeachingStaff(schoolInfo.schoolPrefix),
                     getAcademicYears(schoolInfo.schoolPrefix),
                 ]);
 
                 setMediums(mediumsRes.data || []);
                 setStandards(standardsRes.data || []);
-                setSyllabuses({
-                    global: syllabusRes.data.global || [],
-                    custom: syllabusRes.data.custom || []
-                });
+                setSyllabuses(syllabusRes.data || []);
                 setGroups(groupsRes.data || []);
                 setStaffs(staffsRes.data || []);
                 setAcademicYears(academicYearsRes.data || []);
@@ -271,31 +255,13 @@ const CreateClass: React.FC<CreateClassProps> = ({ initialData, onSave, onCancel
                                             onChange={handleChange}
                                             label="Syllabus"
                                         >
-                                            {/* Global Syllabus Section */}
-                                            {syllabuses.global && syllabuses.global.length > 0 && (
-                                                [
-                                                    <ListSubheader key="global-header">Global Syllabus</ListSubheader>,
-                                                    ...syllabuses.global.map((syllabus) => (
-                                                        <MenuItem key={`global-${syllabus.id}`} value={syllabus.id}>
-                                                            {syllabus.name}
-                                                        </MenuItem>
-                                                    ))
-                                                ]
-                                            )}
-
-                                            {/* Custom Syllabus Section */}
-                                            {syllabuses.custom && syllabuses.custom.length > 0 && (
-                                                [
-                                                    <ListSubheader key="custom-header">Custom Syllabus</ListSubheader>,
-                                                    ...syllabuses.custom.map((syllabus) => (
-                                                        <MenuItem key={`custom-${syllabus.id}`} value={syllabus.id}>
-                                                            {syllabus.name}
-                                                        </MenuItem>
-                                                    ))
-                                                ]
-                                            )}
-
-                                            {(!syllabuses.global?.length && !syllabuses.custom?.length) && (
+                                            {syllabuses.length > 0 ? (
+                                                syllabuses.map((syllabus: any) => (
+                                                    <MenuItem key={syllabus.id} value={syllabus.id}>
+                                                        {syllabus.name}
+                                                    </MenuItem>
+                                                ))
+                                            ) : (
                                                 <MenuItem disabled>No syllabus found</MenuItem>
                                             )}
                                         </Select>
