@@ -42,6 +42,9 @@ const staffEndpoints = {
 
     allStudentsInSchool: "/school/student",
     allStaffsInSchool: "/school/staff",
+
+    getStaffAttendaceForSchoolHead: "/school-head/staff-attendance/by-date",
+    updateStaffsAttendance: "/school-head/staff-attendance",
 };
 
 export default staffEndpoints;

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Checkbox, IconButton } from "@mui/material";
-import { Trash2 } from "lucide-react";
+import { Checkbox } from "@mui/material";
 import Togglebar from "../../../components/Togglebar";
 import { Staff } from "../../../types/Types";
 import { getAllStaffsInSchool } from "../../../api/staffs";

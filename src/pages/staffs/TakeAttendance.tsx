@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
-import { Check, Clock, X, Search } from "lucide-react";
+import { X, Search, Sun, Moon, Cloud, XCircle } from "lucide-react";
 import {
     AttendanceStudent,
     TakeAttendanceProps,
@@ -270,7 +270,7 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                                                     : "bg-gray-100 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600"
                                             }`}
                                         >
-                                            <Check size={18} />
+                                            <Sun size={18} />
                                         </button>
                                         <button
                                             onClick={() =>
@@ -285,7 +285,22 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                                                     : "bg-gray-100 text-gray-500 hover:bg-blue-50 hover:text-blue-600"
                                             }`}
                                         >
-                                            <Clock size={18} />
+                                            <Moon size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                handleAttendance(
+                                                    student.id,
+                                                    "e"
+                                                )
+                                            }
+                                            className={`p-2 rounded-full ${
+                                                student?.attendance === "e"
+                                                    ? "bg-blue-100 text-blue-700"
+                                                    : "bg-gray-100 text-gray-500 hover:bg-blue-50 hover:text-blue-600"
+                                            }`}
+                                        >
+                                            <Cloud size={18} />
                                         </button>
                                         <button
                                             onClick={() =>
@@ -300,7 +315,7 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                                                     : "bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-600"
                                             }`}
                                         >
-                                            <X size={18} />
+                                            <XCircle size={18} />
                                         </button>
                                     </div>
                                 </div>

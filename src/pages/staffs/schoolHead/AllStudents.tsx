@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 // import { Checkbox } from "@mui/material";
 import { Mail, Phone, UserCircle2 } from "lucide-react";
@@ -6,6 +8,7 @@ import { Student } from "../../../types/Types";
 import { useSchoolContext } from "../../../contexts/SchoolContext";
 import { getAllStudentsInSchool } from "../../../api/staffs"; // Adjust API calls
 import SnackbarComponent from "../../../components/SnackbarComponent";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 const AllStudents: React.FC = () => {
     const [students, setStudents] = useState<Student[]>([]);
@@ -19,10 +22,12 @@ const AllStudents: React.FC = () => {
         severity: "success" as "success" | "error",
         position: { vertical: "top" as const, horizontal: "center" as const },
     });
+    const [page, setPage] = useState<number>(1);
+    const [hasMore, setHasMore] = useState<boolean>(true);
 
     const { schoolInfo } = useSchoolContext();
 
-    const fetchStudents = async () => {
+    const fetchStudents = async (page: number) => {
         setLoading(true);
         setError(null);
         try {
@@ -30,10 +35,16 @@ const AllStudents: React.FC = () => {
                 throw new Error("School prefix not found");
             }
             const response = await getAllStudentsInSchool(
-                schoolInfo.schoolPrefix
+                schoolInfo.schoolPrefix,
+                page,
+                20 // limit
             );
 
-            setStudents(response || []);
+            if (response.length < 20) {
+                setHasMore(false);
+            }
+
+            setStudents((prevStudents) => [...prevStudents, ...response]);
         } catch (err: any) {
             setError(
                 err.response?.data?.message ||
@@ -46,8 +57,12 @@ const AllStudents: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchStudents();
-    }, [schoolInfo.schoolPrefix]);
+        fetchStudents(page);
+    }, [schoolInfo.schoolPrefix, page]);
+
+    const fetchMoreData = () => {
+        setPage((prevPage) => prevPage + 1);
+    };
 
     const handleCloseSnackbar = () => {
         setSnackbar((prev) => ({ ...prev, open: false }));
@@ -72,7 +87,7 @@ const AllStudents: React.FC = () => {
                 itemCount={Array.isArray(students) ? students.length : 0}
             />
 
-            {loading ? (
+            {loading && students.length === 0 ? (
                 <div className="rounded-lg p-8 text-center">
                     <p className="text-xl font-semibold">Loading students...</p>
                 </div>
@@ -94,114 +109,128 @@ const AllStudents: React.FC = () => {
                         No students match your search criteria.
                     </p>
                 </div>
-            ) : viewMode === "grid" ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                    {filteredStudents.map((student) => (
-                        <div
-                            key={student.id}
-                            className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform transition duration-300 hover:scale-105 hover:shadow-xl"
-                        >
-                            <div className="p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center space-x-3">
-                                        <div className="bg-[#308369] rounded-full p-2">
-                                            <UserCircle2
-                                                size={24}
-                                                className="text-white"
-                                            />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-lg font-semibold text-gray-900">
-                                                {student.name}
-                                            </h3>
-                                            <span className="text-sm text-gray-500">
-                                                ID: {student.idCardNumber}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <div className="flex items-center text-gray-600">
-                                        <Mail size={16} className="mr-2" />
-                                        <span className="text-sm truncate">
-                                            {student.email}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center text-gray-600">
-                                        <Phone size={16} className="mr-2" />
-                                        <span className="text-sm">
-                                            {student.phone}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div className="mt-4 pt-4 border-t border-gray-200">
-                                    <div className="flex items-center justify-between">
-                                        <span className="px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                                            Class {student.className}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
             ) : (
-                <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="bg-gray-300">
-                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12 py-3">
-                                    Sl.No
-                                </th>
-                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12 py-3">
-                                    Name
-                                </th>
-                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12 py-3">
-                                    ID Number
-                                </th>
-                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12 py-3">
-                                    Class
-                                </th>
-                                <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12 py-3">
-                                    Contact
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {filteredStudents.map((student, index) => (
-                                <tr key={student.id} className="cursor-pointer">
-                                    <td className="text-center py-3">
-                                        <div className="text-sm font-medium text-gray-900">
-                                            {index + 1}
+                <InfiniteScroll
+                    dataLength={students.length}
+                    next={fetchMoreData}
+                    hasMore={hasMore}
+                    loader={<h4>Loading...</h4>}
+                    endMessage={
+                        <p style={{ textAlign: "center" }}>
+                            <b>Yay! You have seen it all</b>
+                        </p>
+                    }
+                >
+                    {viewMode === "grid" ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            {filteredStudents.map((student) => (
+                                <div
+                                    key={student.id}
+                                    className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform transition duration-300 hover:scale-105 hover:shadow-xl"
+                                >
+                                    <div className="p-6">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center space-x-3">
+                                                <div className="bg-[#308369] rounded-full p-2">
+                                                    <UserCircle2
+                                                        size={24}
+                                                        className="text-white"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-lg font-semibold text-gray-900">
+                                                        {student.name}
+                                                    </h3>
+                                                    <span className="text-sm text-gray-500">
+                                                        ID: {student.idCardNumber}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </td>
-                                    <td className="text-center py-3">
-                                        <div className="text-sm font-medium text-gray-900">
-                                            {student.name}
+
+                                        <div className="space-y-2">
+                                            <div className="flex items-center text-gray-600">
+                                                <Mail size={16} className="mr-2" />
+                                                <span className="text-sm truncate">
+                                                    {student.email}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center text-gray-600">
+                                                <Phone size={16} className="mr-2" />
+                                                <span className="text-sm">
+                                                    {student.phone}
+                                                </span>
+                                            </div>
                                         </div>
-                                    </td>
-                                    <td className="text-center py-3">
-                                        <div className="text-sm font-medium text-gray-900">
-                                            {student.idCardNumber}
+
+                                        <div className="mt-4 pt-4 border-t border-gray-200">
+                                            <div className="flex items-center justify-between">
+                                                <span className="px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                                                    Class {student.className}
+                                                </span>
+                                            </div>
                                         </div>
-                                    </td>
-                                    <td className="text-center py-3">
-                                        <div className="text-sm font-medium text-gray-900">
-                                            Class {student.className}
-                                        </div>
-                                    </td>
-                                    <td className="text-center py-3">
-                                        <div className="text-sm font-medium text-gray-900">
-                                            {student.phone}
-                                        </div>
-                                    </td>
-                                </tr>
+                                    </div>
+                                </div>
                             ))}
-                        </tbody>
-                    </table>
-                </div>
+                        </div>
+                    ) : (
+                        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+                            <table className="w-full">
+                                <thead>
+                                    <tr className="bg-gray-300">
+                                        <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12 py-3">
+                                            Sl.No
+                                        </th>
+                                        <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12 py-3">
+                                            Name
+                                        </th>
+                                        <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12 py-3">
+                                            ID Number
+                                        </th>
+                                        <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12 py-3">
+                                            Class
+                                        </th>
+                                        <th className="text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12 py-3">
+                                            Contact
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {filteredStudents.map((student, index) => (
+                                        <tr key={student.id} className="cursor-pointer">
+                                            <td className="text-center py-3">
+                                                <div className="text-sm font-medium text-gray-900">
+                                                    {index + 1}
+                                                </div>
+                                            </td>
+                                            <td className="text-center py-3">
+                                                <div className="text-sm font-medium text-gray-900">
+                                                    {student.name}
+                                                </div>
+                                            </td>
+                                            <td className="text-center py-3">
+                                                <div className="text-sm font-medium text-gray-900">
+                                                    {student.idCardNumber}
+                                                </div>
+                                            </td>
+                                            <td className="text-center py-3">
+                                                <div className="text-sm font-medium text-gray-900">
+                                                    Class {student.className}
+                                                </div>
+                                            </td>
+                                            <td className="text-center py-3">
+                                                <div className="text-sm font-medium text-gray-900">
+                                                    {student.phone}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </InfiniteScroll>
             )}
 
             <SnackbarComponent

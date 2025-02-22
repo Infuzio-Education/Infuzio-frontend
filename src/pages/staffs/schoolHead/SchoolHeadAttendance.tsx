@@ -1,17 +1,21 @@
-import React, { useState, useEffect } from "react";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useState, useEffect } from "react";
 import {
     CircularProgress,
-    Button,
     Modal,
-    Select,
-    MenuItem,
     Box,
     Typography,
     IconButton,
 } from "@mui/material";
-import { DatePicker } from "antd";
-import { X } from "lucide-react";
-import axios from "axios";
+import { DatePicker, message } from "antd";
+import { X, Check, Sun, Cloud, XCircle } from "lucide-react";
+import {
+    getAllStaffsInSchool,
+    getStaffAttendanceSchoolHead,
+    updateStaffAttendance,
+} from "../../../api/staffs";
+import { useSchoolContext } from "../../../contexts/SchoolContext";
+import { Dayjs } from "dayjs";
 
 interface StaffAttendance {
     staffID: number;
@@ -22,75 +26,96 @@ interface StaffAttendance {
     markedByName: string;
 }
 
-const exampleData: StaffAttendance[] = [
-    {
-        staffID: 1,
-        staffName: "John Doe",
-        status: "f",
-        markedBy: 2,
-        markedTime: "2025-02-16T16:56:35.222819+05:30",
-        markedByName: "Jane Smith",
-    },
-    {
-        staffID: 2,
-        staffName: "Jane Smith",
-        status: "a",
-        markedBy: 2,
-        markedTime: "2025-02-16T16:56:35.223134+05:30",
-        markedByName: "Jane Smith",
-    },
-    {
-        staffID: 3,
-        staffName: "Alice Johnson",
-        status: "m",
-        markedBy: 2,
-        markedTime: "2025-02-16T16:56:35.223281+05:30",
-        markedByName: "Jane Smith",
-    },
-    {
-        staffID: 4,
-        staffName: "Bob Brown",
-        status: "e",
-        markedBy: 2,
-        markedTime: "2025-02-16T16:56:35.223406+05:30",
-        markedByName: "Jane Smith",
-    },
+interface StaffInfo {
+    id: number;
+    name: string;
+    regNumber: string;
+    isTeachingStaff: boolean;
+}
+
+const statusOptions = [
+    { value: "f", label: "F" },
+    { value: "m", label: "M" },
+    { value: "e", label: "E" },
+    { value: "a", label: "A" },
 ];
 
 const SchoolHeadAttendance = () => {
     const [attendanceData, setAttendanceData] = useState<StaffAttendance[]>([]);
+    const [staffData, setStaffData] = useState<StaffInfo[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newAttendance, setNewAttendance] = useState<
         { staffID: number; status: string }[]
     >([]);
-    const [error, setError] = useState<string | null>(null);
+
+    const { schoolInfo } = useSchoolContext();
 
     useEffect(() => {
-        setLoading(true);
-        setTimeout(() => {
-            setAttendanceData(exampleData);
-            setNewAttendance(
-                exampleData.map((staff) => ({
-                    staffID: staff.staffID,
-                    status: staff.status,
-                }))
-            );
-            setLoading(false);
-        }, 1000);
+        fetchAttendanceData(selectedDate?.toISOString()?.split("T")[0]);
     }, [selectedDate]);
 
-    const handleDateChange = (date: any, dateString: string | string[]) => {
-        setSelectedDate(new Date(dateString as string));
+    useEffect(() => {
+        if (schoolInfo?.schoolPrefix) {
+            fetchStaffData(schoolInfo?.schoolPrefix);
+        }
+    }, [schoolInfo]);
+
+    const fetchAttendanceData = async (date: string) => {
+        try {
+            setLoading(true);
+            const response = await getStaffAttendanceSchoolHead(date);
+            setAttendanceData(response);
+            setLoading(false);
+            console.log(response);
+        } catch (error) {
+            message.error("Error fetching attendance data");
+        }
+    };
+
+    const fetchStaffData = async (schoolPrefix: string) => {
+        try {
+            const response = await getAllStaffsInSchool(schoolPrefix);
+            const mappedStaffData = Object.values(response).map(
+                (staff: unknown) => {
+                    const staffInfo = staff as StaffInfo;
+                    return {
+                        id: staffInfo.id,
+                        name: staffInfo.name,
+                        regNumber: staffInfo.regNumber,
+                        isTeachingStaff: staffInfo.isTeachingStaff,
+                    };
+                }
+            );
+            setStaffData(mappedStaffData);
+        } catch (error: unknown) {
+            message.error("Error fetching staff data");
+        }
+    };
+
+    const handleDateChange = (
+        date: Dayjs | null,
+        dateString: string | string[]
+    ) => {
+        if (date) {
+            setSelectedDate(
+                new Date(Array.isArray(dateString) ? dateString[0] : dateString)
+            );
+        }
     };
 
     const handleStatusChange = (staffID: number, status: string) => {
-        setNewAttendance((prev) =>
-            prev.map((att) =>
-                att.staffID === staffID ? { ...att, status } : att
-            )
-        );
+        setNewAttendance((prev) => {
+            const existing = prev.find((att) => att.staffID === staffID);
+            if (existing) {
+                return prev.map((att) =>
+                    att.staffID === staffID ? { ...att, status } : att
+                );
+            } else {
+                return [...prev, { staffID, status }];
+            }
+        });
     };
 
     const handleSubmitAttendance = async () => {
@@ -99,12 +124,24 @@ const SchoolHeadAttendance = () => {
                 attendanceDate: selectedDate.toISOString().split("T")[0],
                 attendances: newAttendance,
             };
-            await axios.post("/api/attendance", payload);
+            await updateStaffAttendance(payload);
             setIsModalOpen(false);
+            message?.success("Attendance updated");
+            fetchAttendanceData(selectedDate.toISOString().split("T")[0]);
         } catch (error) {
             console.error("Error submitting attendance:", error);
-            setError("Error submitting attendance");
+            message?.error("Error while updating attendance, Please try again");
         }
+    };
+
+    const openModal = () => {
+        setNewAttendance(
+            attendanceData.map((att) => ({
+                staffID: att.staffID,
+                status: att.status,
+            }))
+        );
+        setIsModalOpen(true);
     };
 
     return (
@@ -123,11 +160,19 @@ const SchoolHeadAttendance = () => {
                     className="border rounded-lg px-3 py-2 w-full sm:w-auto"
                 />
                 <button
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={openModal}
                     className="bg-emerald-700 p-2 px-3 text-white font-medium rounded-full text-sm shadow-md"
                 >
-                    Mark Attendance
+                    {attendanceData.length === 0
+                        ? "Mark Attendance"
+                        : "Update Attendance"}
                 </button>
+            </div>
+
+            <div className="mb-4">
+                <Typography variant="body2" className="text-gray-600">
+                    Marked: {attendanceData.length} / {staffData.length}
+                </Typography>
             </div>
 
             <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
@@ -141,60 +186,89 @@ const SchoolHeadAttendance = () => {
                         boxShadow: 24,
                         p: 4,
                         borderRadius: 2,
-                        width: 400,
+                        width: 500,
                     }}
                 >
                     <Box
                         display="flex"
                         justifyContent="space-between"
                         alignItems="center"
-                        mb={2}
+                        m={2}
                     >
                         <Typography variant="h6" fontWeight="bold">
-                            Mark Attendance
+                            {attendanceData.length === 0
+                                ? "Mark Attendance"
+                                : "Update Attendance"}
                         </Typography>
                         <IconButton onClick={() => setIsModalOpen(false)}>
                             <X size={24} />
                         </IconButton>
                     </Box>
-
-                    {exampleData.map((staff) => (
-                        <Box
-                            key={staff.staffID}
-                            mb={2}
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="space-between"
-                        >
-                            <Typography>{staff.staffName}</Typography>
-                            <Select
-                                value={
-                                    newAttendance.find(
-                                        (att) => att.staffID === staff.staffID
-                                    )?.status || ""
-                                }
-                                onChange={(e) =>
-                                    handleStatusChange(
-                                        staff.staffID,
-                                        e.target.value
-                                    )
-                                }
-                                size="small"
-                                sx={{ minWidth: 120 }}
+                    <div className="max-h-[70vh] overflow-y-auto">
+                        {staffData.map((staff) => (
+                            <Box
+                                key={staff.id}
+                                mb={2}
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="space-between"
                             >
-                                <MenuItem value="f">Full Day</MenuItem>
-                                <MenuItem value="a">Absent</MenuItem>
-                                <MenuItem value="m">Half Day</MenuItem>
-                                <MenuItem value="e">Excused</MenuItem>
-                            </Select>
-                        </Box>
-                    ))}
+                                <Typography>{staff.name}</Typography>
+                                <div className="">
+                                    {statusOptions.map((option) => (
+                                        <label
+                                            key={option.value}
+                                            className={`px-4 py-2 border rounded-lg cursor-pointer transition-all m-1 ${
+                                                newAttendance.find(
+                                                    (att) =>
+                                                        att.staffID === staff.id
+                                                )?.status === option.value
+                                                    ? "bg-blue-500 text-gray-700 border-blue-500"
+                                                    : "border-gray-300 text-gray-700 hover:bg-gray-200"
+                                            } ${
+                                                option.value === "f"
+                                                    ? "bg-green-100 text-green-700"
+                                                    : option.value === "m"
+                                                    ? "bg-yellow-100 text-yellow-700"
+                                                    : option.value === "e"
+                                                    ? "bg-orange-100 text-orange-700"
+                                                    : "bg-red-100 text-red-700"
+                                            }`}
+                                        >
+                                            <input
+                                                type="radio"
+                                                name={`attendance-${staff.id}`}
+                                                value={option.value}
+                                                checked={
+                                                    newAttendance.find(
+                                                        (att) =>
+                                                            att.staffID ===
+                                                            staff.id
+                                                    )?.status === option.value
+                                                }
+                                                onChange={() =>
+                                                    handleStatusChange(
+                                                        staff.id,
+                                                        option.value
+                                                    )
+                                                }
+                                                className="hidden"
+                                            />
+                                            {option.label}
+                                        </label>
+                                    ))}
+                                </div>
+                            </Box>
+                        ))}
+                    </div>
 
                     <button
                         onClick={handleSubmitAttendance}
                         className="bg-emerald-700 p-2 text-white text-sm w-full font-medium rounded-full"
                     >
-                        Submit Attendance
+                        {attendanceData.length === 0
+                            ? "Submit Attendance"
+                            : "Update Attendance"}
                     </button>
                 </Box>
             </Modal>
@@ -208,17 +282,7 @@ const SchoolHeadAttendance = () => {
                 >
                     <CircularProgress />
                 </Box>
-            ) : error ? (
-                <Box
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                    height={200}
-                    color="red"
-                >
-                    {error}
-                </Box>
-            ) : (
+            ) : attendanceData?.length > 0 ? (
                 <div className="overflow-x-auto">
                     <table className="min-w-full bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
                         <thead className="bg-gray-100 text-gray-700 text-sm uppercase">
@@ -249,12 +313,9 @@ const SchoolHeadAttendance = () => {
                                 >
                                     <td
                                         className={`border px-5 py-3 ${
-                                            index === 0
-                                                ? "rounded-tl-lg"
-                                                : ""
+                                            index === 0 ? "rounded-tl-lg" : ""
                                         } ${
-                                            index ===
-                                            attendanceData.length - 1
+                                            index === attendanceData.length - 1
                                                 ? "rounded-bl-lg"
                                                 : ""
                                         }`}
@@ -262,19 +323,58 @@ const SchoolHeadAttendance = () => {
                                         {attendance.staffName}
                                     </td>
                                     <td className="border px-5 py-3">
-                                        {attendance.status}
+                                        <span
+                                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                                                attendance.status === "f"
+                                                    ? "bg-green-100 text-green-700"
+                                                    : attendance.status === "m"
+                                                    ? "bg-yellow-100 text-yellow-700"
+                                                    : attendance.status === "e"
+                                                    ? "bg-orange-100 text-orange-700"
+                                                    : "bg-red-100 text-red-700"
+                                            }`}
+                                        >
+                                            {attendance.status === "f" && (
+                                                <Check
+                                                    size={16}
+                                                    className="mr-1"
+                                                />
+                                            )}
+                                            {attendance.status === "m" && (
+                                                <Sun
+                                                    size={16}
+                                                    className="mr-1"
+                                                />
+                                            )}
+                                            {attendance.status === "e" && (
+                                                <Cloud
+                                                    size={16}
+                                                    className="mr-1"
+                                                />
+                                            )}
+                                            {attendance.status === "a" && (
+                                                <XCircle
+                                                    size={16}
+                                                    className="mr-1"
+                                                />
+                                            )}
+                                            {attendance.status === "f"
+                                                ? "Full Day"
+                                                : attendance.status === "m"
+                                                ? "Morning Half"
+                                                : attendance.status === "e"
+                                                ? "Evening Half"
+                                                : "Absent"}
+                                        </span>
                                     </td>
                                     <td className="border px-5 py-3">
                                         {attendance.markedByName}
                                     </td>
                                     <td
                                         className={`border px-5 py-3 ${
-                                            index === 0
-                                                ? "rounded-tr-lg"
-                                                : ""
+                                            index === 0 ? "rounded-tr-lg" : ""
                                         } ${
-                                            index ===
-                                            attendanceData.length - 1
+                                            index === attendanceData.length - 1
                                                 ? "rounded-br-lg"
                                                 : ""
                                         }`}
@@ -288,6 +388,17 @@ const SchoolHeadAttendance = () => {
                         </tbody>
                     </table>
                 </div>
+            ) : (
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    height={200}
+                >
+                    <span className="font-medium">
+                        No attendance data available
+                    </span>
+                </Box>
             )}
         </div>
     );

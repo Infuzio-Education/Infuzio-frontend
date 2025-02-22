@@ -2,7 +2,6 @@ import Api from "./axiosConfig";
 import staffEndpoints from "../endpoints/staffs";
 import axios from "axios";
 import { Homework, TestMark, UnitTest } from "../types/Types";
-import store from "../redux/store/store";
 
 interface StaffInfo {
     token: string;
@@ -886,6 +885,45 @@ export const getAllStaffsInSchool = async (
                 limit,
             },
         });
+        if (response?.data?.status) {
+            return response?.data?.data;
+        }
+        return [];
+    } catch (error) {
+        console.log("Error fetching staffs", error);
+        throw error;
+    }
+};
+
+export const getStaffAttendanceSchoolHead = async (date: string) => {
+    try {
+        const response = await Api.get(
+            staffEndpoints?.getStaffAttendaceForSchoolHead,
+            {
+                params: {
+                    date,
+                },
+            }
+        );
+        if (response?.data?.status) {
+            return response?.data?.data;
+        }
+        return [];
+    } catch (error) {
+        console.log("Error fetching staffs", error);
+        throw error;
+    }
+};
+
+export const updateStaffAttendance = async (body: {
+    attendanceDate: string;
+    attendances: { staffID: number; status: string }[];
+}) => {
+    try {
+        const response = await Api.put(
+            staffEndpoints?.updateStaffsAttendance,
+            body
+        );
         if (response?.data?.status) {
             return response?.data?.data;
         }
