@@ -1,11 +1,16 @@
-import Api from "./axiosConfig";
-import staffEndpoints from "../endpoints/staffs";
 import axios from "axios";
+import staffEndpoints from "../endpoints/staffs";
 import { Homework, TestMark, UnitTest } from "../types/Types";
+import store from "../redux/store/store";
+import { logout } from "../redux/slices/staffSlice/staffSlice";
 
 interface StaffInfo {
-    token: string;
+    staffToken: string;
 }
+
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+const Api = axios.create({ baseURL: BASE_URL, withCredentials: true });
 
 Api.interceptors.request.use(
     (config) => {
@@ -15,8 +20,8 @@ Api.interceptors.request.use(
             try {
                 const staffInfo = JSON.parse(staffInfoString) as StaffInfo;
 
-                if (staffInfo && staffInfo.token) {
-                    config.headers["Authorization"] = `${staffInfo.token}`;
+                if (staffInfo && staffInfo.staffToken) {
+                    config.headers["Authorization"] = `${staffInfo.staffToken}`;
                 }
             } catch (e) {
                 console.error("Error parsing staffInfo from localStorage:", e);
@@ -26,6 +31,35 @@ Api.interceptors.request.use(
         return config;
     },
     (error) => {
+        return Promise.reject(error);
+    }
+);
+
+Api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        console.log("Full Axios Error Object:", error);
+
+        // Network or unexpected error
+        if (!error.response) {
+            console.error("Network Error or CORS Issue:", error.message);
+            return Promise.reject(error);
+        }
+
+        // Ignore 401 errors from login requests
+        if (error.config?.url?.includes("/login/staff")) {
+            return Promise.reject(error);
+        }
+
+        console.log("Error Response:", error.response);
+
+        //If token expired, clear Redux store and redirect
+        if (error.response.status === 401) {
+            store.dispatch(logout()); // Clear Redux store
+            localStorage.removeItem("accessToken"); // Clear token
+            window.location.href = "/staffs/login?sessionExpired=true"; // Redirect to login with message
+        }
+
         return Promise.reject(error);
     }
 );
@@ -51,7 +85,7 @@ export const getClasses = async (params: {
     criteria: "all" | "all-in-my-sections" | "my-classes";
 }) => {
     try {
-        const response = await Api.get(staffEndpoints.getClasses, {
+        const response = await Api.get(staffEndpoints.getMyClasses, {
             params,
         });
         if (response?.data && response?.data?.status === true) {
@@ -78,15 +112,7 @@ export const getAttendanceByClass = async (params: {
             params,
         });
         if (response?.data && response?.data?.status === true) {
-            return response?.data?.data?.Attendance?.map(
-                (attendance: {
-                    StudentID: string;
-                    Status: "a" | "f" | "m" | "e" | null;
-                }) => ({
-                    student_id: attendance.StudentID,
-                    status: attendance.Status,
-                })
-            );
+            return response?.data?.data || {};
         }
         return [];
     } catch (error) {
@@ -101,10 +127,30 @@ export const getAttendanceByClass = async (params: {
 };
 
 export const takeAttendance = async (body: {
-    class_id: string;
-    attendance_date: string;
+    classId: string;
+    attendanceDate: string;
     attendance: {
-        student_id: string;
+        StudentID: string;
+        status: "f" | "a" | "m" | "e";
+    }[];
+}) => {
+    try {
+        const response = await Api.post(staffEndpoints.postAttendance, body);
+        return response;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            return error?.response;
+        } else {
+            console.error("Unexpected error:", error);
+            throw error;
+        }
+    }
+};
+
+export const updateAttendance = async (body: {
+    instanceId: number;
+    updatedEntries: {
+        studentId: string;
         status: "f" | "a" | "m" | "e";
     }[];
 }) => {
@@ -815,6 +861,91 @@ export const postTermExamMark = async (
         return [];
     } catch (error) {
         console.log("Error fetching subjects", error);
+        throw error;
+    }
+};
+
+export const getAllStudentsInSchool = async (
+    prefix: string,
+    page = 1,
+    limit = 10
+) => {
+    try {
+        const response = await Api.get(staffEndpoints?.allStudentsInSchool, {
+            params: {
+                school_prefix: prefix,
+                page,
+                limit,
+            },
+        });
+        if (response?.data?.status) {
+            return response?.data?.data?.students;
+        }
+        return [];
+    } catch (error) {
+        console.log("Error fetching students", error);
+        throw error;
+    }
+};
+
+export const getAllStaffsInSchool = async (
+    prefix: string,
+    page = 1,
+    limit = 10
+) => {
+    try {
+        const response = await Api.get(staffEndpoints?.allStaffsInSchool, {
+            params: {
+                school_prefix: prefix,
+                page,
+                limit,
+            },
+        });
+        if (response?.data?.status) {
+            return response?.data?.data;
+        }
+        return [];
+    } catch (error) {
+        console.log("Error fetching staffs", error);
+        throw error;
+    }
+};
+
+export const getStaffAttendanceSchoolHead = async (date: string) => {
+    try {
+        const response = await Api.get(
+            staffEndpoints?.getStaffAttendaceForSchoolHead,
+            {
+                params: {
+                    date,
+                },
+            }
+        );
+        if (response?.data?.status) {
+            return response?.data?.data;
+        }
+        return [];
+    } catch (error) {
+        console.log("Error fetching staffs", error);
+        throw error;
+    }
+};
+
+export const updateStaffAttendance = async (body: {
+    attendanceDate: string;
+    attendances: { staffID: number; status: string }[];
+}) => {
+    try {
+        const response = await Api.put(
+            staffEndpoints?.updateStaffsAttendance,
+            body
+        );
+        if (response?.data?.status) {
+            return response?.data?.data;
+        }
+        return [];
+    } catch (error) {
+        console.log("Error fetching staffs", error);
         throw error;
     }
 };

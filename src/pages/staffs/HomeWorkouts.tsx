@@ -12,6 +12,7 @@ import {
 } from "../../api/staffs";
 import { getClasses } from "../../api/staffs";
 import { message } from "antd";
+import { CircularProgress } from "@mui/material";
 
 const HomeWorkouts = () => {
     const [homeworks, setHomeworks] = useState<Homework[]>([]);
@@ -24,12 +25,14 @@ const HomeWorkouts = () => {
 
     const [subjects, setSubjects] = useState<Subject[]>([]);
     const [classes, setClasses] = useState<Class[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         const fetchClasses = async () => {
             try {
                 const fetchedClasses = await getClasses({
-                    criteria: "all-in-my-sections",
+                    criteria: "my-classes",
                 });
                 setClasses(fetchedClasses);
             } catch (error) {
@@ -61,12 +64,15 @@ const HomeWorkouts = () => {
         try {
             const data = await getHomeworkTeacher();
             setHomeworks(data);
+            setLoading(false);
         } catch (error) {
             if (error instanceof Error) {
                 message?.error(
                     error?.message || "Error while fetching homeworks"
                 );
             }
+            setError("Couldn't fetch homeworks");
+            setLoading(false)
         }
     };
 
@@ -168,26 +174,33 @@ const HomeWorkouts = () => {
             </div>
 
             {/* List of Homeworks */}
-            <div className="space-y-4 max-h-full overflow-y-auto">
-                {homeworks.length === 0 ? (
-                    <EmptyState
-                        icon={<ListTodo size={48} />}
-                        title="No Homework Assignments"
-                        message="Start by creating your first homework assignment. Click the 'Create Homework' button above."
-                    />
-                ) : (
-                    homeworks.map((homework) => (
-                        <HomeWorkoutCard
-                            key={homework?.id}
-                            homework={homework}
-                            classes={classes}
-                            subjects={subjects}
-                            handleDelete={handleDelete}
-                            handleEdit={handleEdit}
+
+            {loading ? (
+                <div className="w-full flex justify-center h-full items-center">
+                    <CircularProgress />
+                </div>
+            ) : error ? (
+                <div  className="w-full flex justify-center h-full items-center text-red-500">{error}</div>
+            ) : (
+                <div className="space-y-4 max-h-full overflow-y-auto">
+                    {homeworks.length === 0 ? (
+                        <EmptyState
+                            icon={<ListTodo size={48} />}
+                            title="No Homework Assignments"
+                            message="Start by creating your first homework assignment. Click the 'Create Homework' button above."
                         />
-                    ))
-                )}
-            </div>
+                    ) : (
+                        homeworks.map((homework) => (
+                            <HomeWorkoutCard
+                                key={homework?.id}
+                                homework={homework}
+                                handleDelete={handleDelete}
+                                handleEdit={handleEdit}
+                            />
+                        ))
+                    )}
+                </div>
+            )}
 
             {/* Edit Homework Modal */}
             {isEditModalOpen && editingHomework && (

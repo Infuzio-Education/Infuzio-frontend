@@ -1,4 +1,3 @@
- 
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from "react";
 import { Plus, BookOpenCheck } from "lucide-react";
@@ -24,6 +23,7 @@ import CreateModal from "../../components/unitTest/CreateModal";
 import { UnitTestData } from "../../types/StateTypes";
 import UnitTestCard from "../../components/unitTest/UnitTestCard";
 import InfiniteScroll from "react-infinite-scroll-component";
+import { CircularProgress } from "@mui/material";
 
 const UnitTests = () => {
     const { staffInfo } = useSelector((state: RootState) => state.staffInfo);
@@ -48,14 +48,17 @@ const UnitTests = () => {
         is_published: false,
     });
 
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
     const [page, setPage] = useState(1);
-    const [hasMore,] = useState(true);
+    const [hasMore] = useState(true);
 
     useEffect(() => {
         const fetchClasses = async () => {
             try {
                 const fetchedClasses = await getClasses({
-                    criteria: "all-in-my-sections",
+                    criteria: "my-classes",
                 });
                 setClasses(fetchedClasses);
             } catch (error) {
@@ -91,9 +94,11 @@ const UnitTests = () => {
                 limit: 20,
             });
             setUnitTests(fetchedUnitTests || []);
+            setLoading(false);
         } catch (error) {
             console.error("Error fetching unit tests:", error);
-            setUnitTests([]);
+            setError("Couldn't fetch unit tests");
+            setLoading(false);
         }
     };
 
@@ -158,6 +163,8 @@ const UnitTests = () => {
                 const createdUnitTest = await createUnitTest(unitTestData);
                 if (createdUnitTest) {
                     fetchUnitTests();
+
+                    message.success("Unit test created");
                 }
             }
 
@@ -171,8 +178,6 @@ const UnitTests = () => {
             });
             setIsModalOpen(false);
             setIsEditMode(false);
-            fetchUnitTests();
-            message.success("Unit test created");
         } catch (error) {
             if (error instanceof Error) {
                 message.error(
@@ -250,44 +255,56 @@ const UnitTests = () => {
                 </button>
             </div>
 
-            <div className="space-y-4 max-h-full overflow-y-auto">
-                <InfiniteScroll
-                    dataLength={unitTests?.length} //This is important field to render the next data
-                    next={fetchmore}
-                    hasMore={hasMore}
-                    loader={<h4 style={{ textAlign: "center" }}>Loading...</h4>}
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "10px",
-                    }}
-                >
-                    {" "}
-                    {unitTests.length === 0 ? (
-                        <EmptyState
-                            icon={<BookOpenCheck size={48} />}
-                            title="No Unit Tests Found"
-                            message="Get started by scheduling your first unit test. Click the 'Schedule Unit Test' button above."
-                        />
-                    ) : (
-                        unitTests.map((test) => (
-                            <UnitTestCard
-                                key={test.id}
-                                {...{
-                                    test,
-                                    setSelectedTest,
-                                    handleStatusChange,
-                                    setIsPreviewModalOpen,
-                                    setIsManageMarksOpen,
-                                    publishStatus,
-                                    setIsEditMode,
-                                    subjects,
-                                }}
+            {loading ? (
+                <div className="w-full flex justify-center h-full items-center">
+                    <CircularProgress />
+                </div>
+            ) : error ? (
+                <div className="w-full flex justify-center h-full items-center text-red-500">
+                    {error}
+                </div>
+            ) : (
+                <div className="space-y-4 max-h-full overflow-y-auto">
+                    <InfiniteScroll
+                        dataLength={unitTests?.length} //This is important field to render the next data
+                        next={fetchmore}
+                        hasMore={hasMore}
+                        loader={
+                            <h4 style={{ textAlign: "center" }}>Loading...</h4>
+                        }
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "10px",
+                        }}
+                    >
+                        {" "}
+                        {unitTests.length === 0 ? (
+                            <EmptyState
+                                icon={<BookOpenCheck size={48} />}
+                                title="No Unit Tests Found"
+                                message="Get started by scheduling your first unit test. Click the 'Schedule Unit Test' button above."
                             />
-                        ))
-                    )}
-                </InfiniteScroll>
-            </div>
+                        ) : (
+                            unitTests.map((test) => (
+                                <UnitTestCard
+                                    key={test.id}
+                                    {...{
+                                        test,
+                                        setSelectedTest,
+                                        handleStatusChange,
+                                        setIsPreviewModalOpen,
+                                        setIsManageMarksOpen,
+                                        publishStatus,
+                                        setIsEditMode,
+                                        subjects,
+                                    }}
+                                />
+                            ))
+                        )}
+                    </InfiniteScroll>
+                </div>
+            )}
 
             {isModalOpen && (
                 <CreateModal

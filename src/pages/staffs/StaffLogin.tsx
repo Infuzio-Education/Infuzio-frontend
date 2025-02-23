@@ -3,7 +3,7 @@ import { Eye, EyeOff, LogIn } from "lucide-react";
 import { useFormik } from "formik";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../redux/store/store";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { setStaffInfo } from "../../redux/slices/staffSlice/staffSlice";
 import { LoginValidationSchema } from "../../validations/LoginValidationSchema";
 import { staffLogin } from "../../api/staffs";
@@ -20,12 +20,15 @@ const StaffLogin = () => {
         snackbarSeverity: "success" as AlertColor,
     });
 
+    const [searchParam] = useSearchParams();
+
     const updateState = (updates: Partial<typeof state>) => {
         setState((prevState) => ({
             ...prevState,
             ...updates,
         }));
     };
+
     useEffect(() => {
         if (staffInfo) {
             navigate("/staffs/home");
@@ -44,10 +47,13 @@ const StaffLogin = () => {
                     const response = await staffLogin(values);
 
                     if (response?.status === 200) {
+                        const { token: staffToken, ...data } =
+                            response?.data?.data || {};
                         dispatch(
                             setStaffInfo({
                                 username: values.username,
-                                ...response?.data?.data,
+                                staffToken,
+                                ...data,
                             })
                         );
 
@@ -91,7 +97,15 @@ const StaffLogin = () => {
                     <h2 className="text-2xl font-bold text-gray-800">
                         Welcome Back!
                     </h2>
-                    <p className="text-gray-600 mt-1">
+                    <p
+                        className={
+                            searchParam?.has("sessionExpired")
+                                ? `text-red-500`
+                                : `text-gray-600` + ` mt-1`
+                        }
+                    >
+                        {searchParam?.has("sessionExpired") &&
+                            "Session expired! "}{" "}
                         Please sign in to continue
                     </p>
                 </div>

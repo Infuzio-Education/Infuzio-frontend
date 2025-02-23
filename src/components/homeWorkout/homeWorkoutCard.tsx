@@ -1,20 +1,16 @@
 import { Trash } from "lucide-react";
 import { Edit } from "lucide-react";
 import { BookOpen, Calendar } from "lucide-react";
-import { Class, Homework, Subject } from "../../types/Types";
+import { Homework } from "../../types/Types";
 
 type PropType = {
     homework: Homework;
-    subjects: Subject[];
-    classes: Class[];
     handleEdit: (homework: Homework) => void;
     handleDelete: (id: number) => void;
 };
 
 const homeWorkoutCard = ({
     homework,
-    subjects,
-    classes,
     handleEdit,
     handleDelete,
 }: PropType) => {
@@ -29,14 +25,12 @@ const homeWorkoutCard = ({
                     <div className="flex items-center gap-2">
                         <BookOpen size={18} className="text-emerald-600" />
                         <span className="font-medium text-gray-700 group-hover:text-emerald-600 transition-colors">
-                            {subjects.find((s) => s.id === homework?.subjectID)
-                                ?.name || "Unknown Subject"}
+                            {homework?.subjectName}
                         </span>
                         <span className="text-gray-400">|</span>
                         <span className="text-gray-600">
                             {
-                                classes.find((c) => c.id === homework?.classID)
-                                    ?.name || "Unknown Class"
+                               homework?.className
                             }
                         </span>
                     </div>

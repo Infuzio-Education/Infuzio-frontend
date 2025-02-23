@@ -6,6 +6,7 @@ const ClassCard = ({
     setSelectedClass,
 }: {
     classItem: ClassItem;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     updateClassesTabState: (state: any) => void;
     setSelectedClass: (classItem: ClassItem) => void;
 }) => {

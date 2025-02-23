@@ -8,6 +8,7 @@ import { message } from "antd";
 import { getClassesGeneral, getTermExam } from "../../api/staffs";
 import ClassCard, { ClassCardType } from "../../components/Exams/ClassCard";
 import SelectedClassComponent from "../../components/Exams/SelectedClassComponent";
+import { CircularProgress } from "@mui/material";
 
 const Exams = () => {
     const [exams, setExams] = useState<Exam[]>([]);
@@ -16,6 +17,8 @@ const Exams = () => {
 
     const [selectedExam, setSelectedExam] = useState<Exam | null>(null);
     const [selectedClass, setSelectedClass] = useState<Class | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         fetchExams();
@@ -26,9 +29,12 @@ const Exams = () => {
         try {
             const response = await getTermExam(page);
             setExams(response);
+            setLoading(false);
         } catch (error) {
             console.log(error);
             message?.error("Failed to fetch exams");
+            setError("Couldn't fetch exams");
+            setLoading(false);
         }
     };
 
@@ -68,26 +74,30 @@ const Exams = () => {
                 }
             />
 
-            {selectedExam ? (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {classes && classes.length > 0 ? (
-                        classes.map((cls) => (
+            {loading ? (
+                <div className="w-full flex justify-center h-[300px] items-center">
+                    <CircularProgress />
+                </div>
+            ) : error ? (
+                <div className="w-full flex justify-center h-[300px] items-center text-red-500">
+                    {error}
+                </div>
+            ) : selectedExam ? (
+                classes?.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {classes?.map((cls) => (
                             <ClassCard
                                 key={cls?.id}
                                 cls={cls}
-                                handleClick={() => setSelectedClass(cls as unknown as Class)}
+                                handleClick={() =>
+                                    setSelectedClass(cls as unknown as Class)
+                                }
                             />
-                        ))
-                    ) : (
-                        <div className="col-span-3">
-                            <EmptyState
-                                icon={<BookOpenCheck size={48} />}
-                                title="No Classes Found"
-                                message="There are no classes available at the moment."
-                            />
-                        </div>
-                    )}
-                </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="w-full text-center"> No Classes found </div>
+                )
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {exams.length === 0 ? (

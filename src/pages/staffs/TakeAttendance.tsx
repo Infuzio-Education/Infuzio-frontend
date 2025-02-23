@@ -1,16 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
-import { Check, Clock, X, Search } from "lucide-react";
-import {
-    AttendanceStudent,
-    TakeAttendanceProps,
-} from "../../types/Types";
+import { X, Search, XCircle, Check, Clock } from "lucide-react";
+import { AttendanceStudent, TakeAttendanceProps } from "../../types/Types";
 import {
     getAttendanceByClass,
     getStudentsByClass,
     takeAttendance,
+    updateAttendance,
 } from "../../api/staffs";
 import { CircularProgress } from "@mui/material";
+import { message } from "antd";
 
 const TakeAttendance: React.FC<TakeAttendanceProps> = ({
     classInfo,
@@ -20,13 +19,16 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
     // Mock data with more students
     const [students, setStudents] = useState<AttendanceStudent[]>([]);
     const [attendance, setAttendance] = useState<
-        { student_id: string; status: "a" | "m" | "e" | "f" | null }[]
+        { studentId: string; status: "a" | "m" | "e" | "f" | null }[]
     >([]);
     const [studentsDetails, setStudentsDetails] = useState<AttendanceStudent[]>(
         []
     );
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [attendanceInstanceId, setAttendanceInstanceId] = useState<
+        number | null
+    >(null);
 
     useEffect(() => {
         fetchAttendance();
@@ -36,14 +38,20 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
     const fetchAttendance = async () => {
         try {
             const date = new Date();
-            const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}-${date.getDate().toString().padStart(2, "0")}`;
-            const attendance = await getAttendanceByClass({
+            const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1)
+                .toString()
+                .padStart(2, "0")}-${date
+                .getDate()
+                .toString()
+                .padStart(2, "0")}`;
+            const { attendance, instanceId } = await getAttendanceByClass({
                 classId: classInfo?.id,
                 date: formattedDate,
             });
             if (attendance && attendance.length > 0) {
                 setAttendance(attendance);
             }
+            setAttendanceInstanceId(instanceId);
         } catch (error) {
             console.error("Error fetching attendance:", error);
         }
@@ -68,7 +76,7 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                 studentsDetails.map((student) => ({
                     ...student,
                     attendance:
-                        attendance.find((a) => a.student_id === student.id)
+                        attendance.find((a) => a.studentId === student.id)
                             ?.status || null,
                 }))
             );
@@ -105,14 +113,32 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
 
     const handleSubmit = async () => {
         try {
-            await takeAttendance({
-                class_id: classInfo?.id,
-                attendance_date: new Date().toLocaleDateString("en-CA"),
-                attendance: students.map((student) => ({
-                    student_id: student.id,
-                    status: student.attendance,
-                })) as { student_id: string; status: "f" | "a" | "m" | "e" }[],
-            });
+            if (!attendanceInstanceId) {
+                await takeAttendance({
+                    classId: classInfo?.id,
+                    attendanceDate: new Date().toLocaleDateString("en-CA"),
+                    attendance: students.map((student) => ({
+                        StudentID: student.id,
+                        status: student.attendance,
+                    })) as {
+                        StudentID: string;
+                        status: "f" | "a" | "m" | "e";
+                    }[],
+                });
+                message?.success("Attendance added");
+            } else {
+                await updateAttendance({
+                    instanceId: attendanceInstanceId,
+                    updatedEntries: students.map((student) => ({
+                        studentId: student.id,
+                        status: student.attendance,
+                    })) as {
+                        studentId: string;
+                        status: "f" | "a" | "m" | "e";
+                    }[],
+                });
+                message?.success("Attendance updated");
+            }
             onClose();
         } catch (error) {
             console.error("Error submitting attendance:", error);
@@ -281,12 +307,27 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                                             }
                                             className={`p-2 rounded-full ${
                                                 student?.attendance === "m"
-                                                    ? "bg-blue-100 text-blue-700"
-                                                    : "bg-gray-100 text-gray-500 hover:bg-blue-50 hover:text-blue-600"
+                                                    ? "bg-blue-100 text-yellow-700"
+                                                    : "bg-gray-100 text-gray-500 hover:bg-blue-50 hover:text-yellow-600"
                                             }`}
                                         >
                                             <Clock size={18} />
                                         </button>
+                                        {/* <button
+                                            onClick={() =>
+                                                handleAttendance(
+                                                    student.id,
+                                                    "e"
+                                                )
+                                            }
+                                            className={`p-2 rounded-full ${
+                                                student?.attendance === "e"
+                                                    ? "bg-blue-100 text-blue-700"
+                                                    : "bg-gray-100 text-gray-500 hover:bg-blue-50 hover:text-blue-600"
+                                            }`}
+                                        >
+                                            <Cloud size={18} />
+                                        </button> */}
                                         <button
                                             onClick={() =>
                                                 handleAttendance(
@@ -300,7 +341,7 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                                                     : "bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-600"
                                             }`}
                                         >
-                                            <X size={18} />
+                                            <XCircle size={18} />
                                         </button>
                                     </div>
                                 </div>
@@ -314,7 +355,7 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                 )}
 
                 {/* Submit Button - Fixed at bottom */}
-                {attendance.length === 0 && (
+                {attendance.length === 0 ? (
                     <div className="pt-4 mt-4 border-t">
                         <button
                             className="w-full px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium disabled:opacity-70 disabled:hover:bg-emerald-600 disabled:cursor-not-allowed"
@@ -324,6 +365,19 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                             onClick={handleSubmit}
                         >
                             Submit Attendance ({students.length - stats.pending}
+                            /{students.length} Marked)
+                        </button>
+                    </div>
+                ) : (
+                    <div className="pt-4 mt-4 border-t">
+                        <button
+                            className="w-full px-6 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium disabled:opacity-70 disabled:hover:bg-emerald-600 disabled:cursor-not-allowed"
+                            disabled={
+                                stats.pending > 0 || students.length === 0
+                            }
+                            onClick={handleSubmit}
+                        >
+                            Update Attendance ({students.length - stats.pending}
                             /{students.length} Marked)
                         </button>
                     </div>
