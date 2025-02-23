@@ -8,14 +8,6 @@ import { X } from 'lucide-react';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { useNavigate } from 'react-router-dom';
 
-interface GlobalSyllabus {
-    id: number;
-    name: string;
-    isCustomSyllabus: boolean;
-    creatorSchoolCode: string | null;
-}
-
-
 const initialValues: SchoolFormData = {
     name: '',
     schoolCode: '',
@@ -49,8 +41,8 @@ const CreateSchool: React.FC = () => {
             try {
                 const response = await getSyllabus();
 
-                if (response?.global && Array.isArray(response.global)) {
-                    const formattedSyllabusList = response.global.map((syllabus: GlobalSyllabus) => ({
+                if (response?.data && Array.isArray(response.data)) {
+                    const formattedSyllabusList = response.data.map((syllabus: Syllabus) => ({
                         id: syllabus.id,
                         name: syllabus.name,
                         value: syllabus.id,
@@ -97,7 +89,6 @@ const CreateSchool: React.FC = () => {
                 schoolLogo: logoFile,
             };
 
-            console.log("Form Data Object", formDataObject);
 
             Object.entries(formDataObject).forEach(([key, value]) => {
                 if (key === 'address' && value) {
@@ -116,7 +107,7 @@ const CreateSchool: React.FC = () => {
                     data.append(key, value as string);
                 }
             });
-            console.log("Data", data);
+
             try {
                 const response = await createSchool(data);
 

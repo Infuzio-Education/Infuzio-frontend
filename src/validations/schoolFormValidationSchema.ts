@@ -4,7 +4,7 @@ import { addressValidationSchema } from './addressValidationSchema';
 // Custom error messages
 const VALIDATION_MESSAGES = {
     SCHOOL_CODE: {
-        LETTERS_ONLY: 'School code must contain only letters',
+        LETTERS_ONLY: 'School code must contain only capital letters',
         MIN_LENGTH: 'School code must be at least 2 characters',
         MAX_LENGTH: 'School code must not exceed 6 characters',
         REQUIRED: 'School code is required'
@@ -22,7 +22,7 @@ const VALIDATION_MESSAGES = {
 // Validation patterns
 const PATTERNS = {
     PHONE: /^\+[1-9]\d{6,14}$/,
-    SCHOOL_CODE: /^[a-zA-Z]+$/,
+    SCHOOL_CODE: /^[A-Z]+$/,
 };
 
 // Allowed file types
