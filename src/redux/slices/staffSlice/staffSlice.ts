@@ -4,6 +4,7 @@ import { Privilege } from "../../../types/Types";
 interface StaffInfo {
     regNumber: string | null;
     token: string;
+    staffToken:string;
     staffID: number;
     name: string;
     idCardNumber: string | null;

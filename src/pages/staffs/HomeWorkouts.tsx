@@ -32,7 +32,7 @@ const HomeWorkouts = () => {
         const fetchClasses = async () => {
             try {
                 const fetchedClasses = await getClasses({
-                    criteria: "all-in-my-sections",
+                    criteria: "my-classes",
                 });
                 setClasses(fetchedClasses);
             } catch (error) {

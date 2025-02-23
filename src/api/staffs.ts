@@ -1,11 +1,16 @@
-import Api from "./axiosConfig";
-import staffEndpoints from "../endpoints/staffs";
 import axios from "axios";
+import staffEndpoints from "../endpoints/staffs";
 import { Homework, TestMark, UnitTest } from "../types/Types";
+import store from "../redux/store/store";
+import { logout } from "../redux/slices/staffSlice/staffSlice";
 
 interface StaffInfo {
-    token: string;
+    staffToken: string;
 }
+
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+const Api = axios.create({ baseURL: BASE_URL, withCredentials: true });
 
 Api.interceptors.request.use(
     (config) => {
@@ -15,8 +20,8 @@ Api.interceptors.request.use(
             try {
                 const staffInfo = JSON.parse(staffInfoString) as StaffInfo;
 
-                if (staffInfo && staffInfo.token) {
-                    config.headers["Authorization"] = `${staffInfo.token}`;
+                if (staffInfo && staffInfo.staffToken) {
+                    config.headers["Authorization"] = `${staffInfo.staffToken}`;
                 }
             } catch (e) {
                 console.error("Error parsing staffInfo from localStorage:", e);
@@ -48,11 +53,11 @@ Api.interceptors.response.use(
 
         console.log("Error Response:", error.response);
 
-        // If token expired, clear Redux store and redirect
+        //If token expired, clear Redux store and redirect
         if (error.response.status === 401) {
-            // store.dispatch(logout()); // Clear Redux store
+            store.dispatch(logout()); // Clear Redux store
             localStorage.removeItem("accessToken"); // Clear token
-            window.location.href = "/login?sessionExpired=true"; // Redirect to login with message
+            window.location.href = "/staffs/login?sessionExpired=true"; // Redirect to login with message
         }
 
         return Promise.reject(error);
@@ -80,7 +85,7 @@ export const getClasses = async (params: {
     criteria: "all" | "all-in-my-sections" | "my-classes";
 }) => {
     try {
-        const response = await Api.get(staffEndpoints.getClasses, {
+        const response = await Api.get(staffEndpoints.getMyClasses, {
             params,
         });
         if (response?.data && response?.data?.status === true) {
@@ -107,15 +112,7 @@ export const getAttendanceByClass = async (params: {
             params,
         });
         if (response?.data && response?.data?.status === true) {
-            return response?.data?.data?.Attendance?.map(
-                (attendance: {
-                    StudentID: string;
-                    Status: "a" | "f" | "m" | "e" | null;
-                }) => ({
-                    student_id: attendance.StudentID,
-                    status: attendance.Status,
-                })
-            );
+            return response?.data?.data || {};
         }
         return [];
     } catch (error) {
@@ -130,10 +127,30 @@ export const getAttendanceByClass = async (params: {
 };
 
 export const takeAttendance = async (body: {
-    class_id: string;
-    attendance_date: string;
+    classId: string;
+    attendanceDate: string;
     attendance: {
-        student_id: string;
+        StudentID: string;
+        status: "f" | "a" | "m" | "e";
+    }[];
+}) => {
+    try {
+        const response = await Api.post(staffEndpoints.postAttendance, body);
+        return response;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            return error?.response;
+        } else {
+            console.error("Unexpected error:", error);
+            throw error;
+        }
+    }
+};
+
+export const updateAttendance = async (body: {
+    instanceId: number;
+    updatedEntries: {
+        studentId: string;
         status: "f" | "a" | "m" | "e";
     }[];
 }) => {
