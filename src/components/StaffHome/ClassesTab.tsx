@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useNavigate } from "react-router-dom";
 import { ClassesTabProps, ClassItem } from "../../types/Types";
 import { useEffect, useState } from "react";

@@ -208,15 +208,17 @@ export const getTimeTable = async (classId: string) => {
     }
 };
 
-export const getStudentsDetails = async (classId: string) => {
+export const getStudentsDetails = async (classId: string | undefined, page: number, limit: number) => {
     try {
         const response = await Api.get(staffEndpoints.getStudentsDetails, {
             params: {
                 classID: classId,
+                page,
+                limit,
             },
         });
         if (response?.data && response?.data?.status === true) {
-            return response?.data?.data?.students;
+            return response?.data?.data;
         }
         return [];
     } catch (error) {

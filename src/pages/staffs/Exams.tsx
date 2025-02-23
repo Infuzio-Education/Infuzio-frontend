@@ -100,7 +100,7 @@ const Exams = () => {
                 )
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {exams.length === 0 ? (
+                    {exams?.length === 0 ? (
                         <EmptyState
                             icon={<BookOpenCheck size={48} />}
                             title="No Exams Found"

@@ -40,7 +40,7 @@ const ClassCard = ({ cls, handleClick }: PropType) => {
                     {/* Add subjects list */}
                     <div className="mt-3 space-y-1">
                         <div className="flex flex-wrap gap-2">
-                            {cls.subjectsTaught.map((subject) => (
+                            {cls?.subjectsTaught?.map((subject) => (
                                 <span
                                     key={subject}
                                     className="px-2 py-1 bg-gray-100 text-gray-600 
