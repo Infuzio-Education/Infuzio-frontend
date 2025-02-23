@@ -658,6 +658,7 @@ const StudentDetails = ({
                     </div>
                 );
             case "overall":
+                // eslint-disable-next-line no-case-declarations
                 const chartData: ChartData[] = [
                     {
                         name: "Present",
@@ -884,9 +885,9 @@ const StudentDetails = ({
                                                                 percentage >= 75
                                                                     ? "bg-green-100 text-green-700"
                                                                     : percentage >=
-                                                                        50
-                                                                      ? "bg-yellow-100 text-yellow-700"
-                                                                      : "bg-red-100 text-red-700"
+                                                                      50
+                                                                    ? "bg-yellow-100 text-yellow-700"
+                                                                    : "bg-red-100 text-red-700"
                                                             }`}
                                                         >
                                                             {percentage.toFixed(

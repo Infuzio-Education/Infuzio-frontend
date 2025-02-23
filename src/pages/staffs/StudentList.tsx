@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from "react";
 import {
     Search,
@@ -31,25 +32,41 @@ const StudentList = () => {
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const limit = 10; // Define a limit for the number of students per page
 
     useEffect(() => {
-        fetchStudents();
-    }, [fromClass?.id]);
+        fetchStudents(page, limit);
+    }, [fromClass?.id, page]);
 
     useEffect(() => {
         console.log(selectedStudent);
     }, [selectedStudent]);
 
-    const fetchStudents = async () => {
+    const fetchStudents = async (page: number, limit: number) => {
         try {
-            const students = await getStudentsDetails(fromClass?.id);
-            setStudents(students);
+            const { students, hasMore } = await getStudentsDetails(fromClass?.id, page, limit);
+            setStudents((prevStudents) => [...prevStudents, ...students]);
+            setHasMore(hasMore);
             setLoading(false);
         } catch (error) {
             setError("Error fetching students, Try refreshing the page");
             setLoading(false);
         }
     };
+
+    const handleScroll = () => {
+        if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight || loading || !hasMore) {
+            return;
+        }
+        setPage((prevPage) => prevPage + 1);
+    };
+
+    useEffect(() => {
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [loading, hasMore]);
 
     const handleEdit = (student: Student) => {
         setSelectedStudent(student);
