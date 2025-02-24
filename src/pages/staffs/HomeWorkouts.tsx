@@ -183,7 +183,7 @@ const HomeWorkouts = () => {
                 <div  className="w-full flex justify-center h-full items-center text-red-500">{error}</div>
             ) : (
                 <div className="space-y-4 max-h-full overflow-y-auto">
-                    {homeworks.length === 0 ? (
+                    {homeworks?.length === 0 ? (
                         <EmptyState
                             icon={<ListTodo size={48} />}
                             title="No Homework Assignments"
