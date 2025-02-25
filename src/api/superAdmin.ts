@@ -14,18 +14,28 @@ interface SuperAdminInfo {
     token: string;
 }
 
+interface StaffInfo {
+    staffToken: string;
+}
+
 Api.interceptors.request.use(
     (config) => {
-        const superAdminInfoString = localStorage.getItem("superAdminInfo");
+        const superAdminInfoString =
+            localStorage.getItem("superAdminInfo") || "";
+        const staffInfoString = localStorage.getItem("staffInfo") || "";
 
-        if (superAdminInfoString) {
+        if (superAdminInfoString || staffInfoString) {
             try {
                 const superAdminInfo = JSON.parse(
                     superAdminInfoString
                 ) as SuperAdminInfo;
 
+                const staffInfo = JSON.parse(staffInfoString) as StaffInfo;
+
                 if (superAdminInfo && superAdminInfo.token) {
-                    config.headers["Authorization"] = `${superAdminInfo.token}`;
+                    config.headers["Authorization"] = `${
+                        staffInfo?.staffToken || superAdminInfo.token
+                    }`;
                 }
             } catch (e) {
                 console.error(
