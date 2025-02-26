@@ -8,9 +8,9 @@ const Breadcrumbs: React.FC = () => {
 
     const pathSegments: string[] = location.pathname
         .split('/')
-        .filter(segment => segment && segment !== 'superAdmin');
+        .filter(segment => segment && segment !== 'infuzAdmin');
 
-    const getPath = (index: number): string => '/superAdmin/' + pathSegments.slice(0, index + 1).join('/');
+    const getPath = (index: number): string => '/infuzAdmin/' + pathSegments.slice(0, index + 1).join('/');
 
     const formatSegment = (segment: string, index: number): string => {
         if (pathSegments[index - 1] === 'schools' && schoolInfo?.name) {
@@ -27,8 +27,8 @@ const Breadcrumbs: React.FC = () => {
                     <ul className="flex flex-row font-medium mt-0 space-x-1 rtl:space-x-reverse text-sm">
                         <li>
                             <Link
-                                to="/superAdmin"
-                                className={location.pathname === '/superAdmin' ? 'text-emerald-600' : 'text-gray-700'}
+                                to="/infuzAdmin"
+                                className={location.pathname === '/infuzAdmin' ? 'text-emerald-600' : 'text-gray-700'}
                             >
                                 Home
                             </Link>

@@ -29,7 +29,7 @@ const Togglebar: React.FC<TogglebarProps> = ({
         if (hasSchoolAdminPrivilege) {
             navigate(`/schoolAdmin/${staffInfo?.schoolCode}`);
         } else {
-            navigate('/superAdmin/schools');
+            navigate('/infuzAdmin/schools');
         }
     };
 
