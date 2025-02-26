@@ -26,22 +26,27 @@ const SchoolProfiles: React.FC = () => {
         const fetchData = async () => {
             try {
                 if (schoolInfo?.schoolPrefix) {
-                    const [students, classes, staff, parents] = await Promise.all([
+                    const [studentsResponse, classesResponse, staffResponse, parentsResponse] = await Promise.allSettled([
                         listStudents(schoolInfo.schoolPrefix),
                         getClasses(schoolInfo.schoolPrefix),
                         listStaff(schoolInfo.schoolPrefix),
                         listParents(schoolInfo.schoolPrefix)
                     ]);
 
-                    console.log(students);
-                    console.log(parents);
-
-                    setStats({
-                        totalStudents: students.data.students.length,
-                        totalClasses: classes.data.length,
-                        totalParents: parents.data.parents.length,
-                        totalStaffs: staff.data.length
-                    });
+                    setStats(prev => ({
+                        totalStudents: studentsResponse.status === 'fulfilled'
+                            ? studentsResponse.value.data?.students?.length ?? prev.totalStudents
+                            : prev.totalStudents,
+                        totalClasses: classesResponse.status === 'fulfilled'
+                            ? classesResponse.value.data?.length ?? prev.totalClasses
+                            : prev.totalClasses,
+                        totalParents: parentsResponse.status === 'fulfilled'
+                            ? parentsResponse.value.data?.parents?.length ?? prev.totalParents
+                            : prev.totalParents,
+                        totalStaffs: staffResponse.status === 'fulfilled'
+                            ? staffResponse.value.data?.length ?? prev.totalStaffs
+                            : prev.totalStaffs
+                    }));
                 }
             } catch (error) {
                 console.error('Error fetching statistics:', error);
@@ -180,4 +185,4 @@ const SchoolProfiles: React.FC = () => {
     );
 };
 
-export default SchoolProfiles;
+export default SchoolProfiles; 

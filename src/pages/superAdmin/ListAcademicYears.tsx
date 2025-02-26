@@ -39,7 +39,7 @@ const ListAcademicYears: React.FC = () => {
                 ]);
 
                 if (academicYearsRes.status === true) {
-                    setAcademicYears(academicYearsRes.data);
+                    setAcademicYears(academicYearsRes.data || []);
                 }
 
             } catch (error) {
@@ -67,8 +67,8 @@ const ListAcademicYears: React.FC = () => {
         );
     };
 
-    const filteredYears = academicYears.filter(year =>
-        year.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredYears = (academicYears || []).filter(year =>
+        year.name?.toLowerCase()?.includes(searchTerm.toLowerCase())
     );
 
     const handleOpenModal = (year: AcademicYear | null) => {
@@ -207,7 +207,7 @@ const ListAcademicYears: React.FC = () => {
                 <div className="rounded-lg p-8 text-center">
                     <p className="text-xl font-semibold text-red-500">{error}</p>
                 </div>
-            ) : academicYears.length === 0 ? (
+            ) : academicYears?.length === 0 ? (
                 <div className="rounded-lg p-8 text-center">
                     <p className="text-xl font-semibold mb-4">No academic years found.</p>
                 </div>
