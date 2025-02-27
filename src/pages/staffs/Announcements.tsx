@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Plus, Image as ImageIcon, File, Send, X, MoreVertical, Play } from "lucide-react";
-import { CircularProgress, Box, Chip, Avatar, Typography, IconButton, Menu, MenuItem } from "@mui/material";
+import { Box, Chip, Avatar, Typography, IconButton, Menu, MenuItem } from "@mui/material";
 import { getAnnouncements, getMyClasses, createAnnouncement, getAllClassesInSchool, getAllStandardsInSchool, getAllGroupsInSchool, getAllMediumsInSchool, getAllSectionsInSchool, deleteAnnouncement } from "../../api/staffs";
 import { AnnouncementData, ClassItem } from "../../types/Types";
 import { format, isToday, isYesterday } from 'date-fns';
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store/store";
 import SnackbarComponent from '../../components/SnackbarComponent';
+import ChatSkeleton from "../../components/chatSkeleton";
 
 
 function groupAnnouncementsByDate(announcements: AnnouncementData[]) {
@@ -46,6 +47,7 @@ const allowedAnnouncementFileExtensions = new Set([
     ".mp3", ".wav", ".ogg"
 ]);
 
+
 const Announcements = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -74,6 +76,10 @@ const Announcements = () => {
     const [announcementToDelete, setAnnouncementToDelete] = useState<number | null>(null);
     const [selectedOptions, setSelectedOptions] = useState<{ value: string; label: string }[]>([]);
     const [selectedClasses, setSelectedClasses] = useState<{ value: string; label: string }[]>([]);
+    const [offset, setOffset] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     console.log("Roles", selectedRole);
 
@@ -86,28 +92,15 @@ const Announcements = () => {
     }, [staffInfo]);
 
     useEffect(() => {
-        const fetchAnnouncements = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                const data = await getAnnouncements();
-                setAnnouncements(data);
-            } catch (error) {
-                setError(
-                    "Failed to fetch announcements. Please try again later."
-                );
-                console.error("Error fetching announcements:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchAnnouncements();
+        const cachedData = localStorage.getItem('announcementsCache');
+        if (cachedData) {
+            const { data, offset, hasMore } = JSON.parse(cachedData);
+            setAnnouncements(data);
+            setOffset(offset);
+            setHasMore(hasMore);
+        }
+        fetchAnnouncements(0);
     }, []);
-
-    // useEffect(() => {
-    //     getSections();
-    // }, []);
 
     useEffect(() => {
         const fetchMyClasses = async () => {
@@ -123,16 +116,6 @@ const Announcements = () => {
 
         fetchMyClasses();
     }, []);
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [announcements]);
-
-    const groupedAnnouncements = groupAnnouncementsByDate(announcements);
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, announcementId: number) => {
         setAnchorEl(prev => ({
@@ -327,9 +310,17 @@ const Announcements = () => {
             // Close the modal
             setShowCreateModal(false);
 
-            // Refetch announcements to update the list
-            const updatedAnnouncements = await getAnnouncements();
-            setAnnouncements(updatedAnnouncements);
+            // Clear cache to force a fresh fetch
+            localStorage.removeItem('announcementsCache');
+
+            // Reset offset and fetch fresh announcements
+            setOffset(0);
+            await fetchAnnouncements(0);
+
+            // Scroll to top of the announcements container
+            if (scrollContainerRef.current) {
+                scrollContainerRef.current.scrollTop = 0;
+            }
 
             // Reset form fields
             setTitle('');
@@ -425,11 +416,109 @@ const Announcements = () => {
         setCategoryIDs(categoryIDs.filter(id => id !== parseInt(valueToRemove)));
     };
 
+    const fetchAnnouncements = async (newOffset: number) => {
+        try {
+            setIsLoadingMore(true);
+            const element = scrollContainerRef.current;
+            // Only store previous scroll position if not refreshing the list
+            const previousScrollTop = newOffset > 0 ? element?.scrollTop : 0;
+
+            const data = await getAnnouncements(10, newOffset);
+
+            // For initial load or refresh, replace the announcements instead of appending
+            if (newOffset === 0) {
+                setAnnouncements(data);
+                setOffset(10);
+            } else {
+                setAnnouncements(prev => {
+                    // Only restore scroll position for pagination
+                    if (element && previousScrollTop) {
+                        element.scrollTop = previousScrollTop;
+                    }
+                    return [...prev, ...data];
+                });
+                setOffset(newOffset + 10);
+            }
+
+            setHasMore(data.length === 10);
+
+            // Update cache
+            if (newOffset === 0) {
+                localStorage.setItem('announcementsCache', JSON.stringify({
+                    data: data,
+                    offset: 10,
+                    hasMore: data.length === 10
+                }));
+            }
+
+        } catch (error) {
+            setError("Failed to fetch announcements. Please try again later.");
+        } finally {
+            setIsLoadingMore(false);
+            setLoading(false);
+        }
+    };
+
+    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        const element = e.currentTarget;
+        if (element.scrollHeight + element.scrollTop <= element.clientHeight + 100 &&
+            !isLoadingMore &&
+            hasMore) {
+            fetchAnnouncements(offset);
+        }
+    };
+
     if (loading) {
         return (
-            <div className="h-[calc(100vh-2rem)] flex items-center justify-center">
-                <CircularProgress />
-            </div>
+            <Box sx={{
+                height: 'calc(100vh - 64px)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+                p: 2,
+            }}>
+                {/* Header Section */}
+                <Box sx={{
+                    backgroundColor: '#f1f1f1',
+                    p: 3,
+                    borderRadius: 2,
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                }}>
+                    <Box sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                    }}>
+                        <Typography variant="h5" sx={{ fontWeight: 600, color: '#1a2b4b' }}>
+                            Announcements
+                        </Typography>
+                        <button
+                            disabled
+                            className="px-4 py-2 bg-emerald-500 text-white rounded-lg opacity-50 
+                            flex items-center gap-2 cursor-not-allowed"
+                        >
+                            <Plus size={20} />
+                            Create Announcement
+                        </button>
+                    </Box>
+                </Box>
+
+                {/* Skeleton Announcements */}
+                <Box sx={{
+                    flexGrow: 1,
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column-reverse',
+                    borderRadius: 2,
+                    p: 2,
+                    gap: 2,
+                }}>
+                    {/* Generate multiple skeletons */}
+                    {[...Array(5)].map((_, index) => (
+                        <ChatSkeleton key={index} index={index} />
+                    ))}
+                </Box>
+            </Box>
         );
     }
 
@@ -477,20 +566,24 @@ const Announcements = () => {
             </Box>
 
             {/* Messages Section */}
-            <Box sx={{
-                flexGrow: 1,
-                overflowY: 'auto',
-                display: 'flex',
-                flexDirection: 'column-reverse',
-                borderRadius: 2,
-                p: 2,
-                gap: 2,
-                height: 'calc(100vh - 100px)',
-                position: 'relative',
-            }}>
+            <Box
+                ref={scrollContainerRef}
+                sx={{
+                    flexGrow: 1,
+                    overflowY: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column-reverse',
+                    borderRadius: 2,
+                    p: 2,
+                    gap: 2,
+                    height: 'calc(100vh - 100px)',
+                    position: 'relative',
+                }}
+                onScroll={handleScroll}
+            >
                 <div ref={messagesEndRef} />
                 <Box sx={{ display: 'flex', flexDirection: 'column-reverse' }}>
-                    {Object.entries(groupedAnnouncements).map(([date, dateAnnouncements]) => (
+                    {Object.entries(groupAnnouncementsByDate(announcements)).map(([date, dateAnnouncements]) => (
                         <Box key={date} sx={{ mb: 4, position: 'relative' }}>
                             <Box
                                 sx={{
