@@ -19,6 +19,7 @@ const StaffLogin = () => {
         snackbarMessage: "",
         snackbarSeverity: "success" as AlertColor,
     });
+    const [rememberMe, setRememberMe] = useState(false);
 
     const [searchParam] = useSearchParams();
 
@@ -35,11 +36,19 @@ const StaffLogin = () => {
         }
     }, []);
 
+    useEffect(() => {
+        const rememberedUsername = localStorage.getItem('rememberedUsername');
+        if (rememberedUsername) {
+            values.username = rememberedUsername;
+            setRememberMe(true);
+        }
+    }, []);
+
     const { handleSubmit, handleChange, handleBlur, values, errors, touched } =
         useFormik({
             initialValues: {
-                username: "GVH000001",
-                password: "password",
+                username: "",
+                password: "",
             },
             validationSchema: LoginValidationSchema,
             onSubmit: async (values) => {
@@ -49,6 +58,15 @@ const StaffLogin = () => {
                     if (response?.status === 200) {
                         const { token: staffToken, ...data } =
                             response?.data?.data || {};
+
+                        if (rememberMe) {
+                            localStorage.setItem('rememberedUsername', values.username);
+                            localStorage.setItem('staffToken', staffToken);
+                        } else {
+                            sessionStorage.setItem('staffToken', staffToken);
+                            localStorage.removeItem('rememberedUsername');
+                        }
+
                         dispatch(
                             setStaffInfo({
                                 username: values.username,
@@ -189,6 +207,8 @@ const StaffLogin = () => {
                             <label className="flex items-center">
                                 <input
                                     type="checkbox"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
                                     className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
                                 />
                                 <span className="ml-2 text-sm text-gray-600">
@@ -220,7 +240,7 @@ const StaffLogin = () => {
                         <p className="text-sm text-gray-600">
                             Having trouble signing in?{" "}
                             <a
-                                href="#"
+                                href="mailto:infuzioeducation@gmail.com"
                                 className="text-emerald-600 hover:text-emerald-700 font-medium"
                             >
                                 Contact Support
@@ -232,7 +252,7 @@ const StaffLogin = () => {
                 {/* Footer */}
                 <div className="mt-8 text-center">
                     <p className="text-sm text-gray-500">
-                        © 2024 School Management System. All rights reserved.
+                        © 2025 Infuzio Education. All rights reserved.
                     </p>
                 </div>
             </div>

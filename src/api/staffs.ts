@@ -269,9 +269,9 @@ export const getStaffAttendanceByMonth = async (params: {
     }
 };
 
-export const getAnnouncements = async () => {
+export const getAnnouncements = async (limit: number, offset: number) => {
     try {
-        const response = await Api.get(staffEndpoints.Announcements);
+        const response = await Api.get(`${staffEndpoints.Announcements}?limit=${limit}&offset=${offset}`);
         if (response?.data && response?.data?.status === true) {
             return response?.data?.data || [];
         }

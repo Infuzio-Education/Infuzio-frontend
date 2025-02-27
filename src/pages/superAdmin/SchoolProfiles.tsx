@@ -60,7 +60,7 @@ const SchoolProfiles: React.FC = () => {
         if (hasSchoolAdminPrivilege) {
             return `/schoolAdmin/${schoolInfo.schoolPrefix}/${route}`;
         }
-        return `/superAdmin/schools/${schoolInfo.schoolPrefix}/${route}`;
+        return `/infuzAdmin/schools/${schoolInfo.schoolPrefix}/${route}`;
     };
 
     const cards = [

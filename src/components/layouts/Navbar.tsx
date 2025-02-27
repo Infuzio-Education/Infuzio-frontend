@@ -48,7 +48,7 @@ const Navbar: React.FC = () => {
 
     const handleLogout = () => {
         dispatch(logout());
-        navigate('/superAdmin');
+        navigate('/infuzAdmin');
     };
 
     useEffect(() => {
@@ -66,7 +66,7 @@ const Navbar: React.FC = () => {
 
     useEffect(() => {
         const pathParts = location.pathname.split('/');
-        const isValidSchoolPath = pathParts[1] === 'superAdmin' && pathParts[2] === 'schools' && pathParts[3];
+        const isValidSchoolPath = pathParts[1] === 'infuzAdmin' && pathParts[2] === 'schools' && pathParts[3];
 
         setSchoolId(isValidSchoolPath ? pathParts[3] : null);
     }, [location.pathname]);
@@ -95,7 +95,7 @@ const Navbar: React.FC = () => {
                 <div className="flex flex-wrap justify-between items-center mx-auto p-4">
                     <div className="flex flex-row space-x-8">
                         {!hasSchoolAdminPrivilege && (
-                            <Link to="/superAdmin" className="flex items-center space-x-3 rtl:space-x-reverse">
+                            <Link to="/infuzAdmin" className="flex items-center space-x-3 rtl:space-x-reverse">
                                 <img src="/infuzio-logo.png" className="h-8 w-auto" alt="School Admin Logo" />
                             </Link>
                         )}
@@ -118,7 +118,7 @@ const Navbar: React.FC = () => {
                                                     <Link
                                                         to={hasSchoolAdminPrivilege
                                                             ? `/schoolAdmin/${staffInfo?.schoolCode}/students`
-                                                            : `/superAdmin/schools/${schoolInfo.schoolPrefix}/students`}
+                                                            : `/infuzAdmin/schools/${schoolInfo.schoolPrefix}/students`}
                                                         className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                         onClick={handleLinkClick}
                                                     >
@@ -129,7 +129,7 @@ const Navbar: React.FC = () => {
                                                     <Link
                                                         to={hasSchoolAdminPrivilege
                                                             ? `/schoolAdmin/${staffInfo?.schoolCode}/parents`
-                                                            : `/superAdmin/schools/${schoolId}/parents`}
+                                                            : `/infuzAdmin/schools/${schoolId}/parents`}
                                                         className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                         onClick={handleLinkClick}
                                                     >
@@ -140,7 +140,7 @@ const Navbar: React.FC = () => {
                                                     <Link
                                                         to={hasSchoolAdminPrivilege
                                                             ? `/schoolAdmin/${staffInfo?.schoolCode}/staffs`
-                                                            : `/superAdmin/schools/${schoolId}/staffs`}
+                                                            : `/infuzAdmin/schools/${schoolId}/staffs`}
                                                         className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                         onClick={handleLinkClick}
                                                     >
@@ -152,7 +152,7 @@ const Navbar: React.FC = () => {
                                                     <Link
                                                         to={hasSchoolAdminPrivilege
                                                             ? `/schoolAdmin/${staffInfo?.schoolCode}/classes`
-                                                            : `/superAdmin/schools/${schoolId}/classes`}
+                                                            : `/infuzAdmin/schools/${schoolId}/classes`}
                                                         className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                     >
                                                         Classes
@@ -162,7 +162,7 @@ const Navbar: React.FC = () => {
                                                     <Link
                                                         to={hasSchoolAdminPrivilege
                                                             ? `/schoolAdmin/${staffInfo?.schoolCode}/roles`
-                                                            : `/superAdmin/schools/${schoolInfo.schoolPrefix}/roles`}
+                                                            : `/infuzAdmin/schools/${schoolInfo.schoolPrefix}/roles`}
                                                         className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                         onClick={handleLinkClick}
                                                     >
@@ -175,7 +175,7 @@ const Navbar: React.FC = () => {
                                                             <Link
                                                                 to={hasSchoolAdminPrivilege
                                                                     ? `/schoolAdmin/${staffInfo?.schoolCode}/termExams`
-                                                                    : `/superAdmin/schools/${schoolInfo.schoolPrefix}/termExams`}
+                                                                    : `/infuzAdmin/schools/${schoolInfo.schoolPrefix}/termExams`}
                                                                 className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                                 onClick={handleLinkClick}
                                                             >
@@ -186,7 +186,7 @@ const Navbar: React.FC = () => {
                                                             <Link
                                                                 to={hasSchoolAdminPrivilege
                                                                     ? `/schoolAdmin/${staffInfo?.schoolCode}/timetables`
-                                                                    : `/superAdmin/schools/${schoolInfo.schoolPrefix}/timetables`}
+                                                                    : `/infuzAdmin/schools/${schoolInfo.schoolPrefix}/timetables`}
                                                                 className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                                 onClick={handleLinkClick}
                                                             >
@@ -199,7 +199,7 @@ const Navbar: React.FC = () => {
                                                     <Link
                                                         to={hasSchoolAdminPrivilege
                                                             ? `/schoolAdmin/${staffInfo?.schoolCode}/subjectAllocation`
-                                                            : `/superAdmin/schools/${schoolId}/subjectAllocation`}
+                                                            : `/infuzAdmin/schools/${schoolId}/subjectAllocation`}
                                                         className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                     >
                                                         Subject allocation
@@ -209,7 +209,7 @@ const Navbar: React.FC = () => {
                                                     <Link
                                                         to={hasSchoolAdminPrivilege
                                                             ? `/schoolAdmin/${staffInfo?.schoolCode}/academicYears`
-                                                            : `/superAdmin/schools/${schoolInfo.schoolPrefix}/academicYears`}
+                                                            : `/infuzAdmin/schools/${schoolInfo.schoolPrefix}/academicYears`}
                                                         className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                         onClick={handleLinkClick}
                                                     >
@@ -218,7 +218,7 @@ const Navbar: React.FC = () => {
                                                 </li>
                                                 {superAdminInfo && (
                                                     <li>
-                                                        <Link to={`/superAdmin/schools/${schoolInfo.schoolPrefix}/manage`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
+                                                        <Link to={`/infuzAdmin/schools/${schoolInfo.schoolPrefix}/manage`} className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2">
                                                             School settings</Link>
                                                     </li>
                                                 )}
@@ -241,7 +241,7 @@ const Navbar: React.FC = () => {
                                                 <Link
                                                     to={hasSchoolAdminPrivilege
                                                         ? `/schoolAdmin/${staffInfo?.schoolCode}/standards`
-                                                        : `/superAdmin/standards`}
+                                                        : `/infuzAdmin/standards`}
                                                     className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                     onClick={handleLinkClick}
                                                 >
@@ -252,7 +252,7 @@ const Navbar: React.FC = () => {
                                                 <Link
                                                     to={hasSchoolAdminPrivilege
                                                         ? `/schoolAdmin/${staffInfo?.schoolCode}/groups`
-                                                        : `/superAdmin/groups`}
+                                                        : `/infuzAdmin/groups`}
                                                     className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                     onClick={handleLinkClick}
                                                 >
@@ -263,7 +263,7 @@ const Navbar: React.FC = () => {
                                                 <Link
                                                     to={hasSchoolAdminPrivilege
                                                         ? `/schoolAdmin/${staffInfo?.schoolCode}/mediums`
-                                                        : `/superAdmin/mediums`}
+                                                        : `/infuzAdmin/mediums`}
                                                     className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                     onClick={handleLinkClick}
                                                 >
@@ -275,7 +275,7 @@ const Navbar: React.FC = () => {
                                                 <Link
                                                     to={hasSchoolAdminPrivilege
                                                         ? `/schoolAdmin/${staffInfo?.schoolCode}/subjects`
-                                                        : `/superAdmin/subjects`}
+                                                        : `/infuzAdmin/subjects`}
                                                     className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                     onClick={handleLinkClick}
                                                 >
@@ -287,7 +287,7 @@ const Navbar: React.FC = () => {
                                                 <Link
                                                     to={hasSchoolAdminPrivilege
                                                         ? `/schoolAdmin/${staffInfo?.schoolCode}/grades`
-                                                        : `/superAdmin/grades`}
+                                                        : `/infuzAdmin/grades`}
                                                     className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                     onClick={handleLinkClick}
                                                 >
@@ -298,7 +298,7 @@ const Navbar: React.FC = () => {
                                                 <Link
                                                     to={hasSchoolAdminPrivilege
                                                         ? `/schoolAdmin/${staffInfo?.schoolCode}/workingDays`
-                                                        : `/superAdmin/workingDays`}
+                                                        : `/infuzAdmin/workingDays`}
                                                     className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                     onClick={handleLinkClick}
                                                 >
@@ -309,7 +309,7 @@ const Navbar: React.FC = () => {
                                                 <Link
                                                     to={hasSchoolAdminPrivilege
                                                         ? `/schoolAdmin/${staffInfo?.schoolCode}/religions`
-                                                        : `/superAdmin/religions`}
+                                                        : `/infuzAdmin/religions`}
                                                     className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                     onClick={handleLinkClick}
                                                 >
@@ -320,7 +320,7 @@ const Navbar: React.FC = () => {
                                                 <Link
                                                     to={hasSchoolAdminPrivilege
                                                         ? `/schoolAdmin/${staffInfo?.schoolCode}/castes`
-                                                        : `/superAdmin/castes`}
+                                                        : `/infuzAdmin/castes`}
                                                     className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                     onClick={handleLinkClick}
                                                 >
@@ -331,7 +331,7 @@ const Navbar: React.FC = () => {
                                                 <Link
                                                     to={hasSchoolAdminPrivilege
                                                         ? `/schoolAdmin/${staffInfo?.schoolCode}/sections`
-                                                        : `/superAdmin/sections`}
+                                                        : `/infuzAdmin/sections`}
                                                     className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                     onClick={handleLinkClick}
                                                 >
@@ -342,7 +342,7 @@ const Navbar: React.FC = () => {
                                                 <Link
                                                     to={hasSchoolAdminPrivilege
                                                         ? `/schoolAdmin/${staffInfo?.schoolCode}/syllabus`
-                                                        : `/superAdmin/syllabus`}
+                                                        : `/infuzAdmin/syllabus`}
                                                     className="block px-4 py-1 text-sm text-gray-700 hover:bg-gray-100 ml-2"
                                                     onClick={handleLinkClick}
                                                 >

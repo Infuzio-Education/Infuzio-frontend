@@ -64,7 +64,7 @@ Api.interceptors.response.use(
         }
 
         // Ignore 401 errors from login requests
-        if (error.config?.url?.endsWith("/superAdmin")) {
+        if (error.config?.url?.endsWith("/infuzAdmin")) {
             return Promise.reject(error);
         }
 
@@ -74,7 +74,7 @@ Api.interceptors.response.use(
         if (error.response.status === 401) {
             store.dispatch(logout()); // Clear Redux store
             localStorage.removeItem("accessToken"); // Clear token
-            window.location.href = "/superAdmin?sessionExpired=true"; // Redirect to login with message
+            window.location.href = "/infuzAdmin?sessionExpired=true"; // Redirect to login with message
         }
 
         return Promise.reject(error);
@@ -1142,10 +1142,8 @@ export const removeStaffRole = async (data: {
 }) => {
     try {
         const response = await Api.delete(
-            `${superAdminEndpoints.specialPrivilege}/${
-                data.staffID
-            }/${data.specialPrivileges.join(",")}/?school_prefix=${
-                data.school_prefix
+            `${superAdminEndpoints.specialPrivilege}/${data.staffID
+            }/${data.specialPrivileges.join(",")}/?school_prefix=${data.school_prefix
             }`
         );
         return response.data;
