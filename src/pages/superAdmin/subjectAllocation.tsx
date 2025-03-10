@@ -5,6 +5,7 @@ import { Modal, Box, Switch, TextField } from '@mui/material';
 import { X, PlusCircle } from 'lucide-react';
 import { SubjectAllocationResponse, Standard as SchoolStandard } from '../../types/Types';
 import SnackbarComponent from '../../components/SnackbarComponent';
+import { useSelector } from 'react-redux';
 
 interface AllocationStandard {
     id: number;
@@ -37,7 +38,6 @@ interface SchoolGroup {
     Name: string;
 }
 
-// Update the SchoolSubject interface to match the API response
 interface SchoolSubject {
     id: number;
     name: string;
@@ -64,7 +64,6 @@ const SubjectAllocation = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [openModal, setOpenModal] = useState(false);
-    const { schoolInfo } = useSchoolContext();
     const [editedSubjects, setEditedSubjects] = useState<{
         [key: number]: { defaultMaxMarks: number; hasTermExam: boolean }
     }>({});
@@ -84,6 +83,11 @@ const SubjectAllocation = () => {
         type: '' as 'success' | 'error'
     });
 
+
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
+    const { schoolInfo } = useSchoolContext();
+    const schoolPrefix = schoolInfo.schoolPrefix || staffInfo.schoolCode;
+
     const [groupModalOpen, setGroupModalOpen] = useState(false);
 
     // Add new state for school syllabuses
@@ -94,12 +98,12 @@ const SubjectAllocation = () => {
             setLoading(true);
             setError(null);
             try {
-                if (!schoolInfo?.schoolPrefix) {
+                if (!schoolPrefix) {
                     throw new Error('School prefix not found');
                 }
 
                 // Fetch subject allocations
-                const allocationResponse: SubjectAllocationResponse = await getSubjectAllocation(schoolInfo.schoolPrefix);
+                const allocationResponse: SubjectAllocationResponse = await getSubjectAllocation(schoolPrefix);
                 if (allocationResponse.data?.syllabuses) {
                     // Map the response to our Syllabus interface
                     const mappedSyllabuses: Syllabus[] = allocationResponse.data.syllabuses.map(syllabus => ({
@@ -131,7 +135,7 @@ const SubjectAllocation = () => {
             }
         };
 
-        if (schoolInfo?.schoolPrefix) {
+        if (schoolPrefix) {
             fetchData();
         }
     }, [schoolInfo]);
@@ -139,10 +143,10 @@ const SubjectAllocation = () => {
     useEffect(() => {
         const fetchSchoolStandards = async () => {
             try {
-                if (!schoolInfo?.schoolPrefix) {
+                if (!schoolPrefix) {
                     throw new Error('School prefix not found');
                 }
-                const response = await getSchoolStandards(schoolInfo.schoolPrefix);
+                const response = await getSchoolStandards(schoolPrefix);
                 if (response.status === true) {
                     setStandards(response.data);
                 }
@@ -151,18 +155,18 @@ const SubjectAllocation = () => {
             }
         };
 
-        if (schoolInfo?.schoolPrefix) {
+        if (schoolPrefix) {
             fetchSchoolStandards();
         }
-    }, [schoolInfo?.schoolPrefix]);
+    }, [schoolPrefix]);
 
     useEffect(() => {
         const fetchSchoolGroups = async () => {
             try {
-                if (!schoolInfo?.schoolPrefix) {
+                if (!schoolPrefix) {
                     throw new Error('School prefix not found');
                 }
-                const response = await getSchoolGroups(schoolInfo.schoolPrefix);
+                const response = await getSchoolGroups(schoolPrefix);
                 if (response.status === true) {
                     setSchoolGroups(response.data);
                 }
@@ -174,15 +178,15 @@ const SubjectAllocation = () => {
         if (selectedStandard && standards.find(s => s.ID === selectedStandard.id)?.HasGroup) {
             fetchSchoolGroups();
         }
-    }, [selectedStandard, schoolInfo?.schoolPrefix, standards]);
+    }, [selectedStandard, schoolPrefix, standards]);
 
     useEffect(() => {
         const fetchSchoolSubjects = async () => {
             try {
-                if (!schoolInfo?.schoolPrefix) {
+                if (!schoolPrefix) {
                     throw new Error('School prefix not found');
                 }
-                const response = await getSchoolSubjects(schoolInfo.schoolPrefix);
+                const response = await getSchoolSubjects(schoolPrefix);
                 console.log("RES", response);
                 if (response.status === true) {
                     setSchoolSubjects(response.data);
@@ -195,17 +199,17 @@ const SubjectAllocation = () => {
         if (openModal) {
             fetchSchoolSubjects();
         }
-    }, [openModal, schoolInfo?.schoolPrefix]);
+    }, [openModal, schoolPrefix]);
 
     // Add new useEffect to fetch school syllabuses
     useEffect(() => {
         const fetchSchoolSyllabuses = async () => {
             try {
-                if (!schoolInfo?.schoolPrefix) {
+                if (!schoolPrefix) {
                     throw new Error('School prefix not found');
                 }
 
-                const response = await getSchoolSyllabus(schoolInfo.schoolPrefix);
+                const response = await getSchoolSyllabus(schoolPrefix);
                 if (response?.data) {
                     const mappedSyllabuses = response.data.map((syllabus: any) => ({
                         id: syllabus.id,
@@ -225,7 +229,7 @@ const SubjectAllocation = () => {
         };
 
         fetchSchoolSyllabuses();
-    }, [schoolInfo?.schoolPrefix]);
+    }, [schoolPrefix]);
 
     const handleTermExamChange = (subjectId: number, checked: boolean) => {
         setEditedSubjects(prev => ({
@@ -240,7 +244,7 @@ const SubjectAllocation = () => {
 
     const handleRemoveAllocation = async (subject: Subject) => {
         try {
-            if (!schoolInfo?.schoolPrefix || !selectedSyllabus || !selectedStandard) {
+            if (!schoolPrefix || !selectedSyllabus || !selectedStandard) {
                 setSnackbarState({
                     open: true,
                     message: 'Missing required information',
@@ -250,7 +254,7 @@ const SubjectAllocation = () => {
             }
 
             const response = await removeSubjectAllocation(
-                schoolInfo.schoolPrefix,
+                schoolPrefix,
                 {
                     subjectId: subject.id,
                     standardId: selectedStandard.id,
@@ -454,7 +458,7 @@ const SubjectAllocation = () => {
                 return;
             }
 
-            if (!schoolInfo?.schoolPrefix) {
+            if (!schoolPrefix) {
                 throw new Error('School prefix not found');
             }
 
@@ -473,12 +477,12 @@ const SubjectAllocation = () => {
             // Use updateSubjectAllocation when editing (not showing standard dropdown)
             // Use saveSubjectAllocations when adding new (showing standard dropdown)
             const response = !showStandardDropdown
-                ? await updateSubjectAllocation(schoolInfo.schoolPrefix, requestBody)
-                : await saveSubjectAllocations(schoolInfo.schoolPrefix, requestBody);
+                ? await updateSubjectAllocation(schoolPrefix, requestBody)
+                : await saveSubjectAllocations(schoolPrefix, requestBody);
 
             if (response.status === true) {
                 // Refresh the data first
-                const updatedResponse = await getSubjectAllocation(schoolInfo.schoolPrefix);
+                const updatedResponse = await getSubjectAllocation(schoolPrefix);
                 if (updatedResponse.data?.syllabuses) {
                     setSyllabuses(updatedResponse.data.syllabuses);
 

@@ -7,6 +7,7 @@ import { Student, StudentFormValues } from '../../types/Types';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import { listStudents, deleteStudent, getStudentById } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
+import { useSelector } from 'react-redux';
 
 const ListStudents: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -26,16 +27,19 @@ const ListStudents: React.FC = () => {
         position: { vertical: 'top' as const, horizontal: 'center' as const }
     });
 
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
     const { schoolInfo } = useSchoolContext();
+    const schoolPrefix = schoolInfo.schoolPrefix || staffInfo.schoolCode;
 
     const fetchStudents = async () => {
         setLoading(true);
         setError(null);
         try {
-            if (!schoolInfo.schoolPrefix) {
-                throw new Error("School prefix not found");
+            if (!schoolPrefix) {
+                // throw new Error("School prefix not found");
             }
-            const response = await listStudents(schoolInfo.schoolPrefix);
+
+            const response = await listStudents(schoolPrefix);
             if (response.status && response.resp_code === "SUCCESS") {
                 setStudents(response.data.students || []);
             } else {
@@ -53,7 +57,7 @@ const ListStudents: React.FC = () => {
 
     useEffect(() => {
         fetchStudents();
-    }, [schoolInfo.schoolPrefix]);
+    }, [schoolPrefix]);
 
     const handleCloseSnackbar = () => {
         setSnackbar(prev => ({ ...prev, open: false }));
@@ -100,12 +104,12 @@ const ListStudents: React.FC = () => {
     const handleOpenModal = async (student: Student | null) => {
         try {
             if (student) {
-                if (!schoolInfo.schoolPrefix) {
+                if (!schoolPrefix) {
                     throw new Error("School prefix not found");
                 }
 
                 // Fetch detailed student data
-                const response = await getStudentById(student.id, schoolInfo.schoolPrefix);
+                const response = await getStudentById(student.id, schoolPrefix);
 
                 if (response.status && response.resp_code === "SUCCESS") {
                     const detailedStudent = response.data;
@@ -160,11 +164,11 @@ const ListStudents: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            if (!schoolInfo.schoolPrefix) {
+            if (!schoolPrefix) {
                 throw new Error("School prefix not found");
             }
 
-            const response = await deleteStudent(id, schoolInfo.schoolPrefix);
+            const response = await deleteStudent(id, schoolPrefix);
 
             if (response.status && response.resp_code === "SUCCESS") {
                 setStudents(prevStudents => prevStudents.filter(student => student.id !== id));

@@ -14,34 +14,20 @@ interface SuperAdminInfo {
     token: string;
 }
 
-interface StaffInfo {
-    staffToken: string;
-}
 
 Api.interceptors.request.use(
     (config) => {
-        const superAdminInfoString =
-            localStorage.getItem("superAdminInfo") || "";
-        const staffInfoString = localStorage.getItem("staffInfo") || "";
+        const superAdminInfoString = localStorage.getItem('superAdminInfo');
 
-        if (superAdminInfoString || staffInfoString) {
+        if (superAdminInfoString) {
             try {
-                const superAdminInfo = JSON.parse(
-                    superAdminInfoString
-                ) as SuperAdminInfo;
-
-                const staffInfo = JSON.parse(staffInfoString) as StaffInfo;
+                const superAdminInfo = JSON.parse(superAdminInfoString) as SuperAdminInfo;
 
                 if (superAdminInfo && superAdminInfo.token) {
-                    config.headers["Authorization"] = `${
-                        staffInfo?.staffToken || superAdminInfo.token
-                    }`;
+                    config.headers['Authorization'] = `${superAdminInfo.token}`;
                 }
             } catch (e) {
-                console.error(
-                    "Error parsing superAdminInfo from localStorage:",
-                    e
-                );
+                console.error('Error parsing superAdminInfo from localStorage:', e);
             }
         }
 

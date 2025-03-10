@@ -8,6 +8,7 @@ import { listStaff, deleteStaff, getStaffById } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import GridView from '../../components/GridView';
+import { useSelector } from 'react-redux';
 
 const ListStaffs: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
@@ -27,16 +28,18 @@ const ListStaffs: React.FC = () => {
     });
     const [showDeleted, setShowDeleted] = useState<boolean>(false);
 
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
     const { schoolInfo } = useSchoolContext();
+    const schoolPrefix = schoolInfo.schoolPrefix || staffInfo.schoolCode;
 
     const fetchStaffList = async () => {
         setLoading(true);
         setError(null);
         try {
-            if (!schoolInfo.schoolPrefix) {
+            if (!schoolPrefix) {
                 throw new Error("School prefix not found");
             }
-            const response = await listStaff(schoolInfo.schoolPrefix);
+            const response = await listStaff(schoolPrefix);
             if (response.status && response.resp_code === "SUCCESS") {
                 setStaffs(response.data || []);
             } else {
@@ -60,9 +63,9 @@ const ListStaffs: React.FC = () => {
 
     const handleOpenModal = async (staff: Staff | null) => {
         try {
-            if (staff && staff.id && schoolInfo.schoolPrefix) {
+            if (staff && staff.id && schoolPrefix) {
                 setLoading(true);
-                const response = await getStaffById(staff.id, schoolInfo.schoolPrefix);
+                const response = await getStaffById(staff.id, schoolPrefix);
                 console.log("response", response);
 
                 if (response.status && response.resp_code === "SUCCESS") {
@@ -114,11 +117,11 @@ const ListStaffs: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            if (!schoolInfo.schoolPrefix) {
+            if (!schoolPrefix) {
                 throw new Error("School prefix not found");
             }
 
-            const response = await deleteStaff(id, schoolInfo.schoolPrefix);
+            const response = await deleteStaff(id, schoolPrefix);
 
             if (response.status === true) {
                 setStaffs(staffs.filter(staff => staff.id !== id));
@@ -326,7 +329,7 @@ const ListStaffs: React.FC = () => {
                         initialData={editingStaff}
                         onSave={handleSave}
                         onCancel={handleCloseModal}
-                        schoolPrefix={schoolInfo.schoolPrefix || ''}
+                        schoolPrefix={schoolPrefix || ''}
                     />
                 </Box>
             </Modal>

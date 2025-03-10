@@ -1,14 +1,32 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
-// import { Checkbox } from "@mui/material";
 import { Mail, Phone, UserCircle2 } from "lucide-react";
 import Togglebar from "../../../components/Togglebar";
 import { Student } from "../../../types/Types";
 import { useSchoolContext } from "../../../contexts/SchoolContext";
-import { getAllStudentsInSchool } from "../../../api/staffs"; // Adjust API calls
+import { getAllStudentsInSchool } from "../../../api/staffs";
 import SnackbarComponent from "../../../components/SnackbarComponent";
 import InfiniteScroll from "react-infinite-scroll-component";
+import { useSelector } from "react-redux";
+import { Modal, Box } from "@mui/material";
+import { getStudentById } from "../../../api/superAdmin";
+import {
+    User,
+    Calendar,
+    Droplet,
+    Accessibility,
+    Church,
+    Users,
+    Home,
+    Building2,
+    Building,
+    MapPin,
+    Globe,
+    GraduationCap,
+    Users2,
+    CalendarDays,
+    Flag,
+    BookOpen
+} from "lucide-react";
 
 const AllStudents: React.FC = () => {
     const [students, setStudents] = useState<Student[]>([]);
@@ -24,20 +42,24 @@ const AllStudents: React.FC = () => {
     });
     const [page, setPage] = useState<number>(1);
     const [hasMore, setHasMore] = useState<boolean>(true);
+    const [openModal, setOpenModal] = useState<boolean>(false);
+    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
     const { schoolInfo } = useSchoolContext();
+    const schoolPrefix = schoolInfo.schoolPrefix || staffInfo.schoolCode;
 
     const fetchStudents = async (page: number) => {
         setLoading(true);
         setError(null);
         try {
-            if (!schoolInfo.schoolPrefix) {
+            if (!schoolPrefix) {
                 throw new Error("School prefix not found");
             }
             const response = await getAllStudentsInSchool(
-                schoolInfo.schoolPrefix,
+                schoolPrefix,
                 page,
-                20 // limit
+                20
             );
 
             if (response.length < 20) {
@@ -48,7 +70,7 @@ const AllStudents: React.FC = () => {
         } catch (err: any) {
             setError(
                 err.response?.data?.message ||
-                    "An error occurred while fetching student data"
+                "An error occurred while fetching student data"
             );
             setStudents([]);
         } finally {
@@ -58,7 +80,7 @@ const AllStudents: React.FC = () => {
 
     useEffect(() => {
         fetchStudents(page);
-    }, [schoolInfo.schoolPrefix, page]);
+    }, [schoolPrefix, page]);
 
     const fetchMoreData = () => {
         setPage((prevPage) => prevPage + 1);
@@ -68,13 +90,44 @@ const AllStudents: React.FC = () => {
         setSnackbar((prev) => ({ ...prev, open: false }));
     };
 
+    const handleOpenModal = async (student: Student) => {
+        try {
+            setSelectedStudent(null);
+            setOpenModal(true);
+
+            if (student.id && schoolPrefix) {
+                const response = await getStudentById(student.id, schoolPrefix);
+
+                if (response.status && response.resp_code === "SUCCESS") {
+                    setSelectedStudent(response.data);
+                } else {
+                    throw new Error("Failed to fetch student details");
+                }
+            }
+        } catch (error: any) {
+            console.error('Error fetching student details:', error);
+            setSnackbar({
+                open: true,
+                message: error.response?.data?.message || 'Failed to fetch student details',
+                severity: 'error',
+                position: { vertical: 'top', horizontal: 'center' }
+            });
+            handleCloseModal();
+        }
+    };
+
+    const handleCloseModal = () => {
+        setSelectedStudent(null);
+        setOpenModal(false);
+    };
+
     const filteredStudents = Array.isArray(students)
         ? students.filter(
-              (student) =>
-                  student?.name
-                      ?.toLowerCase()
-                      .includes(searchTerm.toLowerCase()) || false
-          )
+            (student) =>
+                student?.name
+                    ?.toLowerCase()
+                    .includes(searchTerm.toLowerCase()) || false
+        )
         : [];
 
     return (
@@ -127,6 +180,7 @@ const AllStudents: React.FC = () => {
                                 <div
                                     key={student.id}
                                     className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform transition duration-300 hover:scale-105 hover:shadow-xl"
+                                    onClick={() => handleOpenModal(student)}
                                 >
                                     <div className="p-6">
                                         <div className="flex items-center justify-between mb-4">
@@ -198,7 +252,7 @@ const AllStudents: React.FC = () => {
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {filteredStudents.map((student, index) => (
-                                        <tr key={student.id} className="cursor-pointer">
+                                        <tr key={student.id} className="cursor-pointer" onClick={() => handleOpenModal(student)}>
                                             <td className="text-center py-3">
                                                 <div className="text-sm font-medium text-gray-900">
                                                     {index + 1}
@@ -233,6 +287,110 @@ const AllStudents: React.FC = () => {
                 </InfiniteScroll>
             )}
 
+            <Modal
+                open={openModal}
+                onClose={handleCloseModal}
+                aria-labelledby="student-detail-modal"
+            >
+                <Box sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    width: 800,
+                    bgcolor: 'background.paper',
+                    boxShadow: 24,
+                    borderRadius: 2,
+                    maxHeight: '90vh',
+                    overflowY: 'auto'
+                }}>
+                    {selectedStudent ? (
+                        <div>
+                            <div className="bg-gray-50 p-6 border-b">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex items-center space-x-4">
+                                        <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-bold">
+                                            {selectedStudent.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <h2 className="text-2xl font-bold text-gray-900">{selectedStudent.name}</h2>
+                                            <p className="text-sm text-gray-500">Admission No: {selectedStudent.admissionNumber}</p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+                                        Class {selectedStudent.className || 'Not Assigned'}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-6">
+                                <div className="mb-8">
+                                    <h3 className="text-lg font-semibold mb-4 text-gray-900 border-b pb-2">Academic Information</h3>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <DetailItem icon={GraduationCap} label="Class" value={selectedStudent.className || 'Not Assigned'} />
+                                        <DetailItem icon={BookOpen} label="Roll Number" value={selectedStudent.rollNumber || 'Not Assigned'} />
+                                        <DetailItem icon={CalendarDays} label="Date of Admission" value={new Date(selectedStudent.dateOfAdmission).toLocaleDateString()} />
+                                        <DetailItem icon={Flag} label="Nationality" value={selectedStudent.nationality} />
+                                    </div>
+                                </div>
+
+                                <div className="mb-8">
+                                    <h3 className="text-lg font-semibold mb-4 text-gray-900 border-b pb-2">Contact Information</h3>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <DetailItem icon={Phone} label="Mobile" value={selectedStudent.phone} />
+                                        <DetailItem icon={Mail} label="Email" value={selectedStudent.email} />
+                                    </div>
+                                </div>
+
+                                <div className="mb-8">
+                                    <h3 className="text-lg font-semibold mb-4 text-gray-900 border-b pb-2">Personal Information</h3>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <DetailItem icon={User} label="Gender" value={selectedStudent.gender} />
+                                        <DetailItem icon={Calendar} label="Date of Birth" value={new Date(selectedStudent.dob).toLocaleDateString()} />
+                                        <DetailItem icon={Droplet} label="Blood Group" value={selectedStudent.bloodGroup || 'Not Available'} />
+                                        <DetailItem icon={Accessibility} label="PWD Status" value={selectedStudent.isPwd ? 'Yes' : 'No'} />
+                                        <DetailItem icon={Church} label="Religion" value={selectedStudent.religion} />
+                                        <DetailItem icon={Users} label="Caste" value={selectedStudent.caste} />
+                                        <DetailItem icon={Users2} label="Reservation Category" value={selectedStudent.reservationCategory} />
+                                    </div>
+                                </div>
+
+                                <div className="mb-8">
+                                    <h3 className="text-lg font-semibold mb-4 text-gray-900 border-b pb-2">Address Information</h3>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="col-span-2">
+                                            <DetailItem
+                                                icon={Home}
+                                                label="Address"
+                                                value={`${selectedStudent.house || ''}, ${selectedStudent.street1 || ''}, ${selectedStudent.street2 || ''}`}
+                                            />
+                                        </div>
+                                        <DetailItem icon={Building2} label="City" value={selectedStudent.city} />
+                                        <DetailItem icon={Building} label="State" value={selectedStudent.state} />
+                                        <DetailItem icon={MapPin} label="Pincode" value={selectedStudent.pincode} />
+                                        <DetailItem icon={Globe} label="Country" value={selectedStudent.country} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-gray-50 px-6 py-4 border-t flex justify-end">
+                                <button
+                                    onClick={handleCloseModal}
+                                    className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="p-8 text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                            <p className="text-lg font-semibold text-gray-700">Loading student details...</p>
+                        </div>
+                    )}
+                </Box>
+            </Modal>
+
             <SnackbarComponent
                 open={snackbar.open}
                 message={snackbar.message}
@@ -243,5 +401,15 @@ const AllStudents: React.FC = () => {
         </div>
     );
 };
+
+const DetailItem = ({ icon: Icon, label, value }: { icon?: React.ElementType; label: string; value: string | number }) => (
+    <div className="space-y-1">
+        <div className="flex items-center space-x-2">
+            {Icon && <Icon size={16} className="text-gray-500" />}
+            <span className="text-sm font-medium text-gray-500">{label}</span>
+        </div>
+        <p className="text-sm text-gray-900 pl-6">{value || 'N/A'}</p>
+    </div>
+);
 
 export default AllStudents;

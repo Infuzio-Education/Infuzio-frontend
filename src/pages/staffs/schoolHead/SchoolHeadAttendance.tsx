@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect } from "react";
 import {
     CircularProgress,
@@ -16,6 +15,7 @@ import {
 } from "../../../api/staffs";
 import { useSchoolContext } from "../../../contexts/SchoolContext";
 import { Dayjs } from "dayjs";
+import { useSelector } from "react-redux";
 
 interface StaffAttendance {
     staffID: number;
@@ -50,15 +50,17 @@ const SchoolHeadAttendance = () => {
         { staffID: number; status: string }[]
     >([]);
 
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
     const { schoolInfo } = useSchoolContext();
+    const schoolPrefix = schoolInfo.schoolPrefix || staffInfo.schoolCode;
 
     useEffect(() => {
         fetchAttendanceData(selectedDate?.toISOString()?.split("T")[0]);
     }, [selectedDate]);
 
     useEffect(() => {
-        if (schoolInfo?.schoolPrefix) {
-            fetchStaffData(schoolInfo?.schoolPrefix);
+        if (schoolPrefix) {
+            fetchStaffData(schoolPrefix);
         }
     }, [schoolInfo]);
 
@@ -218,22 +220,20 @@ const SchoolHeadAttendance = () => {
                                     {statusOptions.map((option) => (
                                         <label
                                             key={option.value}
-                                            className={`px-4 py-2 border rounded-lg cursor-pointer transition-all m-1 ${
-                                                newAttendance.find(
-                                                    (att) =>
-                                                        att.staffID === staff.id
-                                                )?.status === option.value
+                                            className={`px-4 py-2 border rounded-lg cursor-pointer transition-all m-1 ${newAttendance.find(
+                                                (att) =>
+                                                    att.staffID === staff.id
+                                            )?.status === option.value
                                                     ? "bg-blue-500 text-gray-700 border-blue-500"
                                                     : "border-gray-300 text-gray-700 hover:bg-gray-200"
-                                            } ${
-                                                option.value === "f"
+                                                } ${option.value === "f"
                                                     ? "bg-green-100 text-green-700"
                                                     : option.value === "m"
-                                                    ? "bg-yellow-100 text-yellow-700"
-                                                    : option.value === "e"
-                                                    ? "bg-orange-100 text-orange-700"
-                                                    : "bg-red-100 text-red-700"
-                                            }`}
+                                                        ? "bg-yellow-100 text-yellow-700"
+                                                        : option.value === "e"
+                                                            ? "bg-orange-100 text-orange-700"
+                                                            : "bg-red-100 text-red-700"
+                                                }`}
                                         >
                                             <input
                                                 type="radio"
@@ -305,34 +305,30 @@ const SchoolHeadAttendance = () => {
                             {attendanceData.map((attendance, index) => (
                                 <tr
                                     key={attendance.staffID}
-                                    className={`hover:bg-gray-50 ${
-                                        index === attendanceData.length - 1
+                                    className={`hover:bg-gray-50 ${index === attendanceData.length - 1
                                             ? "rounded-b-lg"
                                             : ""
-                                    }`}
+                                        }`}
                                 >
                                     <td
-                                        className={`border px-5 py-3 ${
-                                            index === 0 ? "rounded-tl-lg" : ""
-                                        } ${
-                                            index === attendanceData.length - 1
+                                        className={`border px-5 py-3 ${index === 0 ? "rounded-tl-lg" : ""
+                                            } ${index === attendanceData.length - 1
                                                 ? "rounded-bl-lg"
                                                 : ""
-                                        }`}
+                                            }`}
                                     >
                                         {attendance.staffName}
                                     </td>
                                     <td className="border px-5 py-3">
                                         <span
-                                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                                                attendance.status === "f"
+                                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${attendance.status === "f"
                                                     ? "bg-green-100 text-green-700"
                                                     : attendance.status === "m"
-                                                    ? "bg-yellow-100 text-yellow-700"
-                                                    : attendance.status === "e"
-                                                    ? "bg-orange-100 text-orange-700"
-                                                    : "bg-red-100 text-red-700"
-                                            }`}
+                                                        ? "bg-yellow-100 text-yellow-700"
+                                                        : attendance.status === "e"
+                                                            ? "bg-orange-100 text-orange-700"
+                                                            : "bg-red-100 text-red-700"
+                                                }`}
                                         >
                                             {attendance.status === "f" && (
                                                 <Check
@@ -361,23 +357,21 @@ const SchoolHeadAttendance = () => {
                                             {attendance.status === "f"
                                                 ? "Full Day"
                                                 : attendance.status === "m"
-                                                ? "Morning Half"
-                                                : attendance.status === "e"
-                                                ? "Evening Half"
-                                                : "Absent"}
+                                                    ? "Morning Half"
+                                                    : attendance.status === "e"
+                                                        ? "Evening Half"
+                                                        : "Absent"}
                                         </span>
                                     </td>
                                     <td className="border px-5 py-3">
                                         {attendance.markedByName}
                                     </td>
                                     <td
-                                        className={`border px-5 py-3 ${
-                                            index === 0 ? "rounded-tr-lg" : ""
-                                        } ${
-                                            index === attendanceData.length - 1
+                                        className={`border px-5 py-3 ${index === 0 ? "rounded-tr-lg" : ""
+                                            } ${index === attendanceData.length - 1
                                                 ? "rounded-br-lg"
                                                 : ""
-                                        }`}
+                                            }`}
                                     >
                                         {new Date(
                                             attendance.markedTime

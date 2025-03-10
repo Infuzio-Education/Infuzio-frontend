@@ -1,16 +1,14 @@
 import axios from "axios";
+import Api from "./axiosConfig";
 import staffEndpoints from "../endpoints/staffs";
 import { Homework, TestMark, UnitTest } from "../types/Types";
 import store from "../redux/store/store";
 import { logout } from "../redux/slices/staffSlice/staffSlice";
 
+
 interface StaffInfo {
     staffToken: string;
 }
-
-const BASE_URL = import.meta.env.VITE_BASE_URL;
-
-const Api = axios.create({ baseURL: BASE_URL, withCredentials: true });
 
 Api.interceptors.request.use(
     (config) => {
@@ -35,6 +33,7 @@ Api.interceptors.request.use(
     }
 );
 
+
 Api.interceptors.response.use(
     (response) => response,
     (error) => {
@@ -51,9 +50,7 @@ Api.interceptors.response.use(
             return Promise.reject(error);
         }
 
-        console.log("Error Response:", error.response);
-
-        //If token expired, clear Redux store and redirect
+        // If token expired, clear Redux store and redirect
         if (error.response.status === 401) {
             store.dispatch(logout()); // Clear Redux store
             localStorage.removeItem("accessToken"); // Clear token
@@ -63,6 +60,7 @@ Api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
 
 export const staffLogin = async (body: {
     username: string;
@@ -874,7 +872,7 @@ export const postTermExamMark = async (
 export const getAllStudentsInSchool = async (
     prefix: string,
     page = 1,
-    limit = 10
+    limit = 1000
 ) => {
     try {
         const response = await Api.get(staffEndpoints?.allStudentsInSchool, {

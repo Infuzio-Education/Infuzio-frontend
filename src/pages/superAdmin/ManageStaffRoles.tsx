@@ -6,6 +6,7 @@ import { PlusCircle, Check } from 'lucide-react';
 import { listStaff, updateStaffRole, getPrivilegedStaff, getPrivileges } from '../../api/superAdmin';
 import GridView from '../../components/GridView';
 import { Privilege, PrivilegedStaffResponse } from '../../types/Types';
+import { useSelector } from 'react-redux';
 
 interface Staff {
     id: number;
@@ -34,7 +35,6 @@ interface Staff {
 }
 
 const ManageStaffRoles: React.FC = () => {
-    const { schoolInfo } = useSchoolContext();
     const [privilegedStaffList, setPrivilegedStaffList] = useState<PrivilegedStaffResponse[]>([]);
     const [allStaffList, setAllStaffList] = useState<Staff[]>([]);
     const [loading, setLoading] = useState(true);
@@ -50,6 +50,10 @@ const ManageStaffRoles: React.FC = () => {
     });
     const [availablePrivileges, setAvailablePrivileges] = useState<Privilege[]>([]);
 
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
+    const { schoolInfo } = useSchoolContext();
+    const schoolPrefix = schoolInfo.schoolPrefix || staffInfo.schoolCode;
+
     useEffect(() => {
         fetchPrivilegedStaff();
         fetchPrivileges();
@@ -58,11 +62,11 @@ const ManageStaffRoles: React.FC = () => {
     const fetchPrivilegedStaff = async () => {
         try {
             setLoading(true);
-            if (!schoolInfo?.schoolPrefix) {
+            if (!schoolPrefix) {
                 throw new Error('School prefix not found');
             }
 
-            const response = await getPrivilegedStaff(schoolInfo.schoolPrefix);
+            const response = await getPrivilegedStaff(schoolPrefix);
 
             if (response.status === true) {
                 const privilegedStaffList = response.data.map((staff: any) => ({
@@ -90,11 +94,11 @@ const ManageStaffRoles: React.FC = () => {
 
     const fetchAllStaff = async () => {
         try {
-            if (!schoolInfo?.schoolPrefix) {
+            if (!schoolPrefix) {
                 throw new Error('School prefix not found');
             }
 
-            const response = await listStaff(schoolInfo.schoolPrefix);
+            const response = await listStaff(schoolPrefix);
             if (response.status === true) {
                 setAllStaffList(response.data || []);
             }
@@ -125,7 +129,7 @@ const ManageStaffRoles: React.FC = () => {
 
     const handleAssignRole = async () => {
         try {
-            if (!selectedStaff || !schoolInfo?.schoolPrefix) {
+            if (!selectedStaff || !schoolPrefix) {
                 throw new Error('Missing required information');
             }
 
@@ -135,7 +139,7 @@ const ManageStaffRoles: React.FC = () => {
             const response = await updateStaffRole({
                 staffID: staffId as number,
                 specialPrivileges: selectedRole.map(role => role.privilege),
-                school_prefix: schoolInfo.schoolPrefix
+                school_prefix: schoolPrefix
             });
 
             if (response.status === true) {
@@ -227,9 +231,11 @@ const ManageStaffRoles: React.FC = () => {
 
     const fetchPrivileges = async () => {
         try {
-            if (!schoolInfo?.schoolPrefix) return;
+            if (!schoolPrefix) {
+                throw new Error('School prefix not found');
+            }
 
-            const response = await getPrivileges(schoolInfo.schoolPrefix);
+            const response = await getPrivileges(schoolPrefix);
             if (response.status === true) {
                 setAvailablePrivileges(response.data);
             }

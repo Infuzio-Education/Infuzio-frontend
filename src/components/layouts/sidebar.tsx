@@ -89,7 +89,7 @@ const Sidebar: React.FC<SidebarProps> = () => {
     );
 
     const isSchoolHead = staffInfo?.specialPrivileges?.some(
-        (privilege) => privilege.privilege === "schoolHead"
+        (privilege) => privilege.privilege === "schoolHead" || privilege.privilege === "schoolDeputyHead"
     );
 
     return (

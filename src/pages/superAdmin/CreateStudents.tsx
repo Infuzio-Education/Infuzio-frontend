@@ -8,6 +8,7 @@ import SnackbarComponent from '../../components/SnackbarComponent';
 import { PlusCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SelectChangeEvent } from '@mui/material/Select';
+import { useSelector } from 'react-redux';
 
 interface Religion {
     ID: number;
@@ -18,7 +19,6 @@ const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
 const CATEGORIES = ['General', 'OBC', 'SC', 'ST', 'Other'];
 
 const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onCancel }) => {
-    const { schoolInfo } = useSchoolContext();
     const [classes, setClasses] = useState<any[]>([]);
     const [parents, setParents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -26,6 +26,10 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
     const [religions, setReligions] = useState<Religion[]>([]);
     const [validationErrors, setValidationErrors] = useState<any>({});
     const navigate = useNavigate();
+
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
+    const { schoolInfo } = useSchoolContext();
+    const schoolPrefix = schoolInfo.schoolPrefix || staffInfo.schoolCode;
 
     const [student, setStudent] = useState<StudentFormValues>(initialData || {
         name: '',
@@ -65,13 +69,13 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
     useEffect(() => {
         const fetchData = async () => {
             try {
-                if (!schoolInfo.schoolPrefix) {
+                if (!schoolPrefix) {
                     throw new Error("School prefix not found");
                 }
                 const [classesResponse, parentsResponse, religionsResponse] = await Promise.allSettled([
-                    getClasses(schoolInfo.schoolPrefix),
-                    listParents(schoolInfo.schoolPrefix),
-                    getSchoolReligions(schoolInfo.schoolPrefix)
+                    getClasses(schoolPrefix),
+                    listParents(schoolPrefix),
+                    getSchoolReligions(schoolPrefix)
                 ]);
 
                 if (classesResponse.status === "fulfilled" && classesResponse.value.status && classesResponse.value.resp_code === "SUCCESS") {
@@ -190,7 +194,7 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
         if (!validateForm()) return;
 
         try {
-            if (!schoolInfo.schoolPrefix) {
+            if (!schoolPrefix) {
                 throw new Error("School prefix not found");
             }
 
@@ -207,8 +211,8 @@ const CreateStudents: React.FC<CreateStudentProps> = ({ initialData, onSave, onC
             });
 
             const response = initialData?.id
-                ? await updateStudent(initialData.id, formData, schoolInfo.schoolPrefix)
-                : await createStudent(formData, schoolInfo.schoolPrefix);
+                ? await updateStudent(initialData.id, formData, schoolPrefix)
+                : await createStudent(formData, schoolPrefix);
 
             if (response.status) {
                 onSave(student);

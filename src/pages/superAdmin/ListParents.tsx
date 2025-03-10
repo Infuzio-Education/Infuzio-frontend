@@ -6,6 +6,7 @@ import CreateParent from './CreateParent';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import { listParents } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
+import { useSelector } from 'react-redux';
 // import { Parent } from '../../types/Types';
 
 const ListParents: React.FC = () => {
@@ -25,16 +26,19 @@ const ListParents: React.FC = () => {
         position: { vertical: 'top' as const, horizontal: 'center' as const }
     });
 
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
     const { schoolInfo } = useSchoolContext();
+    const schoolPrefix = schoolInfo.schoolPrefix || staffInfo.schoolCode;
+
 
     const fetchParents = async () => {
         setLoading(true);
         setError(null);
         try {
-            if (!schoolInfo.schoolPrefix) {
+            if (!schoolPrefix) {
                 throw new Error("School prefix not found");
             }
-            const response = await listParents(schoolInfo.schoolPrefix);
+            const response = await listParents(schoolPrefix);
             console.log(response);
             if (response.status && response.resp_code === "SUCCESS") {
                 setParents(response.data.parents);
@@ -56,7 +60,7 @@ const ListParents: React.FC = () => {
 
     useEffect(() => {
         fetchParents();
-    }, [schoolInfo.schoolPrefix]);
+    }, [schoolPrefix]);
 
     const handleCloseSnackbar = () => {
         setSnackbar(prev => ({ ...prev, open: false }));
