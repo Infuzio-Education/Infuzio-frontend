@@ -1,7 +1,7 @@
 import axios from "axios";
 import Api from "./axiosConfig";
 import staffEndpoints from "../endpoints/staffs";
-import { Homework, TestMark, UnitTest } from "../types/Types";
+import { Homework, UnitTest, UnitTestMark } from "../types/Types";
 import store from "../redux/store/store";
 import { logout } from "../redux/slices/staffSlice/staffSlice";
 
@@ -153,7 +153,7 @@ export const updateAttendance = async (body: {
     }[];
 }) => {
     try {
-        const response = await Api.post(staffEndpoints.postAttendance, body);
+        const response = await Api.put(staffEndpoints.postAttendance, body);
         return response;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -474,11 +474,11 @@ export const postponeUnitTest = async (unit_test_id: number) => {
     }
 };
 
-export const postUnitTestmark = async (markPayload: TestMark[]) => {
+export const updateUnitTestmark = async (markPayload: UnitTestMark[]) => {
     try {
-        const response = await Api.post(
+        const response = await Api.put(
             staffEndpoints.unitTestMark,
-            markPayload?.map((item) => ({ ...item, IsAbsent: item?.isAbsent }))
+            markPayload?.map((item) => ({ ...item, is_absent: item?.is_absent }))
         );
         return response.data;
     } catch (error) {
@@ -518,25 +518,6 @@ export const publishUnitTestMark = async (unit_test_id: number) => {
     }
 };
 
-export const updateUnitTestMark = async (data: TestMark[]) => {
-    try {
-        const payload = [...data]?.map(
-            ({ unit_test_mark_id, mark, isAbsent }) => ({
-                unit_test_mark_id,
-                mark,
-                is_absent: isAbsent,
-            })
-        );
-        const response = await Api.patch(staffEndpoints?.unitTestMark, payload);
-        if (response?.data && response?.data?.status === true) {
-            return response?.data?.data;
-        }
-        throw new Error("Cannot publish unit test mark");
-    } catch (error) {
-        console.error("Error getting profile info:", error);
-        throw error;
-    }
-};
 
 export const getHomeworkTeacher = async () => {
     try {
@@ -950,6 +931,15 @@ export const updateStaffAttendance = async (body: {
         return [];
     } catch (error) {
         console.log("Error fetching staffs", error);
+        throw error;
+    }
+};
+
+export const deleteUnitTest = async (testId: number) => {
+    try {
+        const response = await Api.delete(`${staffEndpoints.deleteUnitTest}?unit_test_id=${testId}`);
+        return response.data;
+    } catch (error) {
         throw error;
     }
 };

@@ -1156,13 +1156,13 @@ export const getPrivilegedStaff = async (schoolPrefix: string) => {
                     data: response.data.data.map((staff: any) => ({
                         staffId: staff.staffId,
                         name: staff.name,
+                        regNumber: staff.regNumber,
                         idCardNumber: staff.idCardNumber,
                         mobile: staff.mobile,
                         specialPrivileges: staff.specialPrivileges,
                     })),
                 };
             } else {
-                // Return empty array if no data
                 return {
                     status: true,
                     data: [],
@@ -2231,6 +2231,19 @@ export const deleteTimetable = async (id: number) => {
             console.error("Error deleting timetable:", error.response);
             throw error;
         }
+        throw error;
+    }
+};
+
+export const simpleStaffList = async (schoolPrefix?: string) => {
+    try {
+        let url = `${superAdminEndpoints.simpleStaffList}`;
+        if (schoolPrefix) {
+            url = `${superAdminEndpoints.simpleStaffList}?school_prefix=${schoolPrefix}`;
+        }
+        const response = await Api.get(url);
+        return response.data;
+    } catch (error) {
         throw error;
     }
 };

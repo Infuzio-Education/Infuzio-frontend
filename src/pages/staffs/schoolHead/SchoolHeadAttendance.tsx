@@ -5,17 +5,18 @@ import {
     Box,
     Typography,
     IconButton,
+    TextField,
 } from "@mui/material";
 import { DatePicker, message } from "antd";
 import { X, Check, Sun, Cloud, XCircle } from "lucide-react";
 import {
-    getAllStaffsInSchool,
     getStaffAttendanceSchoolHead,
     updateStaffAttendance,
 } from "../../../api/staffs";
 import { useSchoolContext } from "../../../contexts/SchoolContext";
 import { Dayjs } from "dayjs";
 import { useSelector } from "react-redux";
+import { simpleStaffList } from "../../../api/superAdmin";
 
 interface StaffAttendance {
     staffID: number;
@@ -49,10 +50,16 @@ const SchoolHeadAttendance = () => {
     const [newAttendance, setNewAttendance] = useState<
         { staffID: number; status: string }[]
     >([]);
+    const [modalSearchTerm, setModalSearchTerm] = useState('');
+    const [listSearchTerm, setListSearchTerm] = useState('');
 
     const { staffInfo } = useSelector((state: any) => state.staffInfo);
     const { schoolInfo } = useSchoolContext();
     const schoolPrefix = schoolInfo.schoolPrefix || staffInfo.schoolCode;
+
+    const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
+        (privilege: any) => privilege.privilege === "schoolAdmin"
+    );
 
     useEffect(() => {
         fetchAttendanceData(selectedDate?.toISOString()?.split("T")[0]);
@@ -60,7 +67,7 @@ const SchoolHeadAttendance = () => {
 
     useEffect(() => {
         if (schoolPrefix) {
-            fetchStaffData(schoolPrefix);
+            fetchAllStaff();
         }
     }, [schoolInfo]);
 
@@ -76,23 +83,18 @@ const SchoolHeadAttendance = () => {
         }
     };
 
-    const fetchStaffData = async (schoolPrefix: string) => {
+    const fetchAllStaff = async () => {
         try {
-            const response = await getAllStaffsInSchool(schoolPrefix);
-            const mappedStaffData = Object.values(response).map(
-                (staff: unknown) => {
-                    const staffInfo = staff as StaffInfo;
-                    return {
-                        id: staffInfo.id,
-                        name: staffInfo.name,
-                        regNumber: staffInfo.regNumber,
-                        isTeachingStaff: staffInfo.isTeachingStaff,
-                    };
-                }
-            );
-            setStaffData(mappedStaffData);
-        } catch (error: unknown) {
-            message.error("Error fetching staff data");
+            const response = await simpleStaffList(hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined);
+            if (response.status && response.resp_code === "SUCCESS") {
+                setStaffData(response.data.staffs)
+            } else {
+                message.error("Error fetching staff list")
+            }
+        } catch (error) {
+            console.error('Error fetching staff list:', error);
+            message.error('Failed to fetch staff list')
+            setStaffData([])
         }
     };
 
@@ -122,10 +124,23 @@ const SchoolHeadAttendance = () => {
 
     const handleSubmitAttendance = async () => {
         try {
+            // Create a payload with only the changed entries
+            const changedAttendances = newAttendance.filter(newAtt => {
+                const existingAtt = attendanceData.find(att => att.staffID === newAtt.staffID);
+                return existingAtt && existingAtt.status !== newAtt.status;
+            });
+
+            if (changedAttendances.length === 0) {
+                message?.info("No changes to submit");
+                setIsModalOpen(false);
+                return;
+            }
+
             const payload = {
                 attendanceDate: selectedDate.toISOString().split("T")[0],
-                attendances: newAttendance,
+                attendances: changedAttendances,
             };
+
             await updateStaffAttendance(payload);
             setIsModalOpen(false);
             message?.success("Attendance updated");
@@ -146,6 +161,18 @@ const SchoolHeadAttendance = () => {
         setIsModalOpen(true);
     };
 
+    const filteredStaffModal = staffData.filter(staff =>
+        [staff.name, staff.regNumber].some(field =>
+            field?.toLowerCase().includes(modalSearchTerm.toLowerCase())
+        )
+    );
+
+    const filteredAttendanceData = attendanceData.filter(attendance =>
+        [attendance.staffName, attendance.staffID.toString()].some(field =>
+            field.toLowerCase().includes(listSearchTerm.toLowerCase())
+        )
+    );
+
     return (
         <div className="p-6 bg-white rounded-lg shadow-lg">
             <Typography
@@ -156,11 +183,27 @@ const SchoolHeadAttendance = () => {
                 Staff Attendance
             </Typography>
 
-            <div className="mb-4 flex justify-between">
-                <DatePicker
-                    onChange={handleDateChange}
-                    className="border rounded-lg px-3 py-2 w-full sm:w-auto"
-                />
+            <div className="mb-4 flex justify-between gap-4 flex-wrap">
+                <div className="flex gap-4 flex-1">
+                    <DatePicker
+                        onChange={handleDateChange}
+                        className="border rounded-lg px-3 py-2"
+                    />
+                    <TextField
+                        placeholder="Search attendance..."
+                        variant="outlined"
+                        size="small"
+                        className="flex-1"
+                        value={listSearchTerm}
+                        onChange={(e) => setListSearchTerm(e.target.value)}
+                        InputProps={{
+                            style: {
+                                borderRadius: '8px',
+                                backgroundColor: '#f9fafb'
+                            }
+                        }}
+                    />
+                </div>
                 <button
                     onClick={openModal}
                     className="bg-emerald-700 p-2 px-3 text-white font-medium rounded-full text-sm shadow-md"
@@ -189,13 +232,13 @@ const SchoolHeadAttendance = () => {
                         p: 4,
                         borderRadius: 2,
                         width: 500,
+                        pb: 2
                     }}
                 >
                     <Box
                         display="flex"
                         justifyContent="space-between"
                         alignItems="center"
-                        m={2}
                     >
                         <Typography variant="h6" fontWeight="bold">
                             {attendanceData.length === 0
@@ -206,59 +249,79 @@ const SchoolHeadAttendance = () => {
                             <X size={24} />
                         </IconButton>
                     </Box>
-                    <div className="max-h-[70vh] overflow-y-auto">
-                        {staffData.map((staff) => (
-                            <Box
+
+                    <Box>
+                        <TextField
+                            placeholder="Search staff..."
+                            variant="outlined"
+                            fullWidth
+                            size="small"
+                            value={modalSearchTerm}
+                            onChange={(e) => setModalSearchTerm(e.target.value)}
+                            InputProps={{
+                                style: {
+                                    borderRadius: '8px',
+                                    backgroundColor: '#f9fafb',
+                                }
+                            }}
+                        />
+                    </Box>
+
+                    <div className="h-[65vh] pt-3  overflow-y-auto">
+                        {filteredStaffModal.map((staff) => (
+                            <div
                                 key={staff.id}
-                                mb={2}
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="space-between"
+                                className=" p-1 flex items-center justify-between bg-white rounded-lg shadow-sm"
                             >
-                                <Typography>{staff.name}</Typography>
-                                <div className="">
-                                    {statusOptions.map((option) => (
-                                        <label
-                                            key={option.value}
-                                            className={`px-4 py-2 border rounded-lg cursor-pointer transition-all m-1 ${newAttendance.find(
-                                                (att) =>
-                                                    att.staffID === staff.id
-                                            )?.status === option.value
-                                                    ? "bg-blue-500 text-gray-700 border-blue-500"
-                                                    : "border-gray-300 text-gray-700 hover:bg-gray-200"
-                                                } ${option.value === "f"
-                                                    ? "bg-green-100 text-green-700"
-                                                    : option.value === "m"
-                                                        ? "bg-yellow-100 text-yellow-700"
-                                                        : option.value === "e"
-                                                            ? "bg-orange-100 text-orange-700"
-                                                            : "bg-red-100 text-red-700"
-                                                }`}
-                                        >
-                                            <input
-                                                type="radio"
-                                                name={`attendance-${staff.id}`}
-                                                value={option.value}
-                                                checked={
-                                                    newAttendance.find(
-                                                        (att) =>
-                                                            att.staffID ===
-                                                            staff.id
-                                                    )?.status === option.value
-                                                }
-                                                onChange={() =>
-                                                    handleStatusChange(
-                                                        staff.id,
-                                                        option.value
-                                                    )
-                                                }
-                                                className="hidden"
-                                            />
-                                            {option.label}
-                                        </label>
-                                    ))}
+                                <span className="font-medium text-gray-800">{staff.name}</span>
+
+                                <div className="flex">
+                                    {statusOptions.map((option) => {
+                                        const isSelected = newAttendance.find(att => att.staffID === staff.id)?.status === option.value;
+
+                                        // Status styles with more prominent selection
+                                        const getBaseStyle = (value: string) => {
+                                            switch (value) {
+                                                case 'f': return "text-green-700";
+                                                case 'm': return "text-yellow-700";
+                                                case 'e': return "text-orange-700";
+                                                case 'a': return "text-red-700";
+                                                default: return "text-gray-700";
+                                            }
+                                        };
+
+                                        const getSelectedStyle = (value: string) => {
+                                            switch (value) {
+                                                case 'f': return "bg-green-500 text-white border-green-600";
+                                                case 'm': return "bg-yellow-500 text-white border-yellow-600";
+                                                case 'e': return "bg-orange-500 text-white border-orange-600";
+                                                case 'a': return "bg-red-500 text-white border-red-600";
+                                                default: return "bg-blue-500 text-white border-blue-600";
+                                            }
+                                        };
+
+                                        return (
+                                            <label
+                                                key={option.value}
+                                                className={`px-3 py-2 mx-1 font-medium cursor-pointer transition-all rounded-md
+                                               ${isSelected
+                                                        ? getSelectedStyle(option.value) + " shadow-md"
+                                                        : "bg-gray-100 " + getBaseStyle(option.value) + " hover:bg-gray-200"}`}
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name={`attendance-${staff.id}`}
+                                                    value={option.value}
+                                                    checked={isSelected}
+                                                    onChange={() => handleStatusChange(staff.id, option.value)}
+                                                    className="hidden"
+                                                />
+                                                {option.label}
+                                            </label>
+                                        );
+                                    })}
                                 </div>
-                            </Box>
+                            </div>
                         ))}
                     </div>
 
@@ -302,12 +365,12 @@ const SchoolHeadAttendance = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {attendanceData.map((attendance, index) => (
+                            {filteredAttendanceData.map((attendance, index) => (
                                 <tr
                                     key={attendance.staffID}
                                     className={`hover:bg-gray-50 ${index === attendanceData.length - 1
-                                            ? "rounded-b-lg"
-                                            : ""
+                                        ? "rounded-b-lg"
+                                        : ""
                                         }`}
                                 >
                                     <td
@@ -322,12 +385,12 @@ const SchoolHeadAttendance = () => {
                                     <td className="border px-5 py-3">
                                         <span
                                             className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${attendance.status === "f"
-                                                    ? "bg-green-100 text-green-700"
-                                                    : attendance.status === "m"
-                                                        ? "bg-yellow-100 text-yellow-700"
-                                                        : attendance.status === "e"
-                                                            ? "bg-orange-100 text-orange-700"
-                                                            : "bg-red-100 text-red-700"
+                                                ? "bg-green-100 text-green-700"
+                                                : attendance.status === "m"
+                                                    ? "bg-yellow-100 text-yellow-700"
+                                                    : attendance.status === "e"
+                                                        ? "bg-orange-100 text-orange-700"
+                                                        : "bg-red-100 text-red-700"
                                                 }`}
                                         >
                                             {attendance.status === "f" && (

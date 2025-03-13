@@ -15,6 +15,7 @@ const staffEndpoints = {
     createUnitTest: "/staff/exam/unitExam",
     getAllUnitTests: "/staff/exam/unitExam",
     updateUnitTest: "/staff/exam/unitExam/update",
+    deleteUnitTest: "/staff/exam/unitExam/delete/permanently",
     cancelUnitTest: "/staff/exam/unitExam/cancel",
     completeUnitTest: "/staff/exam/unitExam/completed",
     postponeUnitTest: "/staff/exam/unitExam/postponed/indefinitely",

@@ -12,6 +12,7 @@ import {
     postponeUnitTest,
     cancelUnitTest,
     completeUnitTest,
+    deleteUnitTest,
 } from "../../api/staffs";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store/store";
@@ -52,7 +53,7 @@ const UnitTests = () => {
     const [error, setError] = useState("");
 
     const [page, setPage] = useState(1);
-    const [hasMore] = useState(true);
+    const [hasMore, setHasMore] = useState(true);
 
     useEffect(() => {
         const fetchClasses = async () => {
@@ -93,7 +94,16 @@ const UnitTests = () => {
                 page,
                 limit: 20,
             });
-            setUnitTests(fetchedUnitTests || []);
+
+            if (page === 1) {
+                setUnitTests(fetchedUnitTests || []);
+            } else {
+                if (fetchedUnitTests && fetchedUnitTests.length > 0) {
+                    setUnitTests(prev => [...prev, ...fetchedUnitTests]);
+                }
+            }
+
+            setHasMore(fetchedUnitTests && fetchedUnitTests.length === 20);
             setLoading(false);
         } catch (error) {
             console.error("Error fetching unit tests:", error);
@@ -139,15 +149,25 @@ const UnitTests = () => {
                     pass_mark: Number(newTest.pass_mark),
                 };
 
-                const updatedTest = await updateUnitTest(updatedTestData);
-                if (updatedTest) {
+                const response = await updateUnitTest(updatedTestData);
+                if (response.status && response.resp_code === "SUCCESS") {
+                    const updatedTest = {
+                        ...selectedTest,
+                        subject_id: Number(newTest.subject_id),
+                        class_id: Number(newTest.class_id),
+                        portion_desc: newTest.portion_desc,
+                        date: newTest.date,
+                        max_mark: Number(newTest.max_mark),
+                        pass_mark: Number(newTest.pass_mark),
+                    };
+
                     setUnitTests((tests) =>
                         tests.map((test) =>
-                            test.id === updatedTest.id ? updatedTest : test
+                            test.id === selectedTest.id ? updatedTest : test
                         )
                     );
                     setSelectedTest(updatedTest);
-                    message.success("Updated unit test");
+                    message.success("Unit test updated successfully");
                 }
             } else {
                 const unitTestData = {
@@ -211,17 +231,29 @@ const UnitTests = () => {
 
     const handleStatusChange = async (testId: number, status: string) => {
         try {
-            if (status === "completed") {
+            if (status === "Completed") {
                 await completeUnitTest(testId);
-            } else if (status === "postponed") {
+            } else if (status === "Postponed") {
                 await postponeUnitTest(testId);
-            } else if (status === "cancelled") {
+            } else if (status === "Cancelled") {
                 await cancelUnitTest(testId);
             }
             fetchUnitTests();
         } catch (error) {
             console.log(error);
             message?.error(`Cannot change status to ${status}`);
+        }
+    };
+
+    const handleDelete = async (testId: number) => {
+        try {
+            const response = await deleteUnitTest(testId);
+            if (response.status && response.resp_code === "SUCCESS") {
+                setUnitTests((tests) => tests.filter((test) => test.id !== testId));
+                message.success("Unit test deleted successfully");
+            }
+        } catch (error) {
+            message.error("Error deleting unit test");
         }
     };
 
@@ -266,12 +298,10 @@ const UnitTests = () => {
             ) : (
                 <div className="space-y-4 max-h-full overflow-y-auto">
                     <InfiniteScroll
-                        dataLength={unitTests?.length} //This is important field to render the next data
+                        dataLength={unitTests?.length}
                         next={fetchmore}
                         hasMore={hasMore}
-                        loader={
-                            <h4 style={{ textAlign: "center" }}>Loading...</h4>
-                        }
+                        loader={hasMore && <h4 style={{ textAlign: "center" }}>Loading...</h4>}
                         style={{
                             display: "flex",
                             flexDirection: "column",
@@ -298,6 +328,7 @@ const UnitTests = () => {
                                         publishStatus,
                                         setIsEditMode,
                                         subjects,
+                                        onDelete: handleDelete,
                                     }}
                                 />
                             ))
@@ -320,12 +351,6 @@ const UnitTests = () => {
                     }}
                 />
             )}
-
-            {/* {isDetailsModalOpen && selectedTest && <DetailsModal />} */}
-
-            {/* Marks Management Modal */}
-            {/* Add your marks management modal here */}
-
             {isPreviewModalOpen && selectedTest && (
                 <PreviewModal
                     selectedTest={selectedTest}

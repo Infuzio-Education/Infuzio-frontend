@@ -29,6 +29,7 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
     const [attendanceInstanceId, setAttendanceInstanceId] = useState<
         number | null
     >(null);
+    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
     useEffect(() => {
         fetchAttendance();
@@ -37,21 +38,14 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
 
     const fetchAttendance = async () => {
         try {
-            const date = new Date();
-            const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1)
-                .toString()
-                .padStart(2, "0")}-${date
-                .getDate()
-                .toString()
-                .padStart(2, "0")}`;
             const { attendance, instanceId } = await getAttendanceByClass({
                 classId: classInfo?.id,
-                date: formattedDate,
+                date: selectedDate,
             });
             if (attendance && attendance.length > 0) {
                 setAttendance(attendance);
             }
-            setAttendanceInstanceId(instanceId);
+            setAttendanceInstanceId(Number(instanceId));
         } catch (error) {
             console.error("Error fetching attendance:", error);
         }
@@ -82,6 +76,12 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
             );
         }
     }, [attendance, studentsDetails]);
+
+    useEffect(() => {
+        if (classInfo?.id) {
+            fetchAttendance();
+        }
+    }, [selectedDate, classInfo]);
 
     const handleSelectAll = (status: "a" | "f" | "m" | "e") => {
         setStudents(
@@ -114,9 +114,9 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
     const handleSubmit = async () => {
         try {
             if (!attendanceInstanceId) {
-                await takeAttendance({
+                const response = await takeAttendance({
                     classId: classInfo?.id,
-                    attendanceDate: new Date().toLocaleDateString("en-CA"),
+                    attendanceDate: selectedDate,
                     attendance: students.map((student) => ({
                         StudentID: student.id,
                         status: student.attendance,
@@ -125,9 +125,14 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                         status: "f" | "a" | "m" | "e";
                     }[],
                 });
-                message?.success("Attendance added");
+                if (response?.data?.resp_code === "SUCCESS") {
+                    message.success("Attendance added");
+                    onClose();
+                } else {
+                    message.error("Failed to add attendance! Please try again later.");
+                }
             } else {
-                await updateAttendance({
+                const response = await updateAttendance({
                     instanceId: attendanceInstanceId,
                     updatedEntries: students.map((student) => ({
                         studentId: student.id,
@@ -137,11 +142,16 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                         status: "f" | "a" | "m" | "e";
                     }[],
                 });
-                message?.success("Attendance updated");
+                if (response?.data?.resp_code === "SUCCESS") {
+                    message.success("Attendance updated");
+                    onClose();
+                } else {
+                    message.error("Failed to update attendance! Please try again later.");
+                }
             }
-            onClose();
         } catch (error) {
             console.error("Error submitting attendance:", error);
+            message.error("Failed to submit attendance! Please try again later.");
         }
     };
 
@@ -164,15 +174,18 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                         <h2 className="text-xl font-bold text-gray-800">
                             Take Attendance
                         </h2>
-                        <p className="text-sm mt-2 font-semibold text-gray-600">
-                            {classInfo.name} |{" "}
-                            {new Date().toLocaleDateString("en-US", {
-                                weekday: "long",
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                            })}
-                        </p>
+                        <div className="flex items-center gap-4 mt-2">
+                            <input
+                                type="date"
+                                className="border rounded-md px-3 py-1.5 text-sm text-gray-600"
+                                value={selectedDate}
+                                onChange={(e) => setSelectedDate(e.target.value)}
+                                max={new Date().toISOString().split('T')[0]} // Prevents future date selection
+                            />
+                            <p className="text-sm font-semibold text-gray-600">
+                                {classInfo.name}
+                            </p>
+                        </div>
                     </div>
                     <button
                         onClick={onClose}
@@ -290,11 +303,10 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                                                     "f"
                                                 )
                                             }
-                                            className={`p-2 rounded-full ${
-                                                student?.attendance === "f"
-                                                    ? "bg-emerald-100 text-emerald-700"
-                                                    : "bg-gray-100 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600"
-                                            }`}
+                                            className={`p-2 rounded-full ${student?.attendance === "f"
+                                                ? "bg-emerald-100 text-emerald-700"
+                                                : "bg-gray-100 text-gray-500 hover:bg-emerald-50 hover:text-emerald-600"
+                                                }`}
                                         >
                                             <Check size={18} />
                                         </button>
@@ -305,29 +317,13 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                                                     "m"
                                                 )
                                             }
-                                            className={`p-2 rounded-full ${
-                                                student?.attendance === "m"
-                                                    ? "bg-blue-100 text-yellow-700"
-                                                    : "bg-gray-100 text-gray-500 hover:bg-blue-50 hover:text-yellow-600"
-                                            }`}
+                                            className={`p-2 rounded-full ${student?.attendance === "m"
+                                                ? "bg-blue-100 text-yellow-700"
+                                                : "bg-gray-100 text-gray-500 hover:bg-blue-50 hover:text-yellow-600"
+                                                }`}
                                         >
                                             <Clock size={18} />
                                         </button>
-                                        {/* <button
-                                            onClick={() =>
-                                                handleAttendance(
-                                                    student.id,
-                                                    "e"
-                                                )
-                                            }
-                                            className={`p-2 rounded-full ${
-                                                student?.attendance === "e"
-                                                    ? "bg-blue-100 text-blue-700"
-                                                    : "bg-gray-100 text-gray-500 hover:bg-blue-50 hover:text-blue-600"
-                                            }`}
-                                        >
-                                            <Cloud size={18} />
-                                        </button> */}
                                         <button
                                             onClick={() =>
                                                 handleAttendance(
@@ -335,11 +331,10 @@ const TakeAttendance: React.FC<TakeAttendanceProps> = ({
                                                     "a"
                                                 )
                                             }
-                                            className={`p-2 rounded-full ${
-                                                student?.attendance === "a"
-                                                    ? "bg-red-100 text-red-700"
-                                                    : "bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-600"
-                                            }`}
+                                            className={`p-2 rounded-full ${student?.attendance === "a"
+                                                ? "bg-red-100 text-red-700"
+                                                : "bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-600"
+                                                }`}
                                         >
                                             <XCircle size={18} />
                                         </button>

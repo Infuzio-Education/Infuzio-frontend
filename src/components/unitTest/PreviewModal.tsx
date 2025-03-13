@@ -54,7 +54,7 @@ const PreviewModal = ({
                                 | "Completed"
                                 | "Not started"
                                 | "Cancelled"
-                                | "Postponed Indefinitely"
+                                | "Postponed"
                                 | "Published",
                         };
                     }
@@ -115,7 +115,7 @@ const PreviewModal = ({
                             {studentMarks.map((studentMark) => {
                                 const isPassed =
                                     !studentMark.is_absent &&
-                                    studentMark.marks >= selectedTest.pass_mark;
+                                    studentMark.obtained_mark >= selectedTest.pass_mark;
 
                                 return (
                                     <tr key={studentMark.student_id}>
@@ -128,7 +128,7 @@ const PreviewModal = ({
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {studentMark.is_absent
                                                 ? "-"
-                                                : studentMark.marks}
+                                                : studentMark.obtained_mark || "N/A"}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                                             {studentMark.is_absent ? (
@@ -149,11 +149,10 @@ const PreviewModal = ({
                                             ) : (
                                                 <span
                                                     className={`px-3 py-1.5 text-sm font-medium rounded-full inline-flex items-center gap-1.5
-                                                            ${
-                                                                isPassed
-                                                                    ? "bg-green-100 text-green-700 border border-green-200"
-                                                                    : "bg-red-100 text-red-700 border border-red-200"
-                                                            }`}
+                                                            ${isPassed
+                                                            ? "bg-green-100 text-green-700 border border-green-200"
+                                                            : "bg-red-100 text-red-700 border border-red-200"
+                                                        }`}
                                                 >
                                                     {isPassed ? (
                                                         <>
@@ -197,7 +196,7 @@ const PreviewModal = ({
                         >
                             Close
                         </button>
-                        {!publishStatus && (
+                        {!publishStatus && selectedTest?.status !== "Cancelled" && (
                             <button
                                 onClick={handlePublishMark}
                                 disabled={btnIsloading}
