@@ -230,12 +230,13 @@ const UnitTests = () => {
     };
 
     const handleStatusChange = async (testId: number, status: string) => {
+        console.log("Ethi", status, testId)
         try {
-            if (status === "completed") {
+            if (status === "Completed") {
                 await completeUnitTest(testId);
-            } else if (status === "postponed") {
+            } else if (status === "Postponed") {
                 await postponeUnitTest(testId);
-            } else if (status === "cancelled") {
+            } else if (status === "Cancelled") {
                 await cancelUnitTest(testId);
             }
             fetchUnitTests();
