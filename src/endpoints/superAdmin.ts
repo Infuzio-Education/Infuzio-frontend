@@ -35,7 +35,7 @@ const superAdminEndpoints = {
     specialPrivilege: 'school/special-privilege',
     subjectAllocation: 'school/subjectallocation',
     academicYear: 'school/academic-year',
-
+    simpleStaffList: 'school/staff/simple-list',
 
     // Manage school
     school: 'manage-school',

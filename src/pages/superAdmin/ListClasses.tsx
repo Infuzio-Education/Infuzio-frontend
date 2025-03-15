@@ -7,6 +7,7 @@ import { Class, ClassSubmitData } from '../../types/Types';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import { getClasses, createClass, updateClass, deleteClass } from '../../api/superAdmin';
 import SnackbarComponent from '../../components/SnackbarComponent';
+import { useSelector } from 'react-redux';
 
 interface GroupedClasses {
     [standardId: string]: {
@@ -32,16 +33,19 @@ const ListClasses: React.FC = () => {
         position: { vertical: 'top' as const, horizontal: 'center' as const }
     });
 
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
     const { schoolInfo } = useSchoolContext();
+    const schoolPrefix = schoolInfo.schoolPrefix || staffInfo.schoolCode;
+
 
     const fetchClasses = async () => {
         setLoading(true);
         setError(null);
         try {
-            if (!schoolInfo.schoolPrefix) {
+            if (!schoolPrefix) {
                 throw new Error("School prefix not found");
             }
-            const classesResponse = await getClasses(schoolInfo.schoolPrefix);
+            const classesResponse = await getClasses(schoolPrefix);
 
             if (classesResponse.status && classesResponse.resp_code === "SUCCESS") {
                 console.log("classesResponse", classesResponse.data);
@@ -62,7 +66,7 @@ const ListClasses: React.FC = () => {
 
     useEffect(() => {
         fetchClasses();
-    }, [schoolInfo.schoolPrefix]);
+    }, [schoolPrefix]);
 
     const handleCloseSnackbar = () => {
         setSnackbar(prev => ({ ...prev, open: false }));
@@ -106,7 +110,7 @@ const ListClasses: React.FC = () => {
                     Object.assign(updateData, { group_id: classData.group_id });
                 }
 
-                const response = await updateClass(updateData, schoolInfo.schoolPrefix || '');
+                const response = await updateClass(updateData, schoolPrefix || '');
 
                 if (response.status && response.resp_code === "SUCCESS") {
                     await fetchClasses();
@@ -121,6 +125,13 @@ const ListClasses: React.FC = () => {
                     setSnackbar({
                         open: true,
                         message: "A class with this name already exists",
+                        severity: "error",
+                        position: { vertical: "top", horizontal: "center" },
+                    });
+                } else if (response.resp_code === "SAME_CLASS_TEACHER_IN_ANOTHER_CLASS") {
+                    setSnackbar({
+                        open: true,
+                        message: "This staff is already a class teacher in another class",
                         severity: "error",
                         position: { vertical: "top", horizontal: "center" },
                     });
@@ -140,7 +151,7 @@ const ListClasses: React.FC = () => {
                 if (classData.group_id) {
                     Object.assign(createData, { group_id: classData.group_id });
                 }
-                const response = await createClass(createData, schoolInfo.schoolPrefix || '');
+                const response = await createClass(createData, schoolPrefix || '');
                 console.log("response", response);
                 if (response.status && response.data.resp_code === "CREATED") {
                     await fetchClasses();
@@ -158,14 +169,31 @@ const ListClasses: React.FC = () => {
                         severity: "error",
                         position: { vertical: "top", horizontal: "center" },
                     });
+                } else if (response.resp_code === "SAME_CLASS_TEACHER_IN_ANOTHER_CLASS") {
+                    setSnackbar({
+                        open: true,
+                        message: "This staff is already a class teacher in another class",
+                        severity: "error",
+                        position: { vertical: "top", horizontal: "center" },
+                    });
                 } else {
                     throw new Error(response.error || "Failed to create class");
                 }
             }
         } catch (error: any) {
+            let errorMessage = error.message || "Failed to save class";
+
+            if (error.response?.status === 409) {
+                if (error.response?.data?.resp_code === "SAME_CLASS_TEACHER_IN_ANOTHER_CLASS") {
+                    errorMessage = "This staff is already a class teacher in another class";
+                } else if (error.response?.data?.resp_code === "DATA ALREADY_EXIST") {
+                    errorMessage = "A class with this name already exists";
+                }
+            }
+
             setSnackbar({
                 open: true,
-                message: error.message || "Failed to save class",
+                message: errorMessage,
                 severity: "error",
                 position: { vertical: "top", horizontal: "center" },
             });
@@ -174,7 +202,7 @@ const ListClasses: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            const response = await deleteClass(id, schoolInfo.schoolPrefix || '');
+            const response = await deleteClass(id, schoolPrefix || '');
             if (response.status === true) {
                 setClasses(classes.filter(c => c.id !== id));
                 setSelectedClasses(selectedClasses.filter(classId => classId !== id));

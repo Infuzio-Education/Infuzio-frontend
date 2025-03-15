@@ -15,6 +15,7 @@ const staffEndpoints = {
     createUnitTest: "/staff/exam/unitExam",
     getAllUnitTests: "/staff/exam/unitExam",
     updateUnitTest: "/staff/exam/unitExam/update",
+    deleteUnitTest: "/staff/exam/unitExam/delete/permanently",
     cancelUnitTest: "/staff/exam/unitExam/cancel",
     completeUnitTest: "/staff/exam/unitExam/completed",
     postponeUnitTest: "/staff/exam/unitExam/postponed/indefinitely",
@@ -39,6 +40,7 @@ const staffEndpoints = {
     getTermExamMarksForClassTeacher: "/staff/term/exam/mark/class",
     getClasswiseTermExamMark: "/staff/term/exam/mark/class-wise-subject-marks",
     postTermExamMark: "/staff/term/exam/mark",
+    publishTermExamtMark: "/staff/term/exam/mark/status",
 
     allStudentsInSchool: "/school/student",
     allStaffsInSchool: "/school/staff",

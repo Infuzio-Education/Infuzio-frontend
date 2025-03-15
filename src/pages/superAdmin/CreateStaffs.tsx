@@ -94,17 +94,14 @@ const CreateStaffs: React.FC<CreateStaffProps> = ({
                     caste: initialData.caste || '',
                     pwd: initialData.pwd || false,
                     isTeachingStaff: initialData.isTeachingStaff || false,
-                    // Handle both array structures for sections
                     sectionIDs: initialData.sections ?
                         initialData.sections.map((section: { id: number }) => section.id) :
                         initialData.sectionIDs || [],
-                    // Handle both array structures for subjects
                     subjectIDs: initialData.subjects ?
                         initialData.subjects.map((subject: { id: number }) => subject.id) :
                         initialData.subjectIDs || []
                 });
 
-                // Set selected religion ID for the dropdown
                 if (initialData.religion && religions.length > 0) {
                     const selectedReligion = religions.find(r => r.Name === initialData.religion);
                     if (selectedReligion) {

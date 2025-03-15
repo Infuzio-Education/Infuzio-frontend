@@ -39,6 +39,10 @@ const ListTermExams: React.FC = () => {
     const { staffInfo } = useSelector((state: any) => state.staffInfo);
     const schoolPrefix = staffInfo?.school_prefix;
 
+    const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
+        (privilege: any) => privilege.privilege === "schoolAdmin"
+    );
+
     useEffect(() => {
         fetchData();
         fetchAcademicYears();
@@ -78,7 +82,9 @@ const ListTermExams: React.FC = () => {
 
     const fetchGradeCategories = async () => {
         try {
-            const response = await getGradeCategories();
+            const response = await getGradeCategories(
+                hasSchoolAdminPrivilege ? staffInfo?.schoolCode : undefined
+            );
             if (response?.data) {
                 setGrades(response.data);
             }

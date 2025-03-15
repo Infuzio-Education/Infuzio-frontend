@@ -9,11 +9,13 @@ import CountUp from 'react-countup';
 
 const SchoolProfiles: React.FC = () => {
     const navigate = useNavigate();
-    const { schoolInfo } = useSchoolContext();
     const staffInfo = useSelector((state: RootState) => state.staffInfo.staffInfo);
     const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
         (privilege) => privilege.privilege === "schoolAdmin"
     );
+
+    const { schoolInfo } = useSchoolContext();
+    const schoolPrefix = schoolInfo.schoolPrefix || staffInfo?.schoolCode || '';
 
     const [stats, setStats] = useState({
         totalStudents: 0,
@@ -25,12 +27,12 @@ const SchoolProfiles: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                if (schoolInfo?.schoolPrefix) {
+                if (schoolPrefix) {
                     const [studentsResponse, classesResponse, staffResponse, parentsResponse] = await Promise.allSettled([
-                        listStudents(schoolInfo.schoolPrefix),
-                        getClasses(schoolInfo.schoolPrefix),
-                        listStaff(schoolInfo.schoolPrefix),
-                        listParents(schoolInfo.schoolPrefix)
+                        listStudents(schoolPrefix),
+                        getClasses(schoolPrefix),
+                        listStaff(schoolPrefix),
+                        listParents(schoolPrefix)
                     ]);
 
                     setStats(prev => ({
@@ -54,13 +56,13 @@ const SchoolProfiles: React.FC = () => {
         };
 
         fetchData();
-    }, [schoolInfo?.schoolPrefix]);
+    }, [schoolPrefix]);
 
     const getNavigationPath = (route: string) => {
         if (hasSchoolAdminPrivilege) {
-            return `/schoolAdmin/${schoolInfo.schoolPrefix}/${route}`;
+            return `/schoolAdmin/${schoolPrefix}/${route}`;
         }
-        return `/infuzAdmin/schools/${schoolInfo.schoolPrefix}/${route}`;
+        return `/infuzAdmin/schools/${schoolPrefix}/${route}`;
     };
 
     const cards = [

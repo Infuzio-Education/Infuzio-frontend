@@ -12,9 +12,9 @@ import {
 } from '../../api/superAdmin';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import * as Yup from 'yup';
+import { useSelector } from 'react-redux';
 
 const CreateClass: React.FC<CreateClassProps> = ({ initialData, onSave, onCancel }) => {
-    const { schoolInfo } = useSchoolContext();
     const [mediums, setMediums] = useState([]);
     const [standards, setStandards] = useState([]);
     const [syllabuses, setSyllabuses] = useState([]);
@@ -24,10 +24,14 @@ const CreateClass: React.FC<CreateClassProps> = ({ initialData, onSave, onCancel
     const [selectedStandard, setSelectedStandard] = useState<string | null>(null);
     const [academicYears, setAcademicYears] = useState([]);
 
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
+    const { schoolInfo } = useSchoolContext();
+    const schoolPrefix = schoolInfo.schoolPrefix || staffInfo.schoolCode;
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                if (!schoolInfo.schoolPrefix) {
+                if (!schoolPrefix) {
                     throw new Error("School prefix not found");
                 }
 
@@ -39,12 +43,12 @@ const CreateClass: React.FC<CreateClassProps> = ({ initialData, onSave, onCancel
                     staffsRes,
                     academicYearsRes,
                 ] = await Promise.all([
-                    getSchoolMediums(schoolInfo.schoolPrefix),
-                    getSchoolStandards(schoolInfo.schoolPrefix),
-                    getSchoolSyllabus(schoolInfo.schoolPrefix),
-                    getSchoolGroups(schoolInfo.schoolPrefix),
-                    getTeachingStaff(schoolInfo.schoolPrefix),
-                    getAcademicYears(schoolInfo.schoolPrefix),
+                    getSchoolMediums(schoolPrefix),
+                    getSchoolStandards(schoolPrefix),
+                    getSchoolSyllabus(schoolPrefix),
+                    getSchoolGroups(schoolPrefix),
+                    getTeachingStaff(schoolPrefix),
+                    getAcademicYears(schoolPrefix),
                 ]);
 
                 setMediums(mediumsRes.data || []);
@@ -61,7 +65,7 @@ const CreateClass: React.FC<CreateClassProps> = ({ initialData, onSave, onCancel
         };
 
         fetchData();
-    }, [schoolInfo.schoolPrefix]);
+    }, [schoolPrefix]);
 
     useEffect(() => {
         if (initialData) {

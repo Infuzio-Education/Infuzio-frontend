@@ -5,14 +5,13 @@ import { InputNumber, message } from "antd";
 import {
     AttendanceStudent,
     Subject,
-    TestMark,
     UnitTest,
+    UnitTestMark,
 } from "../../types/Types";
 import {
     getStudentsByClass,
     getUnitTestMark,
-    postUnitTestmark,
-    updateUnitTestMark,
+    updateUnitTestmark,
 } from "../../api/staffs";
 
 type PropType = {
@@ -29,7 +28,7 @@ const MarksModal = ({
     setUnitTests,
 }: PropType) => {
     const [students, setStudents] = useState<AttendanceStudent[]>([]);
-    const [studentMarks, setStudentMarks] = useState<TestMark[]>([]);
+    const [studentMarks, setStudentMarks] = useState<UnitTestMark[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -38,27 +37,23 @@ const MarksModal = ({
                     String(selectedTest?.class_id)
                 );
                 setStudents(fetchedStudents);
+
                 if (selectedTest?.is_mark_added) {
                     const marks = await getUnitTestMark(selectedTest.id);
-                    console.log(marks);
-
-                    setStudentMarks(
-                        marks?.map((item: any) => ({
-                            unit_test_mark_id: item.id,
-                            mark: item.mark || 0,
-                            isAbsent: item.is_absent,
-                            student_id: item.student_id,
-                        }))
-                    );
+                    setStudentMarks(marks?.map((item: any) => ({
+                        student_id: item.student_id,
+                        unit_test_id: selectedTest.id,
+                        mark: item.mark || 0,
+                        is_absent: item.is_absent,
+                        unit_test_mark_id: item.id
+                    })));
                 } else {
-                    setStudentMarks(
-                        fetchedStudents.map((student: any) => ({
-                            student_id: student.id,
-                            unit_test_id: selectedTest.id,
-                            mark: 0,
-                            isAbsent: false,
-                        }))
-                    );
+                    setStudentMarks(fetchedStudents.map((student: any) => ({
+                        student_id: student.id,
+                        unit_test_id: selectedTest.id,
+                        mark: 0,
+                        is_absent: false
+                    })));
                 }
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -71,12 +66,12 @@ const MarksModal = ({
     const handleMarkUpdate = (
         student_id: string,
         mark: number,
-        isAbsent: boolean
+        is_absent: boolean
     ) => {
         setStudentMarks((prevMarks) =>
             prevMarks.map((stdMark) =>
                 stdMark.student_id === student_id
-                    ? { ...stdMark, mark, isAbsent }
+                    ? { ...stdMark, mark, is_absent }
                     : stdMark
             )
         );
@@ -84,35 +79,39 @@ const MarksModal = ({
 
     const handleSubmitMarks = async () => {
         try {
-            await postUnitTestmark(studentMarks);
-            message.success("Marks published successfully");
-            setIsManageMarksOpen(false);
-            setUnitTests((prevTest) => {
-                const newTest = prevTest?.map((item) => {
-                    if (selectedTest.id === item.id) {
-                        return {
-                            ...item,
-                            is_mark_added: true,
-                        };
-                    }
-                    return item;
-                });
-                return newTest;
-            });
+            // Unified payload structure for both add/update
+            const transformedMarks = studentMarks.map(mark => ({
+                student_id: mark.student_id,
+                unit_test_id: selectedTest.id,
+                mark: mark.mark,
+                is_absent: mark.is_absent
+            }));
+
+            const response = await updateUnitTestmark(transformedMarks);
+            console.log("API Response:", response);
+
+            if (response?.resp_code === "SUCCESS") {
+                const successMessage = selectedTest?.is_mark_added
+                    ? "Marks updated successfully"
+                    : "Marks published successfully";
+
+                message.success(successMessage);
+                setIsManageMarksOpen(false);
+
+                // Update unit tests list only for new marks
+                if (!selectedTest?.is_mark_added) {
+                    setUnitTests(prev => prev?.map(item =>
+                        item.id === selectedTest.id
+                            ? { ...item, is_mark_added: true }
+                            : item
+                    ));
+                }
+            } else {
+                message.error(response?.message || "Operation failed! Please try again.");
+            }
         } catch (error) {
             console.error("Error submitting marks:", error);
-            message.error("Failed to publish marks! Please try again later.");
-        }
-    };
-
-    const handleUpdatedMarkPublish = async () => {
-        try {
-            await updateUnitTestMark(studentMarks);
-            message?.success("Marks updated");
-            setIsManageMarksOpen(false);
-        } catch (error) {
-            console.log(error);
-            message?.error("Cannot update mark! Try again later");
+            message.error("Failed to process marks! Please try again.");
         }
     };
 
@@ -190,7 +189,7 @@ const MarksModal = ({
                                                 <input
                                                     type="checkbox"
                                                     checked={
-                                                        studentMark?.isAbsent ||
+                                                        studentMark?.is_absent ||
                                                         false
                                                     }
                                                     onChange={(e) =>
@@ -222,17 +221,11 @@ const MarksModal = ({
                         Cancel
                     </button>
                     <button
-                        onClick={
-                            selectedTest?.is_mark_added
-                                ? handleUpdatedMarkPublish
-                                : handleSubmitMarks
-                        }
+                        onClick={handleSubmitMarks}
                         className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2"
                     >
-                        <Save size={20} />{" "}
-                        {selectedTest?.is_mark_added
-                            ? "Update mark"
-                            : "Submit Marks"}
+                        <Save size={20} />
+                        {selectedTest?.is_mark_added ? "Update Marks" : "Submit Marks"}
                     </button>
                 </div>
             </div>

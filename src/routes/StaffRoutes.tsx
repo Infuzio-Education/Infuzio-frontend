@@ -32,10 +32,7 @@ const StaffRoutes = () => {
                     <Route element={<SchoolHeadProtect />}>
                         <Route path="all-students" element={<AllStudents />} />
                         <Route path="all-staffs" element={<AllStaffs />} />
-                        <Route
-                            path="take-attendance"
-                            element={<SchoolHeadAttendance />}
-                        />
+                        <Route path="take-attendance" element={<SchoolHeadAttendance />} />
                     </Route>
                 </Route>
             </Route>

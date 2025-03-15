@@ -7,9 +7,9 @@ import { getAcademicYears, createAcademicYear, updateAcademicYear, deleteAcademi
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import CreateAcademicYear from './CreateAcademicYear';
 import { AcademicYear } from '../../types/Types';
+import { useSelector } from 'react-redux';
 
 const ListAcademicYears: React.FC = () => {
-    const { schoolInfo } = useSchoolContext();
     const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -26,16 +26,21 @@ const ListAcademicYears: React.FC = () => {
     const [openModal, setOpenModal] = useState<boolean>(false);
     const [editingYear, setEditingYear] = useState<AcademicYear | null>(null);
 
+
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
+    const { schoolInfo } = useSchoolContext();
+    const schoolPrefix = schoolInfo.schoolPrefix || staffInfo.schoolCode;
+
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             setError(null);
             try {
-                if (!schoolInfo.schoolPrefix) {
+                if (!schoolPrefix) {
                     throw new Error('School prefix not found');
                 }
                 const [academicYearsRes] = await Promise.all([
-                    getAcademicYears(schoolInfo.schoolPrefix),
+                    getAcademicYears(schoolPrefix),
                 ]);
 
                 if (academicYearsRes.status === true) {
@@ -50,7 +55,7 @@ const ListAcademicYears: React.FC = () => {
         };
 
         fetchData();
-    }, [schoolInfo.schoolPrefix]);
+    }, [schoolPrefix]);
 
     const handleCloseSnackbar = () => {
         setSnackbar(prev => ({ ...prev, open: false }));
@@ -83,7 +88,7 @@ const ListAcademicYears: React.FC = () => {
 
     const handleSave = async (name: string, is_current: boolean) => {
         try {
-            if (!schoolInfo.schoolPrefix) {
+            if (!schoolPrefix) {
                 throw new Error('School prefix not found');
             }
 
@@ -91,7 +96,7 @@ const ListAcademicYears: React.FC = () => {
                 const response = await updateAcademicYear(
                     editingYear.id,
                     { name },
-                    schoolInfo.schoolPrefix
+                    schoolPrefix
                 );
                 if (response.status === true) {
                     setAcademicYears(prevYears => prevYears.map(year => {
@@ -114,7 +119,7 @@ const ListAcademicYears: React.FC = () => {
                     });
                 }
             } else {
-                const response = await createAcademicYear({ name, is_current }, schoolInfo.schoolPrefix);
+                const response = await createAcademicYear({ name, is_current }, schoolPrefix);
                 if (response.status === true) {
                     const newYear = {
                         id: response.data.id,
@@ -157,10 +162,10 @@ const ListAcademicYears: React.FC = () => {
 
     const handleDelete = async (id: number) => {
         try {
-            if (!schoolInfo.schoolPrefix) {
+            if (!schoolPrefix) {
                 throw new Error('School prefix not found');
             }
-            const response = await deleteAcademicYear(id, schoolInfo.schoolPrefix);
+            const response = await deleteAcademicYear(id, schoolPrefix);
             if (response.status === true) {
                 setAcademicYears(years => years.filter(year => year.id !== id));
                 setSelectedYears(selected => selected.filter(yearId => yearId !== id));

@@ -5,6 +5,7 @@ import { createParent, updateParent } from '../../api/superAdmin';
 import { useSchoolContext } from '../../contexts/SchoolContext';
 import * as Yup from 'yup';
 import { Parent } from '../../types/Types';
+import { useSelector } from 'react-redux';
 
 interface CreateParentProps {
     initialData: Parent | null;
@@ -38,11 +39,13 @@ const validationSchema = Yup.object().shape({
 });
 
 const CreateParent: React.FC<CreateParentProps> = ({ initialData, onSave, onCancel }) => {
+    const { staffInfo } = useSelector((state: any) => state.staffInfo);
     const { schoolInfo } = useSchoolContext();
+    const schoolPrefix = schoolInfo.schoolPrefix || staffInfo.schoolCode;
 
     const handleSubmit = async (values: Parent, { setSubmitting, setFieldError }: any) => {
         try {
-            if (!schoolInfo.schoolPrefix) {
+            if (!schoolPrefix) {
                 throw new Error("School prefix not found");
             }
 
@@ -51,12 +54,12 @@ const CreateParent: React.FC<CreateParentProps> = ({ initialData, onSave, onCanc
                 response = await updateParent(
                     initialData.id,
                     values,
-                    schoolInfo.schoolPrefix
+                    schoolPrefix
                 );
             } else {
                 response = await createParent(
                     values,
-                    schoolInfo.schoolPrefix
+                    schoolPrefix
                 );
             }
 

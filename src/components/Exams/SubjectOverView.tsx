@@ -1,15 +1,6 @@
 import React from "react";
 import { StudentExam, SubjectExam } from "./ClassTeacherView";
-// import { ExamStudent, Subject } from "../../types/Types";
 
-
-// type Subject = {
-//     subjectName: string;
-//     maxMark: number;
-//     markEntryStatus: "Partial" | "Completed";
-// };
-
-// type SubjectsRecord = Record<string, Subject>;
 
 type PropType = {
     subjects: SubjectExam[];
@@ -34,9 +25,9 @@ const SubjectOverView = ({
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                 Name
                             </th>
-                            {Object.values(subjects).map((subject, index) => (
+                            {subjects.map((subject) => (
                                 <th
-                                    key={index}
+                                    key={subject.subjectId}
                                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
                                 >
                                     {subject.subjectName}
@@ -53,23 +44,18 @@ const SubjectOverView = ({
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {student.name}
                                 </td>
-                                {Object.entries(subjects).map(
-                                    ([subjectId, subject]) => {
-                                        const mark =
-                                            student?.subjectMarks?.[subjectId];
-                                        return (
-                                            <td
-                                                key={subjectId}
-                                                className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 cursor-pointer hover:bg-gray-50"
-                                                onClick={() =>
-                                                    setSelectedSubject(subject)
-                                                }
-                                            >
-                                                {mark  ? mark : "-"}
-                                            </td>
-                                        );
-                                    }
-                                )}
+                                {subjects.map((subject) => {
+                                    const mark = student?.subjectMarks?.[subject.subjectId];
+                                    return (
+                                        <td
+                                            key={subject.subjectId}
+                                            className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 cursor-pointer hover:bg-gray-50"
+                                            onClick={() => setSelectedSubject(subject)}
+                                        >
+                                            {mark ?? "-"}
+                                        </td>
+                                    );
+                                })}
                             </tr>
                         ))}
                     </tbody>

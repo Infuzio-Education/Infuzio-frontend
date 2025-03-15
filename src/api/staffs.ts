@@ -1,16 +1,14 @@
 import axios from "axios";
+import Api from "./axiosConfig";
 import staffEndpoints from "../endpoints/staffs";
-import { Homework, TestMark, UnitTest } from "../types/Types";
+import { Homework, UnitTest, UnitTestMark } from "../types/Types";
 import store from "../redux/store/store";
 import { logout } from "../redux/slices/staffSlice/staffSlice";
+
 
 interface StaffInfo {
     staffToken: string;
 }
-
-const BASE_URL = import.meta.env.VITE_BASE_URL;
-
-const Api = axios.create({ baseURL: BASE_URL, withCredentials: true });
 
 Api.interceptors.request.use(
     (config) => {
@@ -35,6 +33,7 @@ Api.interceptors.request.use(
     }
 );
 
+
 Api.interceptors.response.use(
     (response) => response,
     (error) => {
@@ -51,9 +50,7 @@ Api.interceptors.response.use(
             return Promise.reject(error);
         }
 
-        console.log("Error Response:", error.response);
-
-        //If token expired, clear Redux store and redirect
+        // If token expired, clear Redux store and redirect
         if (error.response.status === 401) {
             store.dispatch(logout()); // Clear Redux store
             localStorage.removeItem("accessToken"); // Clear token
@@ -63,6 +60,7 @@ Api.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
 
 export const staffLogin = async (body: {
     username: string;
@@ -155,7 +153,7 @@ export const updateAttendance = async (body: {
     }[];
 }) => {
     try {
-        const response = await Api.post(staffEndpoints.postAttendance, body);
+        const response = await Api.put(staffEndpoints.postAttendance, body);
         return response;
     } catch (error) {
         if (axios.isAxiosError(error)) {
@@ -476,11 +474,11 @@ export const postponeUnitTest = async (unit_test_id: number) => {
     }
 };
 
-export const postUnitTestmark = async (markPayload: TestMark[]) => {
+export const updateUnitTestmark = async (markPayload: UnitTestMark[]) => {
     try {
-        const response = await Api.post(
+        const response = await Api.put(
             staffEndpoints.unitTestMark,
-            markPayload?.map((item) => ({ ...item, IsAbsent: item?.isAbsent }))
+            markPayload?.map((item) => ({ ...item, is_absent: item?.is_absent }))
         );
         return response.data;
     } catch (error) {
@@ -520,25 +518,6 @@ export const publishUnitTestMark = async (unit_test_id: number) => {
     }
 };
 
-export const updateUnitTestMark = async (data: TestMark[]) => {
-    try {
-        const payload = [...data]?.map(
-            ({ unit_test_mark_id, mark, isAbsent }) => ({
-                unit_test_mark_id,
-                mark,
-                is_absent: isAbsent,
-            })
-        );
-        const response = await Api.patch(staffEndpoints?.unitTestMark, payload);
-        if (response?.data && response?.data?.status === true) {
-            return response?.data?.data;
-        }
-        throw new Error("Cannot publish unit test mark");
-    } catch (error) {
-        console.error("Error getting profile info:", error);
-        throw error;
-    }
-};
 
 export const getHomeworkTeacher = async () => {
     try {
@@ -860,9 +839,7 @@ export const postTermExamMark = async (
         );
 
         if (response?.data?.status) {
-            console.log(response?.data);
-
-            return response?.data?.data || [];
+            return response?.data || [];
         }
         return [];
     } catch (error) {
@@ -874,7 +851,7 @@ export const postTermExamMark = async (
 export const getAllStudentsInSchool = async (
     prefix: string,
     page = 1,
-    limit = 10
+    limit = 1000
 ) => {
     try {
         const response = await Api.get(staffEndpoints?.allStudentsInSchool, {
@@ -955,3 +932,39 @@ export const updateStaffAttendance = async (body: {
         throw error;
     }
 };
+
+export const deleteUnitTest = async (testId: number) => {
+    try {
+        const response = await Api.delete(`${staffEndpoints.deleteUnitTest}?unit_test_id=${testId}`);
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+
+export const publishTermExamMarks = async (term_exam_subject_ids: number[], class_id: number) => {
+    try {
+        const response = await Api.patch(`${staffEndpoints?.publishTermExamtMark}/${"publish"}`, {
+            term_exam_subject_ids,
+            class_id
+        });
+        return response.data;
+    } catch (error) {
+        console.log("Error publishing term exam marks", error);
+        throw error;
+    }
+};
+
+export const unPublishTermExamMarks = async (term_exam_subject_ids: number[], class_id: number) => {
+    try {
+        const response = await Api.patch(`${staffEndpoints?.publishTermExamtMark}/${"pending"}`, {
+            term_exam_subject_ids,
+            class_id
+        });
+        return response.data;
+    } catch (error) {
+        console.log("Error unpublishing term exam marks", error);
+        throw error;
+    }
+}

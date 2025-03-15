@@ -37,6 +37,14 @@ const StudentList = () => {
     const limit = 10; // Define a limit for the number of students per page
 
     useEffect(() => {
+        setStudents([]);
+        setPage(1);
+        setHasMore(true);
+        setLoading(true);
+        setError(null);
+    }, [fromClass?.id]);
+
+    useEffect(() => {
         fetchStudents(page, limit);
     }, [fromClass?.id, page]);
 
@@ -47,7 +55,9 @@ const StudentList = () => {
     const fetchStudents = async (page: number, limit: number) => {
         try {
             const { students, hasMore } = await getStudentsDetails(fromClass?.id, page, limit);
-            setStudents((prevStudents) => [...prevStudents, ...students]);
+            setStudents(prevStudents =>
+                page === 1 ? students : [...prevStudents, ...students]
+            );
             setHasMore(hasMore);
             setLoading(false);
         } catch (error) {

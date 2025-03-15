@@ -34,8 +34,8 @@ const GridView: React.FC<GridViewProps> = ({
     items,
     selectedItems,
     onSelect,
-    onDelete = () => {},
-    onItemClick = () => {},
+    onDelete = () => { },
+    onItemClick = () => { },
     getItemContent,
     showDeleteIcon = true,
 }) => {

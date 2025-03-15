@@ -39,6 +39,7 @@ const ClassTeacherView = ({
     const [subjects, setSubjects] = useState<SubjectExam[]>([]);
     const [students, setStudents] = useState<StudentExam[]>([]);
     const [studentMark, setStudentMark] = useState<StudentMark[]>([]);
+    const [currentPublishStatus, setCurrentPublishStatus] = useState(false);
 
     useEffect(() => {
         if (selectedClass?.isClassTeacher && selectedExam) {
@@ -56,10 +57,10 @@ const ClassTeacherView = ({
                         studentName: name,
                         mark:
                             subjectMarks?.[selectedSubject?.subjectId] !==
-                            "absent"
+                                "absent"
                                 ? Number(
-                                      subjectMarks?.[selectedSubject?.subjectId]
-                                  ) || null
+                                    subjectMarks?.[selectedSubject?.subjectId]
+                                ) || null
                                 : null, // Ensure it's a number or null
                         isAbsent:
                             subjectMarks?.[selectedSubject?.subjectId] ===
@@ -81,6 +82,7 @@ const ClassTeacherView = ({
                 termExamId,
                 classId
             );
+            setCurrentPublishStatus(res?.marksPublished || false);
             setStudents(res?.students || []);
             setSubjects(res?.subjects || {});
             console.log("res", res);
@@ -88,6 +90,30 @@ const ClassTeacherView = ({
             message?.error("Couldn't fetch mark details");
             console.log(error);
         }
+    };
+
+    const handleSaveSuccess = (updatedMarks: StudentMark[]) => {
+        if (!selectedSubject) return;
+
+        setStudents(prevStudents =>
+            prevStudents.map(student => {
+                const updatedMark = updatedMarks.find(m =>
+                    m.studentID === student.studentID
+                );
+
+                if (updatedMark) {
+                    return {
+                        ...student,
+                        subjectMarks: {
+                            ...student.subjectMarks,
+                            [selectedSubject.subjectId]:
+                                updatedMark.isAbsent ? 'absent' : updatedMark.mark
+                        }
+                    };
+                }
+                return student;
+            })
+        );
     };
 
     return (
@@ -99,9 +125,12 @@ const ClassTeacherView = ({
             />
 
             <ClassTeacherSubjectSelectionTab
+                selectedClass={selectedClass}
                 selectedSubject={selectedSubject}
                 setSelectedSubject={setSelectedSubject}
                 subjects={subjects}
+                isPublished={currentPublishStatus}
+                onPublishStatusChange={setCurrentPublishStatus}
             />
 
             {!selectedSubject && (
@@ -125,6 +154,7 @@ const ClassTeacherView = ({
                     selectedExam={selectedExam}
                     setStudentMark={setStudentMark}
                     onBack={() => setSelectedSubject(null)}
+                    onSaveSuccess={handleSaveSuccess}
                 />
             )}
         </div>

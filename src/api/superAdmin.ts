@@ -14,34 +14,20 @@ interface SuperAdminInfo {
     token: string;
 }
 
-interface StaffInfo {
-    staffToken: string;
-}
 
 Api.interceptors.request.use(
     (config) => {
-        const superAdminInfoString =
-            localStorage.getItem("superAdminInfo") || "";
-        const staffInfoString = localStorage.getItem("staffInfo") || "";
+        const superAdminInfoString = localStorage.getItem('superAdminInfo');
 
-        if (superAdminInfoString || staffInfoString) {
+        if (superAdminInfoString) {
             try {
-                const superAdminInfo = JSON.parse(
-                    superAdminInfoString
-                ) as SuperAdminInfo;
-
-                const staffInfo = JSON.parse(staffInfoString) as StaffInfo;
+                const superAdminInfo = JSON.parse(superAdminInfoString) as SuperAdminInfo;
 
                 if (superAdminInfo && superAdminInfo.token) {
-                    config.headers["Authorization"] = `${
-                        staffInfo?.staffToken || superAdminInfo.token
-                    }`;
+                    config.headers['Authorization'] = `${superAdminInfo.token}`;
                 }
             } catch (e) {
-                console.error(
-                    "Error parsing superAdminInfo from localStorage:",
-                    e
-                );
+                console.error('Error parsing superAdminInfo from localStorage:', e);
             }
         }
 
@@ -1170,13 +1156,13 @@ export const getPrivilegedStaff = async (schoolPrefix: string) => {
                     data: response.data.data.map((staff: any) => ({
                         staffId: staff.staffId,
                         name: staff.name,
+                        regNumber: staff.regNumber,
                         idCardNumber: staff.idCardNumber,
                         mobile: staff.mobile,
                         specialPrivileges: staff.specialPrivileges,
                     })),
                 };
             } else {
-                // Return empty array if no data
                 return {
                     status: true,
                     data: [],
@@ -2245,6 +2231,19 @@ export const deleteTimetable = async (id: number) => {
             console.error("Error deleting timetable:", error.response);
             throw error;
         }
+        throw error;
+    }
+};
+
+export const simpleStaffList = async (schoolPrefix?: string) => {
+    try {
+        let url = `${superAdminEndpoints.simpleStaffList}`;
+        if (schoolPrefix) {
+            url = `${superAdminEndpoints.simpleStaffList}?school_prefix=${schoolPrefix}`;
+        }
+        const response = await Api.get(url);
+        return response.data;
+    } catch (error) {
         throw error;
     }
 };

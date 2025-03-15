@@ -22,6 +22,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../redux/store/store";
 import { getProfileInfo } from "../../api/staffs";
 import { message } from "antd";
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from "@mui/material";
 
 interface SidebarProps {
     children?: React.ReactNode;
@@ -35,6 +36,7 @@ const Sidebar: React.FC<SidebarProps> = () => {
         (state: RootState) => state.staffInfo.staffInfo
     );
     const [collapsed, setCollapsed] = useState(false);
+    const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
 
     useEffect(() => {
         if (staffInfo) {
@@ -76,8 +78,17 @@ const Sidebar: React.FC<SidebarProps> = () => {
     };
 
     const handleLogout = () => {
+        setLogoutConfirmOpen(true);
+    };
+
+    const handleLogoutConfirmed = () => {
         dispatch(logout());
         navigate("/staffs/login");
+        setLogoutConfirmOpen(false);
+    };
+
+    const handleCancelLogout = () => {
+        setLogoutConfirmOpen(false);
     };
 
     const hasSchoolAdminPrivilege = staffInfo?.specialPrivileges?.some(
@@ -89,7 +100,7 @@ const Sidebar: React.FC<SidebarProps> = () => {
     );
 
     const isSchoolHead = staffInfo?.specialPrivileges?.some(
-        (privilege) => privilege.privilege === "schoolHead"
+        (privilege) => privilege.privilege === "schoolHead" || privilege.privilege === "schoolDeputyHead"
     );
 
     return (
@@ -351,6 +362,27 @@ const Sidebar: React.FC<SidebarProps> = () => {
                     <Outlet />
                 </div>
             </div >
+
+            <Dialog
+                open={logoutConfirmOpen}
+                onClose={handleCancelLogout}
+                aria-labelledby="logout-dialog-title"
+            >
+                <DialogTitle id="logout-dialog-title">Confirm Logout</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to log out of the system?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCancelLogout} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleLogoutConfirmed} color="error" variant="contained">
+                        Confirm Logout
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div >
     );
 };

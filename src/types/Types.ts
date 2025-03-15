@@ -603,6 +603,7 @@ export interface UnitTest {
     subject_id: number;
     class_id: number;
     portion_desc: string;
+    class_name: string;
     date: string;
     max_mark: number;
     pass_mark: number;
@@ -611,7 +612,7 @@ export interface UnitTest {
     | "Completed"
     | "Not started"
     | "Cancelled"
-    | "Postponed Indefinitely"
+    | "Postponed"
     | "Published";
     created_staff_id: number;
     FKSubjectID: {
@@ -627,12 +628,11 @@ export interface StudentDetailsProps {
     onDelete: (id: number) => void;
 }
 
-// Add these interfaces for UnitTests
-export interface TestMark {
+export interface UnitTestMark {
     student_id: string;
-    unit_test_mark_id: number;
+    unit_test_id: number;
     mark: number;
-    isAbsent: boolean;
+    is_absent: boolean;
 }
 
 export interface PublishStatus {
@@ -739,10 +739,12 @@ export interface StudentMark {
     name: string;
     update_at: string;
     student_id: number;
+    obtained_mark: number;
     roll_number: number;
     is_failed: boolean;
     is_absent: boolean;
     class_id: number;
+    max_mark: number;
 }
 
 export interface Student {
@@ -1001,7 +1003,7 @@ export interface Privilege {
 export interface PrivilegedStaffResponse {
     staffId: number;
     name: string;
-    idCardNumber: string;
+    regNumber: string;
     mobile: string;
     specialPrivileges: Privilege[];
 }
