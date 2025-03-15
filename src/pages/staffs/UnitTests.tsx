@@ -231,11 +231,11 @@ const UnitTests = () => {
 
     const handleStatusChange = async (testId: number, status: string) => {
         try {
-            if (status === "Completed") {
+            if (status === "completed") {
                 await completeUnitTest(testId);
-            } else if (status === "Postponed") {
+            } else if (status === "postponed") {
                 await postponeUnitTest(testId);
-            } else if (status === "Cancelled") {
+            } else if (status === "cancelled") {
                 await cancelUnitTest(testId);
             }
             fetchUnitTests();

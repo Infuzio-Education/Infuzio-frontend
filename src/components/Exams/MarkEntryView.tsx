@@ -26,14 +26,15 @@ type PropType = {
     studentMark: StudentMark[];
     setStudentMark: React.Dispatch<React.SetStateAction<StudentMark[]>>;
     onBack: () => void;
+    onSaveSuccess: (updatedMarks: StudentMark[]) => void;
 };
 
 const MarkEntryView = ({
     selectedSubject,
     studentMark,
-    // selectedExam,
     setStudentMark,
     onBack,
+    onSaveSuccess,
 }: PropType) => {
     const [grades] = useState<GradeSystem[]>([
         { id: 1, category_id: 1, base_percentage: 90, grade_label: "A+" },
@@ -56,9 +57,12 @@ const MarkEntryView = ({
                 obtained_mark: item?.mark || 0,
                 is_absent: item?.isAbsent,
             }));
-            await postTermExamMark(payload);
-            message?.success("Marks updated");
-            setIsSaving(false);
+            const response = await postTermExamMark(payload);
+            if (response?.resp_code === 'SUCCESS') {
+                message?.success("Marks updated");
+                setIsSaving(false);
+                onSaveSuccess(studentMark);
+            }
         } catch (error) {
             console.log(error);
             setIsSaving(false);
@@ -182,11 +186,11 @@ const MarkEntryView = ({
                                                         false
                                                     );
                                                 }}
+                                                onWheel={(e) => (e.target as HTMLInputElement).blur()}
                                                 disabled={student?.isAbsent}
                                                 min="0"
                                                 max={maxMarks}
-                                                className="w-20 px-3 py-1 border rounded focus:outline-none focus:ring-2 
-                                            focus:ring-emerald-500 disabled:bg-gray-100"
+                                                className="w-20 px-3 py-1 border rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-100"
                                             />
                                             <span className="text-sm text-gray-500">
                                                 / {maxMarks}
@@ -195,25 +199,24 @@ const MarkEntryView = ({
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span
-                                            className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                                student?.isAbsent
-                                                    ? "bg-gray-100 text-gray-600"
-                                                    : percentage >= 90
+                                            className={`px-3 py-1 rounded-full text-sm font-medium ${student?.isAbsent
+                                                ? "bg-gray-100 text-gray-600"
+                                                : percentage >= 90
                                                     ? "bg-emerald-100 text-emerald-700"
                                                     : percentage >= 80
-                                                    ? "bg-blue-100 text-blue-700"
-                                                    : percentage >= 70
-                                                    ? "bg-yellow-100 text-yellow-700"
-                                                    : "bg-red-100 text-red-700"
-                                            }`}
+                                                        ? "bg-blue-100 text-blue-700"
+                                                        : percentage >= 70
+                                                            ? "bg-yellow-100 text-yellow-700"
+                                                            : "bg-red-100 text-red-700"
+                                                }`}
                                         >
                                             {student?.isAbsent
                                                 ? "-"
                                                 : calculateGrade(
-                                                      mark || 0,
-                                                      maxMarks,
-                                                      grades
-                                                  )}
+                                                    mark || 0,
+                                                    maxMarks,
+                                                    grades
+                                                )}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -261,11 +264,10 @@ const MarkEntryView = ({
                                 <div
                                     className="h-full bg-emerald-500 transition-all duration-500"
                                     style={{
-                                        width: `${
-                                            (getMarkStatus().markedStudents /
-                                                getMarkStatus().totalStudents) *
+                                        width: `${(getMarkStatus().markedStudents /
+                                            getMarkStatus().totalStudents) *
                                             100
-                                        }%`,
+                                            }%`,
                                     }}
                                 ></div>
                             </div>
@@ -286,11 +288,10 @@ const MarkEntryView = ({
                             disabled={isSaving}
                             className={`px-6 py-2 bg-emerald-600 text-white rounded-lg 
                         transition-all duration-200 flex items-center gap-2
-                        ${
-                            isSaving
-                                ? "opacity-70 cursor-not-allowed"
-                                : "hover:bg-emerald-700 hover:shadow-md"
-                        }`}
+                        ${isSaving
+                                    ? "opacity-70 cursor-not-allowed"
+                                    : "hover:bg-emerald-700 hover:shadow-md"
+                                }`}
                         >
                             {isSaving ? (
                                 <>

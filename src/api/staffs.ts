@@ -839,9 +839,7 @@ export const postTermExamMark = async (
         );
 
         if (response?.data?.status) {
-            console.log(response?.data);
-
-            return response?.data?.data || [];
+            return response?.data || [];
         }
         return [];
     } catch (error) {
@@ -943,3 +941,30 @@ export const deleteUnitTest = async (testId: number) => {
         throw error;
     }
 };
+
+
+export const publishTermExamMarks = async (term_exam_subject_ids: number[], class_id: number) => {
+    try {
+        const response = await Api.patch(`${staffEndpoints?.publishTermExamtMark}/${"publish"}`, {
+            term_exam_subject_ids,
+            class_id
+        });
+        return response.data;
+    } catch (error) {
+        console.log("Error publishing term exam marks", error);
+        throw error;
+    }
+};
+
+export const unPublishTermExamMarks = async (term_exam_subject_ids: number[], class_id: number) => {
+    try {
+        const response = await Api.patch(`${staffEndpoints?.publishTermExamtMark}/${"pending"}`, {
+            term_exam_subject_ids,
+            class_id
+        });
+        return response.data;
+    } catch (error) {
+        console.log("Error unpublishing term exam marks", error);
+        throw error;
+    }
+}
