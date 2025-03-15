@@ -124,11 +124,13 @@ const SchoolHeadAttendance = () => {
 
     const handleSubmitAttendance = async () => {
         try {
-            // Create a payload with only the changed entries
-            const changedAttendances = newAttendance.filter(newAtt => {
-                const existingAtt = attendanceData.find(att => att.staffID === newAtt.staffID);
-                return existingAtt && existingAtt.status !== newAtt.status;
-            });
+            // Modified logic to handle initial submissions
+            const changedAttendances = attendanceData.length === 0
+                ? newAttendance  // For initial submission, take all entries
+                : newAttendance.filter(newAtt => {
+                    const existingAtt = attendanceData.find(att => att.staffID === newAtt.staffID);
+                    return !existingAtt || existingAtt.status !== newAtt.status;
+                });
 
             if (changedAttendances.length === 0) {
                 message?.info("No changes to submit");
@@ -136,6 +138,7 @@ const SchoolHeadAttendance = () => {
                 return;
             }
 
+            // Rest of the function remains the same
             const payload = {
                 attendanceDate: selectedDate.toISOString().split("T")[0],
                 attendances: changedAttendances,
@@ -161,11 +164,13 @@ const SchoolHeadAttendance = () => {
         setIsModalOpen(true);
     };
 
-    const filteredStaffModal = staffData.filter(staff =>
-        [staff.name, staff.regNumber].some(field =>
-            field?.toLowerCase().includes(modalSearchTerm.toLowerCase())
+    const filteredStaffModal = staffData
+        .filter(staff =>
+            [staff.name, staff.regNumber].some(field =>
+                field?.toLowerCase().includes(modalSearchTerm.toLowerCase())
+            )
         )
-    );
+        .sort((a, b) => a.name.localeCompare(b.name));
 
     const filteredAttendanceData = attendanceData.filter(attendance =>
         [attendance.staffName, attendance.staffID.toString()].some(field =>
