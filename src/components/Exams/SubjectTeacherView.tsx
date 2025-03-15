@@ -128,6 +128,7 @@ const SubjectTeacherView = ({
                     setStudentMark={setStudentMark}
                     studentMark={studentMark}
                     selectedExam={selectedExam}
+                    onSaveSuccess={() => { }}
                 />
             )}
         </div>

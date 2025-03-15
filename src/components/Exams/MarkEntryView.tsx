@@ -62,6 +62,7 @@ const MarkEntryView = ({
                 message?.success("Marks updated");
                 setIsSaving(false);
                 onSaveSuccess(studentMark);
+                onBack();
             }
         } catch (error) {
             console.log(error);

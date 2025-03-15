@@ -1,15 +1,6 @@
 import React from "react";
 import { StudentExam, SubjectExam } from "./ClassTeacherView";
-// import { ExamStudent, Subject } from "../../types/Types";
 
-
-// type Subject = {
-//     subjectName: string;
-//     maxMark: number;
-//     markEntryStatus: "Partial" | "Completed";
-// };
-
-// type SubjectsRecord = Record<string, Subject>;
 
 type PropType = {
     subjects: SubjectExam[];
