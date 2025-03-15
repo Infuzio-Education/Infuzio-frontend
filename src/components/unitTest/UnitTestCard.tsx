@@ -84,12 +84,13 @@ const UnitTestCard = ({
                         >
                             <span
                                 className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 cursor-pointer ${test.status === 'Published' ? 'bg-blue-100 text-blue-700' :
-                                    test.status === 'Postponed' ? 'bg-yellow-100 text-yellow-700' :
-                                        test.status === 'Completed' ? 'bg-green-100 text-green-700' :
-                                            'bg-red-100 text-red-700'
+                                        test.status === 'Postponed' ? 'bg-yellow-100 text-yellow-700' :
+                                            test.status === 'Completed' ? 'bg-green-100 text-green-700' :
+                                                test.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
+                                                    'bg-white text-gray-700 border border-gray-200'
                                     }`}
                             >
-                                {test.status}
+                                {test.status || "Change Status"}
                                 {test.status !== "Published" && test.status !== "Cancelled" && (
                                     <ChevronDown size={16} className="ml-1" />
                                 )}
